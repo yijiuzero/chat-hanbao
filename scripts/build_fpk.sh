@@ -16,14 +16,6 @@ echo "  Chat Hanbao FPK 打包"
 echo "  版本: ${VERSION}"
 echo "========================================="
 
-# 检查 fnpack 工具
-if ! command -v fnpack &> /dev/null; then
-    echo "[WARN] fnpack 未找到，请从以下地址下载:"
-    echo "  https://developer.fnnas.com/"
-    echo "  并确保 fnpack 在 PATH 中"
-    exit 1
-fi
-
 # 清理并创建构建目录
 rm -rf "${BUILD_DIR}"
 mkdir -p "${BUILD_DIR}"
@@ -48,12 +40,17 @@ fi
 # 打包 FPK
 echo "[4/4] 打包 FPK..."
 cd "${BUILD_DIR}"
-fnpack create "${FPK_NAME}" .
+if command -v fnpack &> /dev/null; then
+    fnpack create "${FPK_NAME}" .
+else
+    echo "[INFO] fnpack 未找到，使用 tar 兜底打包（飞牛通常可直接识别 .fpk 为 tar.gz）"
+    tar -czf "${PROJECT_DIR}/build/${FPK_NAME}" -C "${BUILD_DIR}" .
+fi
 
 echo ""
 echo "========================================="
 echo "  打包完成！"
-echo "  文件: ${BUILD_DIR}/${FPK_NAME}"
+echo "  文件: ${PROJECT_DIR}/build/${FPK_NAME}"
 echo "========================================="
 echo ""
 echo "安装到飞牛 NAS:"
