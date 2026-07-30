@@ -1,0 +1,8 @@
+{
+  "appname": "chat-hanbao",
+  "install_type": "root",
+  "privilege": {
+    "root": true,
+    "reason": "Docker 容器需要 root 权限管理容器生命周期"
+  }
+}

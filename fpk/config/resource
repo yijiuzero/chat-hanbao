@@ -1,0 +1,7 @@
+{
+  "appname": "chat-hanbao",
+  "resource": {
+    "type": "docker-project",
+    "description": "Docker Compose 编排的多容器应用"
+  }
+}

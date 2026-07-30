@@ -1,0 +1,78 @@
+name: Build & Push Docker Images
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+env:
+  DOCKERHUB_REPO: yijiuzero/chat-hanbao
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          if [ -z "$VERSION" ]; then VERSION=latest; fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Build & Push PostgreSQL
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend/postgres
+          push: true
+          tags: |
+            yijiuzero/chat-hanbao-postgres:${{ steps.meta.outputs.version }}
+            yijiuzero/chat-hanbao-postgres:latest
+
+      - name: Build & Push Redis
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend/redis
+          push: true
+          tags: |
+            yijiuzero/chat-hanbao-redis:${{ steps.meta.outputs.version }}
+            yijiuzero/chat-hanbao-redis:latest
+
+      - name: Build & Push Backend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: true
+          tags: |
+            yijiuzero/chat-hanbao-backend:${{ steps.meta.outputs.version }}
+            yijiuzero/chat-hanbao-backend:latest
+
+      - name: Build & Push Frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: true
+          tags: |
+            yijiuzero/chat-hanbao-frontend:${{ steps.meta.outputs.version }}
+            yijiuzero/chat-hanbao-frontend:latest
+
+      - name: Summary
+        run: |
+          echo "✅ 所有镜像已推送"
+          echo "  - yijiuzero/chat-hanbao-postgres:${{ steps.meta.outputs.version }}"
+          echo "  - yijiuzero/chat-hanbao-redis:${{ steps.meta.outputs.version }}"
+          echo "  - yijiuzero/chat-hanbao-backend:${{ steps.meta.outputs.version }}"
+          echo "  - yijiuzero/chat-hanbao-frontend:${{ steps.meta.outputs.version }}"

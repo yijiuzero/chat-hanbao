@@ -1,0 +1,35 @@
+# 飞牛 FPK 应用清单
+# 应用包元信息
+
+# 应用唯一标识
+appname=chat-hanbao
+
+# 应用显示名称
+display_name=Chat Hanbao
+
+# 版本号（飞牛要求 X.Y.Z 格式）
+version=1.0.0
+
+# 描述
+description=智能聊天机器人 - 支持自然语言理解、多轮对话、会话管理
+
+# 平台（飞牛当前仅支持 x86_64）
+platform=x86
+
+# 最低飞牛系统版本要求
+os_min_version=1.0.0
+
+# 安装类型（root 模式，Docker 需要）
+install_type=root
+
+# 服务端口（前端访问端口）
+service_port=8373
+
+# 是否启用停止控制
+ctl_stop=true
+
+# 作者
+author=泽零
+
+# 许可证
+license=MIT
