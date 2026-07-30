@@ -6,13 +6,21 @@ GitHub Secrets 加密工具
 import json
 import base64
 import sys
+import os
 import urllib.request
 import urllib.error
 from nacl import encoding, public
 
-GITHUB_TOKEN = "REMOVED_GITHUB_PAT"
+# 从环境变量读取，避免把敏感 token 写进代码仓库
+GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN", "")
 REPO_OWNER = "yijiuzero"
 REPO_NAME = "chat-hanbao"
+
+def main_check():
+    if not GITHUB_TOKEN:
+        print("❌ 请先设置环境变量 GITHUB_TOKEN（你的 GitHub PAT）")
+        print('   例如: $env:GITHUB_TOKEN="ghp_xxx" 然后再运行本脚本')
+        sys.exit(1)
 
 def get_public_key():
     """获取 GitHub Actions 公钥"""
@@ -57,6 +65,8 @@ def create_secret(secret_name, encrypted_value, key_id):
         return False
 
 def main():
+    main_check()
+
     # Step 1: Get public key
     print("[1/3] Getting GitHub Actions public key...")
     public_key, key_id = get_public_key()
