@@ -1,12 +1,15 @@
 #!/bin/bash
 # Chat Hanbao - 飞牛 FPK 生命周期控制脚本
-# 用法: main <start|stop|restart|status|install|uninstall>
+# 用法: main <start|stop|restart|status|install|uninstall|logs>
+# 离线模式：安装时自动加载内嵌镜像（app/docker/images/*.tar*），全程不依赖 Docker Hub
 
 set -e
 
 # 应用信息
 APP_NAME="chat-hanbao"
 APP_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+DOCKER_DIR="${APP_DIR}/app/docker"
+IMAGES_DIR="${DOCKER_DIR}/images"
 DOCKER_COMPOSE="docker compose"
 
 # 颜色输出
@@ -15,17 +18,9 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-log_info() {
-    echo -e "${GREEN}[INFO]${NC} $1"
-}
-
-log_warn() {
-    echo -e "${YELLOW}[WARN]${NC} $1"
-}
-
-log_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
-}
+log_info() { echo -e "${GREEN}[INFO]${NC} $1"; }
+log_warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
+log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
 # 检查 Docker 是否可用
 check_docker() {
@@ -33,10 +28,25 @@ check_docker() {
         log_error "Docker 未安装"
         exit 1
     fi
-    
     if ! docker info &> /dev/null; then
         log_error "Docker 守护进程未运行"
         exit 1
+    fi
+}
+
+# 加载内嵌镜像（离线模式）：若存在 app/docker/images/*.tar* 则自动导入
+load_local_images() {
+    if [ -d "$IMAGES_DIR" ]; then
+        local f loaded=0
+        for f in "$IMAGES_DIR"/*.tar*; do
+            [ -e "$f" ] || continue
+            log_info "加载本地镜像: $(basename "$f")"
+            docker load -i "$f"
+            loaded=1
+        done
+        if [ "$loaded" -eq 0 ]; then
+            log_warn "未找到内嵌镜像，将尝试从 Docker Hub 拉取"
+        fi
     fi
 }
 
@@ -44,22 +54,11 @@ check_docker() {
 do_start() {
     log_info "启动 ${APP_NAME}..."
     check_docker
-    
-    cd "${APP_DIR}/app/docker"
-    
-    # 拉取最新镜像
-    log_info "拉取 Docker 镜像..."
-    ${DOCKER_COMPOSE} pull
-    
-    # 启动服务
-    log_info "启动容器..."
+    cd "${DOCKER_DIR}"
+    log_info "启动容器（使用本地镜像，不联网拉取）..."
     ${DOCKER_COMPOSE} up -d
-    
-    # 等待服务就绪
     log_info "等待服务就绪..."
     sleep 5
-    
-    # 检查状态
     if do_status; then
         log_info "${APP_NAME} 启动成功！"
         log_info "前端访问: http://localhost:8373"
@@ -74,10 +73,8 @@ do_start() {
 do_stop() {
     log_info "停止 ${APP_NAME}..."
     check_docker
-    
-    cd "${APP_DIR}/app/docker"
+    cd "${DOCKER_DIR}"
     ${DOCKER_COMPOSE} down
-    
     log_info "${APP_NAME} 已停止"
 }
 
@@ -92,13 +89,9 @@ do_restart() {
 # 检查应用状态
 do_status() {
     check_docker
-    
-    cd "${APP_DIR}/app/docker"
-    
-    # 检查容器状态
+    cd "${DOCKER_DIR}"
     local running=$(${DOCKER_COMPOSE} ps --format json 2>/dev/null | grep -c '"State":"running"' || echo "0")
     local total=$(${DOCKER_COMPOSE} ps --format json 2>/dev/null | grep -c '"Name"' || echo "0")
-    
     if [ "$running" -eq "$total" ] && [ "$total" -gt 0 ]; then
         log_info "运行中 (${running}/${total} 容器运行)"
         return 0
@@ -111,16 +104,14 @@ do_status() {
     fi
 }
 
-# 安装初始化
+# 安装初始化（离线加载镜像）
 do_install() {
     log_info "安装 ${APP_NAME}..."
     check_docker
-    
-    # 创建数据目录
-    mkdir -p "${APP_DIR}/app/docker/data/postgres"
-    mkdir -p "${APP_DIR}/app/docker/data/redis"
-    mkdir -p "${APP_DIR}/app/docker/logs"
-    
+    load_local_images
+    mkdir -p "${DOCKER_DIR}/data/postgres"
+    mkdir -p "${DOCKER_DIR}/data/redis"
+    mkdir -p "${DOCKER_DIR}/logs"
     log_info "安装完成，请运行 'main start' 启动应用"
 }
 
@@ -128,43 +119,27 @@ do_install() {
 do_uninstall() {
     log_info "卸载 ${APP_NAME}..."
     check_docker
-    
-    cd "${APP_DIR}/app/docker"
+    cd "${DOCKER_DIR}"
     ${DOCKER_COMPOSE} down -v 2>/dev/null || true
-    
     log_info "卸载完成"
 }
 
 # 查看日志
 do_logs() {
     check_docker
-    cd "${APP_DIR}/app/docker"
+    cd "${DOCKER_DIR}"
     ${DOCKER_COMPOSE} logs -f --tail=100
 }
 
 # 主入口
 case "${1}" in
-    start)
-        do_start
-        ;;
-    stop)
-        do_stop
-        ;;
-    restart)
-        do_restart
-        ;;
-    status)
-        do_status
-        ;;
-    install)
-        do_install
-        ;;
-    uninstall)
-        do_uninstall
-        ;;
-    logs)
-        do_logs
-        ;;
+    start)      do_start ;;
+    stop)       do_stop ;;
+    restart)    do_restart ;;
+    status)     do_status ;;
+    install)    do_install ;;
+    uninstall)  do_uninstall ;;
+    logs)       do_logs ;;
     *)
         echo "用法: $0 <start|stop|restart|status|install|uninstall|logs>"
         echo ""
@@ -173,7 +148,7 @@ case "${1}" in
         echo "  stop      停止应用"
         echo "  restart   重启应用"
         echo "  status    查看状态"
-        echo "  install   初始化安装"
+        echo "  install   初始化安装（加载内嵌镜像）"
         echo "  uninstall 卸载清理"
         echo "  logs      查看日志"
         exit 1

@@ -14,7 +14,7 @@ version=1.0.0
 description=智能聊天机器人 - 支持自然语言理解、多轮对话、会话管理
 
 # 平台（飞牛当前仅支持 x86_64）
-platform=x86
+platform=x86_64
 
 # 最低飞牛系统版本要求
 os_min_version=1.0.0
