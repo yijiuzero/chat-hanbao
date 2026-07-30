@@ -41,3 +41,16 @@ logs/
 # Docker
 docker-compose.override.yml
 .git-rewrite/
+
+# ---- 构建工具与产物（不入库） ----
+# 飞牛官方 fnpack 打包工具（二进制，体积大）
+tools/
+# 生成的 fpk 安装包
+*.fpk
+fpk/chat-hanbao.fpk
+# Actions 内嵌的镜像包（体积大，每次 CI 重新生成）
+fpk/app/docker/images/
+# 临时轮询/发布辅助文件
+rel.json
+rel_poll.json
+scripts/poll_release.sh

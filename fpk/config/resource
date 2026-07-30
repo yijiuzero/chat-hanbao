@@ -1,7 +1,20 @@
 {
-  "appname": "chat-hanbao",
-  "resource": {
-    "type": "docker-project",
-    "description": "Docker Compose 编排的多容器应用"
+  "docker-project": {
+    "projects": [
+      {
+        "name": "chat-hanbao",
+        "path": "docker"
+      }
+    ]
+  },
+  "data-share": {
+    "shares": [
+      {
+        "name": "chat-hanbao"
+      },
+      {
+        "name": "chat-hanbao/data"
+      }
+    ]
   }
 }

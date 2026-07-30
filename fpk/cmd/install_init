@@ -1,0 +1,27 @@
+#!/bin/bash
+
+### This script is called before the user installs the application.
+
+# 离线安装：把 fpk 内嵌的镜像加载到本机 docker
+# 飞牛没有自动导入 docker 镜像的 UI，必须由应用自己 load。
+# 镜像包位于 app 根目录下的 docker/images/，对应变量 TRIM_APPDEST/docker/images
+load_images() {
+    local root="$1"
+    local dir="$root/docker/images"
+    [ -d "$dir" ] || return 0
+    for f in "$dir"/*.tar.gz "$dir"/*.tar; do
+        [ -e "$f" ] || continue
+        echo "Loading embedded docker image: $f"
+        if gunzip -c "$f" 2>/dev/null | docker load; then
+            echo "  -> loaded"
+        else
+            docker load -i "$f" && echo "  -> loaded" || echo "  -> load failed: $f"
+        fi
+    done
+}
+
+for base in "${TRIM_APPDEST}" "/var/packages/chat-hanbao" "/var/apps/chat-hanbao"; do
+    [ -n "$base" ] && load_images "$base"
+done
+
+exit 0

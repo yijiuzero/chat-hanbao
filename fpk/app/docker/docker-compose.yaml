@@ -1,59 +1,42 @@
-# Chat Hanbao - 飞牛 NAS Docker Compose
-# 使用预构建的 Docker Hub 镜像
-
-version: '3.8'
-
 services:
   # PostgreSQL 数据库
   postgres:
-    image: yijiuzero/chat-hanbao-postgres:1.0.0
+    image: chat-hanbao-postgres:1.0.0
     container_name: chat-hanbao-postgres
     environment:
       POSTGRES_USER: chatuser
       POSTGRES_PASSWORD: chatpass
       POSTGRES_DB: chatdb
     volumes:
-      - ${TRIM_PKGVAR}/data/postgres:/var/lib/postgresql/data
-    ports:
-      - "5632:5432"
+      - /var/apps/chat-hanbao/shares/chat-hanbao/data/postgres:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U chatuser -d chatdb"]
       interval: 10s
       timeout: 5s
       retries: 5
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          memory: 512M
     networks:
       - chat-network
 
   # Redis 缓存
   redis:
-    image: yijiuzero/chat-hanbao-redis:1.0.0
+    image: chat-hanbao-redis:1.0.0
     container_name: chat-hanbao-redis
     command: redis-server --appendonly yes --maxmemory 64mb --maxmemory-policy allkeys-lru
     volumes:
-      - ${TRIM_PKGVAR}/data/redis:/data
-    ports:
-      - "6399:6379"
+      - /var/apps/chat-hanbao/shares/chat-hanbao/data/redis:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          memory: 128M
     networks:
       - chat-network
 
   # 后端 API 服务
   backend:
-    image: yijiuzero/chat-hanbao-backend:1.0.0
+    image: chat-hanbao-backend:1.0.0
     container_name: chat-hanbao-backend
     environment:
       DATABASE_URL: postgresql+asyncpg://chatuser:chatpass@postgres:5432/chatdb
@@ -63,25 +46,19 @@ services:
       CORS_ORIGINS: '["http://localhost:8373"]'
       NLP_ENGINE: rule
     volumes:
-      - ${TRIM_PKGVAR}/logs:/app/logs
-    ports:
-      - "8399:8000"
+      - /var/apps/chat-hanbao/shares/chat-hanbao/data/logs:/app/logs
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          memory: 256M
     networks:
       - chat-network
 
   # 前端 Web 服务
   frontend:
-    image: yijiuzero/chat-hanbao-frontend:1.0.0
+    image: chat-hanbao-frontend:1.0.0
     container_name: chat-hanbao-frontend
     environment:
       VITE_API_BASE: /api
@@ -90,10 +67,6 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          memory: 128M
     networks:
       - chat-network
 

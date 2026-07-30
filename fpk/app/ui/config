@@ -1,20 +1,13 @@
-# 桌面入口配置
-# 飞牛应用中心显示用
-
-name=Chat Hanbao
-name_en=Chat Hanbao
-
-# 桌面图标（相对 ui/ 目录）
-icon=images/icon.png
-
-# 打开方式：在浏览器中打开
-open_in_browser=true
-
-# 访问路径
-url=/index.html
-
-# 窗口宽度
-width=1200
-
-# 窗口高度
-height=800
+{
+    ".url": {
+        "chat-hanbao.Application": {
+            "title": "Chat Hanbao",
+            "icon": "images/icon_{0}.png",
+            "type": "url",
+            "protocol": "http",
+            "port": "8373",
+            "url": "/",
+            "allUsers": false
+        }
+    }
+}
