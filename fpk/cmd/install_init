@@ -1,27 +1,22 @@
 #!/bin/bash
 
 ### This script is called before the user installs the application.
+### 注意：此刻 fpk 内容尚未解压，不能在这里加载内嵌镜像（见 install_callback）。
+### 这里只做环境前置检查并写日志，方便排查。
 
-# 离线安装：把 fpk 内嵌的镜像加载到本机 docker
-# 飞牛没有自动导入 docker 镜像的 UI，必须由应用自己 load。
-# 镜像包位于 app 根目录下的 docker/images/，对应变量 TRIM_APPDEST/docker/images
-load_images() {
-    local root="$1"
-    local dir="$root/docker/images"
-    [ -d "$dir" ] || return 0
-    for f in "$dir"/*.tar.gz "$dir"/*.tar; do
-        [ -e "$f" ] || continue
-        echo "Loading embedded docker image: $f"
-        if gunzip -c "$f" 2>/dev/null | docker load; then
-            echo "  -> loaded"
-        else
-            docker load -i "$f" && echo "  -> loaded" || echo "  -> load failed: $f"
-        fi
-    done
+LOG="/var/log/chat-hanbao-install.log"
+log() {
+    local msg="[$(date '+%Y-%m-%d %H:%M:%S')] [pre-install] $*"
+    echo "$msg"
+    echo "$msg" >>"$LOG" 2>/dev/null || echo "$msg" >>/tmp/chat-hanbao-install.log 2>/dev/null
 }
 
-for base in "${TRIM_APPDEST}" "/var/packages/chat-hanbao" "/var/apps/chat-hanbao"; do
-    [ -n "$base" ] && load_images "$base"
-done
+log "=== chat-hanbao 安装前检查 ==="
+if command -v docker >/dev/null 2>&1; then
+    log "docker 版本：$(docker --version 2>&1)"
+else
+    log "警告：未检测到 docker 命令"
+fi
+log "可用磁盘：$(df -h /var 2>/dev/null | tail -1)"
 
 exit 0

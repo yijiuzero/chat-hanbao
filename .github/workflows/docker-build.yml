@@ -57,6 +57,16 @@ jobs:
           chmod +x fnpack
           ./fnpack --version || ./fnpack -h || true
 
+      - name: Normalize cmd scripts (LF + executable)
+        run: |
+          # 防止 Windows 提交的 CRLF 导致飞牛执行报 bad interpreter: /bin/bash^M
+          sed -i 's/\r$//' fpk/cmd/* fpk/manifest 2>/dev/null || true
+          chmod +x fpk/cmd/*
+          echo "--- cmd scripts ---"
+          ls -l fpk/cmd/
+          echo "--- syntax check ---"
+          for s in fpk/cmd/*; do bash -n "$s" && echo "OK: $s" || { echo "SYNTAX ERROR: $s"; exit 1; }; done
+
       - name: Build FPK with fnpack
         run: |
           ./fnpack build fpk
@@ -64,6 +74,19 @@ jobs:
           echo "Generated: $FPK"
           mv "$FPK" "chat-hanbao-${{ steps.meta.outputs.version }}.fpk"
           ls -lh chat-hanbao-*.fpk
+
+      - name: Verify FPK contents
+        run: |
+          FPK="chat-hanbao-${{ steps.meta.outputs.version }}.fpk"
+          SIZE=$(stat -c%s "$FPK")
+          echo "FPK size: $SIZE bytes ($((SIZE/1024/1024)) MB)"
+          # 离线版必须内嵌镜像，小于 50MB 说明镜像没打进去
+          if [ "$SIZE" -lt 52428800 ]; then
+            echo "ERROR: fpk 过小，内嵌镜像可能未打包成功"
+            exit 1
+          fi
+          echo "--- fpk 内部结构（前 40 项）---"
+          tar -tzf "$FPK" 2>/dev/null | head -40 || tar -tf "$FPK" 2>/dev/null | head -40 || echo "(非 tar 格式，跳过)"
 
       - name: Upload to GitHub Release
         if: startsWith(github.ref, 'refs/tags/')

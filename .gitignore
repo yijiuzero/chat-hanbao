@@ -43,8 +43,10 @@ docker-compose.override.yml
 .git-rewrite/
 
 # ---- 构建工具与产物（不入库） ----
-# 飞牛官方 fnpack 打包工具（二进制，体积大）
-tools/
+# 飞牛官方 fnpack 打包工具（二进制，体积大）；诊断脚本等文本工具保留入库
+tools/*
+!tools/*.sh
+!tools/*.md
 # 生成的 fpk 安装包
 *.fpk
 fpk/chat-hanbao.fpk

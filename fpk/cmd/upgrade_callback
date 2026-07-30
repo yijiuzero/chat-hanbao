@@ -1,5 +1,55 @@
 #!/bin/bash
 
 ### This script is called after the user upgrades the application.
+### 升级后同样需要把新版本内嵌的镜像加载进来。
 
+CH_LOG="/var/log/chat-hanbao-install.log"
+
+ch_log() {
+    local msg="[$(date '+%Y-%m-%d %H:%M:%S')] [upgrade] $*"
+    echo "$msg"
+    { echo "$msg" >>"$CH_LOG"; } 2>/dev/null || echo "$msg" >>/tmp/chat-hanbao-install.log 2>/dev/null
+}
+
+ch_find_image_dir() {
+    local d
+    for d in \
+        "${TRIM_APPDEST}/docker/images" \
+        "${TRIM_APPDEST}/app/docker/images" \
+        "/var/apps/chat-hanbao/app/docker/images" \
+        "/var/apps/chat-hanbao/docker/images" \
+        "/var/packages/chat-hanbao/app/docker/images" \
+        "/var/packages/chat-hanbao/docker/images"
+    do
+        [ -n "$d" ] || continue
+        if ls "$d"/*.tar.gz "$d"/*.tar >/dev/null 2>&1; then
+            echo "$d"; return 0
+        fi
+    done
+    d=$(find /var/apps /var/packages -maxdepth 6 -type d -name images -path '*chat-hanbao*' 2>/dev/null | head -1)
+    [ -n "$d" ] && { echo "$d"; return 0; }
+    return 1
+}
+
+ch_log "=== chat-hanbao 升级镜像加载开始 ==="
+
+command -v docker >/dev/null 2>&1 || { ch_log "错误：找不到 docker 命令"; exit 0; }
+
+IMG_DIR=$(ch_find_image_dir)
+[ -z "$IMG_DIR" ] && { ch_log "错误：未找到内嵌镜像目录"; exit 0; }
+ch_log "找到镜像目录：$IMG_DIR"
+
+for f in "$IMG_DIR"/*.tar.gz "$IMG_DIR"/*.tar; do
+    [ -e "$f" ] || continue
+    ch_log "正在加载：$f"
+    if docker load -i "$f" >>"$CH_LOG" 2>&1; then
+        ch_log "  -> 加载成功"
+    elif gunzip -c "$f" 2>/dev/null | docker load >>"$CH_LOG" 2>&1; then
+        ch_log "  -> 加载成功（gunzip 管道方式）"
+    else
+        ch_log "  -> 加载失败：$f"
+    fi
+done
+
+ch_log "=== 升级镜像加载结束 ==="
 exit 0
