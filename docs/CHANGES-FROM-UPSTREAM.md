@@ -43,27 +43,33 @@
 - [说明] 导入时对以下上游 `.gitignore` 命中的文件执行 `git add -f`，以保证仓库可完整复现构建（上游 release tarball 同样包含它们）：
   `console/package-lock.json`、`plugins/bundle/cloudpaw/ui/dist/`、`plugins/bundle/qwenpaw-pet/dist/`、`src/qwenpaw/agents/md_files/**/AGENTS.md`
 
-## 阶段 1 · 品牌改造
+## 阶段 1 · 构建跑通原版
 
-### 构建适配（非品牌改动，为使上游构建链在本地环境可用）
+_目标：先完整移植并跑通上游原版，确认改造基线。本阶段不改动上游业务逻辑，仅补足本地构建所需的最小参数。_
 
-- [修改] `deploy/Dockerfile` — console-builder 阶段新增（带 `[hanbao modification]` 标注）：
+- [配置] `deploy/Dockerfile` — console-builder 阶段新增（带 `[hanbao modification]` 标注）：
   ```dockerfile
   ARG NODE_BUILD_HEAP_MB=4096
   ENV NODE_OPTIONS=--max-old-space-size=${NODE_BUILD_HEAP_MB}
   ```
-  原因：`tsc -b && vite build` 在默认 Node 堆上限下 OOM 中断（exit 134）。
-  保留 `--build-arg` 口子以适配不同内存规格的构建机。详见 [known-issues I-008](./known-issues.md#i-008)。
+  原因：`tsc -b && vite build` 在默认 Node 堆上限下 OOM 中断（exit 134）。保留 `--build-arg` 口子以适配不同内存规格的构建机。详见 [known-issues I-008](./known-issues.md#i-008)。
+- [构建] 成功构建镜像 `hanbao:0.0.1-upstream`（4.02GB，含上游完整 XFCE4 桌面 + Chromium）。构建环境：Windows + Docker Desktop / WSL2，WSL 内存 8GB，`NODE_BUILD_HEAP_MB=4096`。
+- [验证] 容器验证：映射 8088 后，本机 `curl localhost:8088` 返回完整 QwenPaw Console 首页（HTTP 200），确认原版 Web 聊天可访问。
+- [说明] 镜像偏大（4.02GB）源于上游为"远程桌面/GUI 访问"打包的 XFCE4 + Chromium，纯 Web 聊天用不到，将在阶段 4（容器化）瘦身。
 
-## 阶段 2 · 删减定制
+## 阶段 2 · 品牌改造
+
+_（待执行；品牌替换脚本必须显式排除 `LICENSE` / `NOTICE` / `docs/license-compliance.md`，见 license-compliance §5 R2）_
+
+## 阶段 3 · 删减定制
 
 _（待执行）_
 
-## 阶段 3 · 容器化
+## 阶段 4 · 容器化
 
-_（待执行）_
+_（待执行；须同批修复 I-002 `COPY LICENSE NOTICE` 与 I-003 `.dockerignore` 白名单）_
 
-## 阶段 4 · FPK 打包
+## 阶段 5 · FPK 打包
 
 _（待执行）_
 

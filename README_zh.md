@@ -1,3 +1,16 @@
+> ## 📦 关于本项目 · hanbao（函包）
+>
+> 本仓库是 **hanbao（中文"函包"）** 的二次开发分支，fork 自开源项目 **QwenPaw v2.0.1**（Apache License 2.0，版权方 `The QwenPaw Authors`）。
+>
+> - **定位**：基于 QwenPaw 改造的个人 AI 聊天软件，最终以飞牛 NAS（fnOS）的 FPK 应用包形式上架飞牛应用中心。
+> - **当前进度**：阶段 1「构建跑通原版」已完成 —— 本机 Docker 已成功构建并跑通上游原版（镜像 `hanbao:0.0.1-upstream`，访问 `http://localhost:8088`）。品牌替换、功能删减等改造将在后续阶段逐步进行。
+> - **版本**：`v0.0.1`（基于 QwenPaw 2.0.1）。
+> - **合规**：保留上游 `LICENSE` 与版权声明；派生关系见 [`NOTICE`](NOTICE) 与 [`docs/CHANGES-FROM-UPSTREAM.md`](docs/CHANGES-FROM-UPSTREAM.md)；许可义务见 [`docs/license-compliance.md`](docs/license-compliance.md)。
+>
+> 下方为上游 QwenPaw 的原始 README 内容，后续品牌改造阶段会逐步替换为 hanbao 的表述。
+>
+> ---
+
 <div align="center">
 
 # QwenPaw

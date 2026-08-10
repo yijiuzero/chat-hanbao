@@ -70,22 +70,27 @@ Apache License 2.0 是**宽松许可（permissive）**，明确授权：
 ### 阶段 0 · 源码就位 + 建仓库
 - [x] 上游 `LICENSE` 原样复制到 hanbao 仓库根，字节一致
 - [x] 创建 `NOTICE`，声明派生自 QwenPaw v2.0.1 及其版权方
-- [ ] 创建 `docs/CHANGES-FROM-UPSTREAM.md`，记录基线版本与 commit/发布号
-- [ ] Git 首个 commit 为**未经修改的上游原始代码**（形成干净的 diff 基线，这是证明"我们改了什么"最有力的证据）
-- [ ] 第二个 commit 起才是 hanbao 的改动
+- [x] 创建 `docs/CHANGES-FROM-UPSTREAM.md`，记录基线版本与 commit/发布号
+- [x] Git 首个 commit 为**未经修改的上游原始代码**（_commit `9b86a97`，tag `upstream/v2.0.1`_，形成干净的 diff 基线，这是证明"我们改了什么"最有力的证据）
+- [x] 第二个 commit 起才是 hanbao 的改动
 
-### 阶段 1 · 品牌改造
+### 阶段 1 · 构建跑通原版
+- [x] 本机 Docker 完整构建上游原版 QwenPaw（镜像 `hanbao:0.0.1-upstream`，4.02GB）
+- [x] 容器验证 8088 可访问（返回 QwenPaw Console 首页）
+- [ ] 此阶段未改动任何上游代码（仅 `deploy/Dockerfile` 加 NODE 构建堆参数，见 CHANGES），合规检查重点在后续阶段
+
+### 阶段 2 · 品牌改造
 - [ ] 每个改动文件加修改标注（§6 规范）
 - [ ] `CHANGES-FROM-UPSTREAM.md` 同步更新改动条目
 - [ ] 品牌替换**未误伤** `LICENSE` / `NOTICE` 中的 `QwenPaw` 字样（批量替换的高危点，见 §5）
 - [ ] 关于页/README 保留"基于 QwenPaw 开发"的出处说明
 
-### 阶段 2 · 删减定制
+### 阶段 3 · 删减定制
 - [ ] 删除的功能模块不影响 LICENSE/NOTICE 完整性
 - [ ] 删除动作记入 CHANGES
 - [ ] 若引入新的第三方依赖，核对其许可是否与 Apache-2.0 兼容（禁止引入 GPL/AGPL，见 §5）
 
-### 阶段 3 · 容器化
+### 阶段 4 · 容器化
 - [ ] Dockerfile 中 `COPY LICENSE NOTICE /app/` —— 详见 [known-issues.md I-002](./known-issues.md#i-002)
 - [ ] `.dockerignore` 的 `*.md` 已加白名单例外，否则上一项构建必然失败 —— 详见 [I-003](./known-issues.md#i-003)
 - [ ] 镜像 label 标注上游出处：
@@ -94,15 +99,15 @@ Apache License 2.0 是**宽松许可（permissive）**，明确授权：
 
 > ⚠️ I-002 与 I-003 是**连体问题**，必须同批修复。只加 `COPY` 不改 `.dockerignore` 会直接构建失败。
 
-### 阶段 4 · FPK 打包
+### 阶段 5 · FPK 打包
 - [ ] `.fpk` 包内含 `LICENSE` 与 `NOTICE`
 - [ ] 应用详情页/关于页可查看许可信息与上游出处
 - [ ] `manifest` 中 license 字段填 `Apache-2.0`
 
-### 阶段 5 · 飞牛实测
+### 阶段 6 · 飞牛实测
 - [ ] 安装后在 UI 中能实际访问到许可信息（不是只躺在文件里）
 
-### 阶段 6 · 上架
+### 阶段 7 · 上架
 - [ ] 上架资料中如实说明"基于开源项目 QwenPaw（Apache-2.0）二次开发"
 - [ ] 不声称 hanbao 为完全原创
 - [ ] 应用图标/名称不含 QwenPaw、AgentScope、Qwen、通义 等商标元素
@@ -121,7 +126,7 @@ Apache License 2.0 是**宽松许可（permissive）**，明确授权：
 | R6 | 修改文件却不加修改标注 | 违反 §4(b) |
 | R7 | 保留上游遥测上报却不告知用户 | 非许可问题，但属隐私合规风险；改造时必须移除或改向（见项目规划） |
 
-> **R2 单独强调**：这是"技术操作导致法律违约"的典型场景。阶段 1 执行任何批量替换前，必须先确认排除清单。
+> **R2 单独强调**：这是"技术操作导致法律违约"的典型场景。阶段 2（品牌改造）执行任何批量替换前，必须先确认排除清单。
 
 ---
 
