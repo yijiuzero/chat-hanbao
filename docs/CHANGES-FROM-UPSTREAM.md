@@ -61,6 +61,8 @@ _目标：先完整移植并跑通上游原版，确认改造基线。本阶段�
 
 _（待执行；品牌替换脚本必须显式排除 `LICENSE` / `NOTICE` / `docs/license-compliance.md`，见 license-compliance §5 R2）_
 
+- [删除] `README_ja.md`、`README_ru.md`、`README_vi.md` — 上游多语言 README（ja/ru/vi）。产品定位：函包仅做**中英双语**（英文 `README.md` + 中文 `README_zh.md`），其他语言不维护。技术零风险：README 纯文档不被代码依赖，且 `deploy/Dockerfile` 仅 `COPY README.md` 进镜像，ja/ru/vi 从未进镜像。合规允许：保留 `LICENSE`/`NOTICE`/`README.md`/`README_zh.md` 即可（Apache-2.0 不要求保留所有语言 README）。关联 commit `a5fcbc9`。
+
 ## 阶段 3 · 删减定制
 
 _（待执行）_
