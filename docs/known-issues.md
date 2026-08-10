@@ -16,7 +16,7 @@
 | [I-005](#i-005) | 基础镜像拉取失败（buildkit 并发鉴权 EOF） | 🟠 中 | 阶段 1 构建时 | 🟢 已解决（预拉规避） |
 | [I-006](#i-006) | 上游自带遥测上报 | 🟠 中 | 阶段 2 删减定制 | 🔴 待处理 |
 | [I-007](#i-007) | Web Console 默认无认证 | 🟠 中 | 阶段 2 / FPK 向导 | 🔴 待处理 |
-| [I-008](#i-008) | console 前端构建 OOM，4GB WSL 内存不足 | 🔥 高（阻塞） | 阶段 1 构建时 | 🟡 处理中 |
+| [I-008](#i-008) | console 前端构建 OOM，4GB WSL 内存不足 | 🔥 高（曾阻塞） | 阶段 1 构建时 | 🟢 已解决 |
 | [I-009](#i-009) | 构建机 C 盘 0GB 可用，Docker 无法写入 | 🔥 高（阻塞） | 阶段 1 构建时 | 🟢 已解决（迁 F 盘 Junction） |
 | [I-010](#i-010) | WSL 崩溃转储吞噬 18.58GB 磁盘 | 🔥 高 | 阶段 1 构建前 | 🟢 已解决（crashDumpCount=0） |
 | [I-011](#i-011) | Docker DataFolder 键对 WSL2 后端无效 | 🟠 中 | 阶段 1 构建前 | 🟢 已解决（Junction 重定向） |
@@ -251,7 +251,7 @@ QwenPaw Web Console（8088）默认不开启认证，设计假设是"个人本�
 <a id="i-008"></a>
 ## I-008 · console 前端构建 OOM，4GB WSL 内存不足
 
-**严重度**：🔥 高（**阻塞构建**） &nbsp;|&nbsp; **状态**：🟡 处理中 &nbsp;|&nbsp; **必须处理时机**：阶段 1 构建时
+**严重度**：🔥 高（**曾阻塞构建**） &nbsp;|&nbsp; **状态**：🟢 已解决（8GB WSL 下构建成功 `hanbao:0.0.1-upstream`） &nbsp;|&nbsp; **必须处理时机**：阶段 1 构建时
 
 ### 现象
 `console-builder` 阶段执行 `npm ci --include=dev && npm run build`（即 `tsc -b && vite build`）时
@@ -269,6 +269,8 @@ Aborted (core dumped)   → exit code 134
 | 1 | 7.65GB（旧 VM） | 默认 | ❌ node heap OOM（exit 134） | 8m15s |
 | 2 | 3.82GB | `--max-old-space-size=4096` | ❌ **buildkit 断连**（VM 整体崩溃） | 2m26s |
 | 3 | 3.82GB | `--max-old-space-size=2816` | ❌ node heap OOM（exit 134） | ~9m |
+| 4 | 4GB（`.wslconfig`） | `--max-old-space-size=2048` | ❌ node heap OOM（exit 134，`Aborted (core dumped)`）；buildkit 并行跑 console-builder 与 stage 2 抢内存 | ~10m |
+| 5 | 8GB（`.wslconfig` memory=8GB/processors=6） | `--max-old-space-size=4096` | ✅ **构建成功**，镜像 `hanbao:0.0.1-upstream`（4.02GB），实测 `npm ci && npm run build` 通过 | ~90m |
 
 ### ⚠️ 核心教训：node heap 上限必须小于容器可用内存
 第 2 次比第 1 次**更糟**，原因是 `--max-old-space-size=4096`（4GB）**大于 WSL VM 总内存 3.82GB**。
