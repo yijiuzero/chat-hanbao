@@ -86,9 +86,13 @@ Apache License 2.0 是**宽松许可（permissive）**，明确授权：
 - [ ] 若引入新的第三方依赖，核对其许可是否与 Apache-2.0 兼容（禁止引入 GPL/AGPL，见 §5）
 
 ### 阶段 3 · 容器化
-- [ ] Dockerfile 中 `COPY LICENSE NOTICE /app/`
+- [ ] Dockerfile 中 `COPY LICENSE NOTICE /app/` —— 详见 [known-issues.md I-002](./known-issues.md#i-002)
+- [ ] `.dockerignore` 的 `*.md` 已加白名单例外，否则上一项构建必然失败 —— 详见 [I-003](./known-issues.md#i-003)
 - [ ] 镜像 label 标注上游出处：
   `LABEL org.opencontainers.image.source` / `.licenses="Apache-2.0"`
+- [ ] 实测验收：`docker run --rm <image> sh -c "ls -l /app/LICENSE /app/NOTICE"` 两文件均存在且非空
+
+> ⚠️ I-002 与 I-003 是**连体问题**，必须同批修复。只加 `COPY` 不改 `.dockerignore` 会直接构建失败。
 
 ### 阶段 4 · FPK 打包
 - [ ] `.fpk` 包内含 `LICENSE` 与 `NOTICE`

@@ -36,6 +36,7 @@
 - [新增] `docs/license-compliance.md` — 项目开源许可合规强制规范
 - [新增] `docs/CHANGES-FROM-UPSTREAM.md` — 本文件
 - [新增] `docs/feasibility-analysis.md`、`docs/project-plan.md`、`docs/lifecycle-management.md` — hanbao 原创前期文档
+- [新增] `docs/known-issues.md` — 移植过程发现的问题追踪清单（I-001 ~ I-007），含各问题的必须处理时机与验收方式
 - [修改] `.gitignore` — 两处（均带 `[hanbao modification]` 标注）：
   1. `AGENTS.md` → `/AGENTS.md`：原规则误伤 `src/qwenpaw/agents/md_files/**/AGENTS.md`（Agent 运行时提示词资产，必须被追踪）
   2. 追加 `.workbuddy/`：排除本地 AI 助手工作记忆目录，非分发物组成部分
