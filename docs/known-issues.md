@@ -17,7 +17,9 @@
 | [I-006](#i-006) | 上游自带遥测上报 | 🟠 中 | 阶段 2 删减定制 | 🔴 待处理 |
 | [I-007](#i-007) | Web Console 默认无认证 | 🟠 中 | 阶段 2 / FPK 向导 | 🔴 待处理 |
 | [I-008](#i-008) | console 前端构建 OOM，4GB WSL 内存不足 | 🔥 高（阻塞） | 阶段 1 构建时 | 🟡 处理中 |
-| [I-009](#i-009) | 构建机 C 盘 0GB 可用，Docker 无法写入 | 🔥 高（阻塞） | 阶段 1 构建时 | 🟡 处理中 |
+| [I-009](#i-009) | 构建机 C 盘 0GB 可用，Docker 无法写入 | 🔥 高（阻塞） | 阶段 1 构建时 | 🟢 已解决（迁 F 盘 Junction） |
+| [I-010](#i-010) | WSL 崩溃转储吞噬 18.58GB 磁盘 | 🔥 高 | 阶段 1 构建前 | 🟢 已解决（crashDumpCount=0） |
+| [I-011](#i-011) | Docker DataFolder 键对 WSL2 后端无效 | 🟠 中 | 阶段 1 构建前 | 🟢 已解决（Junction 重定向） |
 
 ---
 
@@ -316,7 +318,7 @@ ENV NODE_OPTIONS=--max-old-space-size=${NODE_BUILD_HEAP_MB}
 <a id="i-009"></a>
 ## I-009 · 构建机 C 盘 0GB 可用，Docker 无法写入
 
-**严重度**：🔥 高（**阻塞构建**） &nbsp;|&nbsp; **状态**：🟡 处理中 &nbsp;|&nbsp; **必须处理时机**：阶段 1 构建时
+**严重度**：🔥 高（**阻塞构建**） &nbsp;|&nbsp; **状态**：🟢 已解决（2026-08-10，Docker 数据盘迁 F 盘 Junction） &nbsp;|&nbsp; **必须处理时机**：阶段 1 构建时
 
 ### 现象
 构建日志写入时报 `tail: write error: No space left on device`。
@@ -383,6 +385,52 @@ hanbao 镜像预估 2–4 GB，叠加构建中间层与 apt 缓存，
 
 因此本项目最终采用**方案 A（迁移数据盘）**：应急清理已被实测证明不足以支撑构建。
 
+> ✅ **最终落地方案（2026-08-10 实测）**：Docker Desktop 的 *Disk image location* 图形项与 `settings-store.json` 的 `DataFolder` 键在 **WSL2 后端下均不生效**（见 I-011）。实际采用 **NTFS 目录联接（Junction）**：将 `C:\Users\<user>\AppData\Local\Docker\wsl\disk` 重命名为 `disk.OLD-hanbao` 备份，再在该路径建 Junction → `F:\docker-data`。Docker 启动后透明使用 F 盘 `docker_data.vhdx`，原 5 个镜像零丢失，容器内写入测试证实数据落 F 盘。详见 I-011。
+
+---
+
+<a id="i-010"></a>
+## I-010 · WSL 崩溃转储吞噬 18.58GB 磁盘（C 盘归零真凶）
+
+**严重度**：🔥 高 &nbsp;|&nbsp; **状态**：🟢 已解决（2026-08-10） &nbsp;|&nbsp; **必须处理时机**：阶段 1 构建前
+
+### 现象与根因
+构建期容器内 node 进程 OOM 崩溃时，WSL2 把**整个 VM 内存镜像**转储到 `%TEMP%\wsl-crashes\wsl-crash-*-_usr_local_bin_node-*.dmp`。每次崩溃约 **9.29GB**，本日两次构建崩溃共生成 **2 个、合计 18.58GB** 转储文件（时间戳 10:46、11:05，与两次构建失败吻合）。
+
+> ⚠️ 这正是「C 盘从 ~10GB 跌到 2GB 再归零」的真因——**不是清理导致的，是崩溃转储喂掉的**。且形成恶性循环：磁盘越满 → 构建越易 OOM → 又写转储 → 更满。
+
+### 处理
+1. 删除 `%TEMP%\wsl-crashes\` 下两个 dump（释放 18.58GB）。
+2. 在 `C:\Users\<user>\.wslconfig` 追加 `crashDumpCount=0`（保留既有 `memory=4GB` / `processors=4`），禁止再生成转储。
+3. `wsl --shutdown` 使配置生效。
+
+### 验收
+`wsl-crashes` 目录清空；后续构建即便 OOM 也不再产生 GB 级 dump（仅进程退出）。
+
+---
+
+<a id="i-011"></a>
+## I-011 · Docker `DataFolder` 键对 WSL2 后端无效，Junction 为解
+
+**严重度**：🟠 中 &nbsp;|&nbsp; **状态**：🟢 已解决（2026-08-10） &nbsp;|&nbsp; **必须处理时机**：阶段 1 构建前
+
+### 现象
+为把 Docker 数据盘从 C 盘迁走，曾在 `C:\Users\<user>\AppData\Roaming\Docker\settings-store.json` 加 `"DataFolder": "F:\\docker-data"`。但 Docker 读取后规范化键名、且 **WSL2 后端根本不认该键**（仅 Hyper-V 后端生效）。重命名 C 盘旧 `docker_data.vhdx` 后，Docker 反而在 C 盘新建空 1.51GB vhdx、原 5 个镜像全丢。
+
+### 根因
+WSL2 后端的 Docker 数据盘路径由 `AppData\Local\Docker\wsl\disk\docker_data.vhdx` 硬编码决定，`settings-store.json` 的 `DataFolder` 不影响它。
+
+### 处理（已回滚误改并采用 Junction）
+1. 恢复 `settings-store.json` 原样（移除无效 `DataFolder` 键，备份 `settings-store.json.bak-hanbao-20260810`）。
+2. 采用 Junction 透明重定向（详见 I-009 末尾「最终落地方案」）：
+   - 重命名 `...\Docker\wsl\disk` → `disk.OLD-hanbao`
+   - `mklink /J "...\Docker\wsl\disk" "F:\docker-data"`
+3. 启动 Docker，验证 F 盘 `docker_data.vhdx` 被 `LOCKED`、镜像完好、容器内写入落 F 盘。
+
+### 经验
+- Docker Desktop + WSL2：**别改 `DataFolder`**，改迁数据盘请直接用 **Junction 重定向 `...\Docker\wsl\disk`**。
+- 误改后镜像丢失别慌：`wsl --shutdown` → 删掉 C 盘空 vhdx → 恢复原 vhdx → 恢复 settings，镜像即回。
+
 ---
 
 ## 变更历史
@@ -391,3 +439,4 @@ hanbao 镜像预估 2–4 GB，叠加构建中间层与 apt 缓存，
 |---|---|
 | 2026-08-10 | 创建，登记 I-001 ~ I-007；I-001 已解决 |
 | 2026-08-10 | I-005 实测解决（预拉规避 buildkit 并发鉴权）；新增 I-008 构建 OOM |
+| 2026-08-10 | I-009 结案（迁 F 盘 Junction）；新增 I-010（WSL 崩溃转储 18.58GB）、I-011（DataFolder 无效 / Junction 方案）；C 盘回收站仍压 8.19GB 本轮 vhdx 待用户手动清 |
