@@ -7,6 +7,12 @@ ARG UV_IMAGE=agentscope-registry.ap-southeast-1.cr.aliyuncs.com/agentscope/uv:la
 # -----------------------------------------------------------------------------
 FROM ${NODE_IMAGE} AS console-builder
 WORKDIR /app
+# [hanbao modification] Raise Node heap limit for the console build.
+# `tsc -b && vite build` exhausts Node's default old-space on machines with
+# ~8GB available to the Docker VM, aborting with SIGABRT (exit 134).
+# Override with --build-arg NODE_BUILD_HEAP_MB=<mb> if needed.
+ARG NODE_BUILD_HEAP_MB=4096
+ENV NODE_OPTIONS=--max-old-space-size=${NODE_BUILD_HEAP_MB}
 COPY console /app/console
 RUN cd /app/console && npm ci --include=dev && npm run build
 

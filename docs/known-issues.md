@@ -13,9 +13,11 @@
 | [I-002](#i-002) | Dockerfile 缺 `COPY LICENSE NOTICE`（合规缺口） | 🔥 高（法务） | 阶段 3 容器化 | 🔴 待处理 |
 | [I-003](#i-003) | `.dockerignore` 的 `*.md` 会排除合规文档 | 🔥 高（法务） | 阶段 3 容器化 | 🔴 待处理 |
 | [I-004](#i-004) | 镜像含完整 XFCE4 桌面 + Chromium，体积巨大 | 🟠 中 | 阶段 2 删减定制 | 🔴 待处理 |
-| [I-005](#i-005) | 基础镜像写死阿里云 ACR 新加坡节点 | 🟡 低 | 阶段 1 构建时 | 🔴 待观察 |
+| [I-005](#i-005) | 基础镜像拉取失败（buildkit 并发鉴权 EOF） | 🟠 中 | 阶段 1 构建时 | 🟢 已解决（预拉规避） |
 | [I-006](#i-006) | 上游自带遥测上报 | 🟠 中 | 阶段 2 删减定制 | 🔴 待处理 |
 | [I-007](#i-007) | Web Console 默认无认证 | 🟠 中 | 阶段 2 / FPK 向导 | 🔴 待处理 |
+| [I-008](#i-008) | console 前端构建 OOM，4GB WSL 内存不足 | 🔥 高（阻塞） | 阶段 1 构建时 | 🟡 处理中 |
+| [I-009](#i-009) | 构建机 C 盘 0GB 可用，Docker 无法写入 | 🔥 高（阻塞） | 阶段 1 构建时 | 🟡 处理中 |
 
 ---
 
@@ -149,25 +151,64 @@ docker run --rm hanbao:<tag> sh -c "ls -l /app/LICENSE /app/NOTICE"
 ---
 
 <a id="i-005"></a>
-## I-005 · 基础镜像写死阿里云 ACR 新加坡节点
+## I-005 · 基础镜像拉取失败（buildkit 并发鉴权 EOF）
 
-**严重度**：🟡 低 &nbsp;|&nbsp; **状态**：🔴 待观察 &nbsp;|&nbsp; **必须处理时机**：阶段 1 首次构建时
+**严重度**：🟠 中 &nbsp;|&nbsp; **状态**：🟢 已解决（2026-08-10，预拉规避）
 
 ### 现象
-`deploy/Dockerfile` 默认基础镜像指向
-`agentscope-registry.ap-southeast-1.cr.aliyuncs.com`（新加坡节点），国内拉取速度不确定。
+首次 `docker build` 在加载基础镜像 metadata 阶段即失败：
+```
+ERROR: failed to authorize: failed to fetch anonymous token:
+Get "https://dockerauth.ap-southeast-1.aliyuncs.com/auth?scope=...": EOF
+```
+`deploy/Dockerfile` 默认基础镜像指向阿里云 ACR 新加坡节点
+（`agentscope-registry.ap-southeast-1.cr.aliyuncs.com`）。
 
-### 好消息
-上游留了 `--build-arg` 口子，可覆盖：
+### 排查过程与真实根因
+初判"新加坡节点国内不可达"，但**逐个验证后结论相反**：
+
+| 目标 | `docker manifest inspect` 结果 |
+|---|---|
+| 阿里云 ACR `agentscope/node:slim` | ✅ **可达** |
+| `ghcr.io/astral-sh/uv:latest` | ✅ 可达 |
+| Docker Hub `node:slim` | ❌ 不可达 |
+
+即：**阿里云源本身没问题，反倒是 Docker Hub 不通**——若按第一直觉"换成 Docker Hub 官方镜像"，会从能用换成不能用。
+
+真实原因是 buildkit 在 metadata 阶段**并发**向 `dockerauth.aliyuncs.com` 请求匿名 token，
+经 Docker Desktop 代理（`http.docker.internal:3128`）时连接被重置（EOF）。
+单线程 `docker pull` 则完全正常。
+
+### 解决方案
+构建前**预拉基础镜像到本地**，让 build 阶段直接命中本地缓存，绕开并发鉴权：
 ```bash
-docker build \
-  --build-arg NODE_IMAGE=node:22-slim \
-  --build-arg UV_IMAGE=ghcr.io/astral-sh/uv:latest \
-  -f deploy/Dockerfile -t hanbao:0.0.1 .
+docker pull agentscope-registry.ap-southeast-1.cr.aliyuncs.com/agentscope/node:slim
+docker pull agentscope-registry.ap-southeast-1.cr.aliyuncs.com/agentscope/uv:latest
+docker build -f deploy/Dockerfile -t hanbao:<tag> .
+```
+实测两个镜像 63 秒拉完，随后构建正常推进。
+
+### 备选方案（预拉也失败时）
+上游留了 `--build-arg` 口子可换源，但**须先验证目标源可达**，别想当然：
+```bash
+docker build --build-arg NODE_IMAGE=node:22-slim \
+             --build-arg UV_IMAGE=ghcr.io/astral-sh/uv:latest ...
 ```
 
-### 当前决策
-用户选择 **先试原版，拉不动再换源**（贴近上游原始状态，符合完整移植要求）。
+> 💡 **可复用经验**：registry 报错先别急着换源。
+> `docker manifest inspect <image>` 能在几秒内区分「源不可达」和「build 期鉴权问题」，
+> 前者要换源，后者预拉即可——处理方式完全相反。
+
+### ⚠️ 附带教训：Git Bash 下 `timeout` 是陷阱
+排查时用 `timeout 60 docker manifest inspect ...` 测连通性，三个 registry 全报 FAIL。
+实为 **Windows `timeout.exe` 抢占了命令名**（报「无效语法」直接退出非 0），
+导致 docker 命令**根本没执行**，产生**全假阴性**，差点据此做出错误的换源决策。
+
+Git Bash 下需要超时控制时，应使用 `timeout.exe` 之外的方式，例如：
+```bash
+/usr/bin/timeout 60 <cmd>      # 显式指定 GNU coreutils 路径
+# 或直接省略 timeout，让工具自身超时
+```
 
 ---
 
@@ -205,8 +246,148 @@ QwenPaw Web Console（8088）默认不开启认证，设计假设是"个人本�
 
 ---
 
+<a id="i-008"></a>
+## I-008 · console 前端构建 OOM，4GB WSL 内存不足
+
+**严重度**：🔥 高（**阻塞构建**） &nbsp;|&nbsp; **状态**：🟡 处理中 &nbsp;|&nbsp; **必须处理时机**：阶段 1 构建时
+
+### 现象
+`console-builder` 阶段执行 `npm ci --include=dev && npm run build`（即 `tsc -b && vite build`）时
+Node 堆内存耗尽，构建中断：
+```
+FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory
+1: 0x8f2d8b node::OOMErrorHandler(...)
+Aborted (core dumped)   → exit code 134
+```
+
+### 实测记录（Windows + Docker Desktop / WSL2）
+
+| # | WSL 内存 | node heap 参数 | 结果 | 耗时 |
+|---|---|---|---|---|
+| 1 | 7.65GB（旧 VM） | 默认 | ❌ node heap OOM（exit 134） | 8m15s |
+| 2 | 3.82GB | `--max-old-space-size=4096` | ❌ **buildkit 断连**（VM 整体崩溃） | 2m26s |
+| 3 | 3.82GB | `--max-old-space-size=2816` | ❌ node heap OOM（exit 134） | ~9m |
+
+### ⚠️ 核心教训：node heap 上限必须小于容器可用内存
+第 2 次比第 1 次**更糟**，原因是 `--max-old-space-size=4096`（4GB）**大于 WSL VM 总内存 3.82GB**。
+这等于告诉 node「你可以放心用到 4GB」，于是 node 在触发自身 heap 保护前，
+**整个 VM 先被内核 OOM-killer 打死** → 报错从可读的 `heap out of memory`
+恶化为莫名其妙的 `rpc error: code = Unavailable ... EOF`。
+
+> **规则**：`--max-old-space-size` 必须 **显著小于** 容器/VM 可用内存（建议留 25~30% 余量）。
+> 设得比可用内存大，只会把「优雅报错」换成「整机崩溃」，问题反而更难定位。
+
+### 另一个排查陷阱：VM 崩溃会静默改变环境
+第 2 次失败后 `docker info` 从 `7.65GB / 8 CPU` 变成 `3.82GB / 4 CPU`。
+原因是 **WSL VM 崩溃重启，重启后才加载了 `.wslconfig` 里早已写好但未生效的 `memory=4GB`**。
+即：**构建环境在排查过程中被悄悄改变了**，若不重新读取 `docker info`，
+会拿着旧的内存假设去分析新的失败现象，得出完全错误的结论。
+
+> **规则**：每次构建失败后，重新执行 `docker info` 确认资源配额，不要沿用上一次的认知。
+
+### 根因
+console 依赖体量大（`antd` + `@ant-design/x` + `@agentscope-ai/chat` + `@agentscope-ai/design` 等），
+`tsc -b` 全量类型检查叠加 `vite build` 打包，峰值堆占用超过 3GB。
+4GB 的 WSL VM 扣除系统与 npm 自身开销后，**无论如何调 heap 参数都无法满足**。
+
+### 解决方案
+**首选：提高 WSL 内存配额**，编辑 `%USERPROFILE%\.wslconfig`：
+```ini
+[wsl2]
+memory=8GB
+processors=6
+```
+随后 `wsl --shutdown` 并重启 Docker Desktop 使其生效。
+
+> WSL 的 `memory` 是**上限而非预留**，不使用时不占用宿主机内存，设大无副作用。
+> 宿主机 15.8GB 物理内存，分配 8GB 后仍余 7.8GB 给 Windows。
+
+**备选（宿主机内存也紧张时）**：在宿主机本地构建 console，Dockerfile 改为直接 `COPY console/dist`。
+代价是牺牲「容器内可复现构建」，且 FPK 发布流程需额外处理，**不推荐作为长期方案**。
+
+### hanbao 已做的相关修改
+`deploy/Dockerfile` console-builder 阶段新增（带 `[hanbao modification]` 标注）：
+```dockerfile
+ARG NODE_BUILD_HEAP_MB=4096
+ENV NODE_OPTIONS=--max-old-space-size=${NODE_BUILD_HEAP_MB}
+```
+保留 `--build-arg` 口子，便于按构建机内存调整。
+
+<a id="i-009"></a>
+## I-009 · 构建机 C 盘 0GB 可用，Docker 无法写入
+
+**严重度**：🔥 高（**阻塞构建**） &nbsp;|&nbsp; **状态**：🟡 处理中 &nbsp;|&nbsp; **必须处理时机**：阶段 1 构建时
+
+### 现象
+构建日志写入时报 `tail: write error: No space left on device`。
+排查磁盘后发现构建机 **C 盘可用空间为 0**：
+
+| 盘符 | 已用 | 可用 |
+|---|---|---|
+| **C** | 136.5 GB | **0 GB** |
+| D | 0.6 GB | 25.7 GB |
+| E | 174.6 GB | 576.9 GB |
+| F | 16.7 GB | 163.3 GB |
+
+Docker Desktop 的数据盘默认位于 C 盘：
+`C:\Users\<user>\AppData\Local\Docker\wsl\disk\docker_data.vhdx`（6.55 GB）
+
+### 影响（比想象中广）
+不只是「装不下新镜像」：
+- 构建中间层无处写入 → 各种**看似无关的诡异错误**（可能是此前 buildkit 断连的共因之一）
+- **连 `docker image prune` 删除操作都会挂起**（实测超过 5 分钟无响应）——
+  删除同样需要写入元数据，磁盘全满时 Docker 自身也会陷入僵局
+- Windows 系统本身受影响：虚拟内存、系统更新、临时文件均异常
+
+> ⚠️ **排查启示**：容器构建出现难以解释的失败时，
+> **先查磁盘空间，再查内存**。磁盘满的表现极具迷惑性，
+> 会伪装成网络错误、OOM、daemon 断连等完全不同的症状。
+
+### 解决方案
+
+**A. 治本 —— Docker 数据盘迁出 C 盘（推荐）**
+Docker Desktop → Settings → Resources → Advanced → *Disk image location*
+改为 `F:\docker-data`（163 GB 可用），Docker 会自动迁移现有数据。
+
+**B. 应急 —— 清理 Docker 占用**
+```bash
+docker builder prune -af      # 构建缓存
+docker image prune -f         # 悬空（无 tag）镜像
+docker system prune -a        # 激进：清除所有未被容器引用的镜像
+```
+> ⚠️ **两个坑**：
+> 1. 磁盘已满时 prune 本身可能挂起，需先手工腾出少量空间
+> 2. **删除镜像后 `.vhdx` 不会自动收缩**，C 盘空间不会立即回收。
+>    需 `wsl --shutdown` 后执行 `Optimize-VHD -Path <vhdx> -Mode Full`（需 Hyper-V 模块）
+>    或使用 `diskpart` 的 `compact vdisk`
+
+**C. 容量评估**
+hanbao 镜像预估 2–4 GB，叠加构建中间层与 apt 缓存，
+**构建机应预留至少 20 GB 可用空间**。仅靠清理 Docker（可回收约 2 GB）不足以支撑。
+
+### 实测：应急清理的真实收益（2026-08-10）
+执行 `docker builder prune -af` + `docker image prune -f`：
+
+| 指标 | 清理前 | 清理后 |
+|---|---|---|
+| Docker Images 占用 | 2.373 GB | 683.2 MB |
+| Build Cache | 120.2 MB | 0 B |
+| Docker 内部回收 | — | **1.688 GB** |
+| **C 盘实际可用** | 0 GB | **仅 1.03 GB** |
+| `docker_data.vhdx` 文件大小 | 6.55 GB | **6.55 GB（未变）** |
+
+**结论：Docker 内部回收 1.8GB，但 C 盘只多出 1.03GB，vhdx 文件大小纹丝不动。**
+这印证了前述的坑 —— **删除镜像不会让 `.vhdx` 收缩**，
+腾出的只是 vhdx *内部* 的空闲块，宿主机层面并未归还。
+且 `docker image prune` 在磁盘全满时耗时 **7分41秒**（正常应为秒级）。
+
+因此本项目最终采用**方案 A（迁移数据盘）**：应急清理已被实测证明不足以支撑构建。
+
+---
+
 ## 变更历史
 
 | 日期 | 变更 |
 |---|---|
 | 2026-08-10 | 创建，登记 I-001 ~ I-007；I-001 已解决 |
+| 2026-08-10 | I-005 实测解决（预拉规避 buildkit 并发鉴权）；新增 I-008 构建 OOM |

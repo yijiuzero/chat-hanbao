@@ -45,7 +45,15 @@
 
 ## 阶段 1 · 品牌改造
 
-_（待执行）_
+### 构建适配（非品牌改动，为使上游构建链在本地环境可用）
+
+- [修改] `deploy/Dockerfile` — console-builder 阶段新增（带 `[hanbao modification]` 标注）：
+  ```dockerfile
+  ARG NODE_BUILD_HEAP_MB=4096
+  ENV NODE_OPTIONS=--max-old-space-size=${NODE_BUILD_HEAP_MB}
+  ```
+  原因：`tsc -b && vite build` 在默认 Node 堆上限下 OOM 中断（exit 134）。
+  保留 `--build-arg` 口子以适配不同内存规格的构建机。详见 [known-issues I-008](./known-issues.md#i-008)。
 
 ## 阶段 2 · 删减定制
 
