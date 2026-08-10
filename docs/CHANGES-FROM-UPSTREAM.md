@@ -1,0 +1,65 @@
+# hanbao 相对上游 QwenPaw 的修改记录
+
+> 本文件是 Apache-2.0 §4(b)「修改标注」义务的核心载体，**必须随分发物一起提供**。
+> 合规规范见 [`license-compliance.md`](./license-compliance.md)。
+
+## 基线信息
+
+| 项 | 值 |
+|---|---|
+| 上游项目 | QwenPaw |
+| 上游版本 | v2.0.1 |
+| 上游发布日期 | 2026-07-24 |
+| 上游许可 | Apache License 2.0 |
+| 上游版权 | Copyright 2025 The QwenPaw Authors |
+| 上游仓库 | https://github.com/agentscope-ai/QwenPaw |
+| 基线 Git commit | `9b86a976fffdc37b871fe31a7b689a8b6463c5b4`（短号 `9b86a97`） |
+| 基线 Git tag | `upstream/v2.0.1` |
+| 基线文件数 | 2846（与上游 release tarball 完全一致） |
+| LICENSE SHA256 | `5906CE05514E804061D128A8B8CFB2C4743B62C934FA580F795FFFD1EFE96C49`（与上游一致） |
+
+> **查看 hanbao 的全部改动**：`git diff upstream/v2.0.1..HEAD`
+
+## 记录规范
+
+1. **Git 首个 commit 必须是未修改的上游原始代码**，之后所有改动通过 `git diff <baseline>..HEAD` 可完整追溯。
+2. 每完成一项改动，在下方对应阶段追加条目，格式：
+   `- [类型] 路径 — 改动说明（关联 commit）`
+3. 类型取值：`新增` / `修改` / `删除` / `重命名` / `配置`
+
+---
+
+## 阶段 0 · 源码就位
+
+- [新增] `LICENSE` — 原样复制自上游 QwenPaw v2.0.1，字节一致（10768B），版权行完整保留
+- [新增] `NOTICE` — hanbao 主动创建（上游无此文件），声明派生关系与修改事实
+- [新增] `docs/license-compliance.md` — 项目开源许可合规强制规范
+- [新增] `docs/CHANGES-FROM-UPSTREAM.md` — 本文件
+- [新增] `docs/feasibility-analysis.md`、`docs/project-plan.md`、`docs/lifecycle-management.md` — hanbao 原创前期文档
+- [修改] `.gitignore` — 两处（均带 `[hanbao modification]` 标注）：
+  1. `AGENTS.md` → `/AGENTS.md`：原规则误伤 `src/qwenpaw/agents/md_files/**/AGENTS.md`（Agent 运行时提示词资产，必须被追踪）
+  2. 追加 `.workbuddy/`：排除本地 AI 助手工作记忆目录，非分发物组成部分
+- [说明] 导入时对以下上游 `.gitignore` 命中的文件执行 `git add -f`，以保证仓库可完整复现构建（上游 release tarball 同样包含它们）：
+  `console/package-lock.json`、`plugins/bundle/cloudpaw/ui/dist/`、`plugins/bundle/qwenpaw-pet/dist/`、`src/qwenpaw/agents/md_files/**/AGENTS.md`
+
+## 阶段 1 · 品牌改造
+
+_（待执行）_
+
+## 阶段 2 · 删减定制
+
+_（待执行）_
+
+## 阶段 3 · 容器化
+
+_（待执行）_
+
+## 阶段 4 · FPK 打包
+
+_（待执行）_
+
+---
+
+## 未修改声明
+
+除本文件记录的改动外，hanbao 中其余代码均来自上游 QwenPaw v2.0.1，其著作权归 The QwenPaw Authors 所有，按 Apache License 2.0 条款授权使用。

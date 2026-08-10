@@ -106,7 +106,10 @@ logs/
 *.log
 
 # vibe coding
-AGENTS.md
+# [hanbao modification] Scoped to repo root only. The bare "AGENTS.md" pattern
+# also matched src/qwenpaw/agents/md_files/**/AGENTS.md, which are runtime
+# prompt assets that MUST be tracked.
+/AGENTS.md
 .claude
 openspec
 CLAUDE.md
@@ -149,3 +152,9 @@ e2e/__pycache__/
 graphify-out/
 local-docs/
 docs-site/
+
+# ---------------------------------------------------------------------------
+# [hanbao modification] Local AI-assistant working memory.
+# Not part of the distributable software.
+# ---------------------------------------------------------------------------
+.workbuddy/
