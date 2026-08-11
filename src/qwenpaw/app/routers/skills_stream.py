@@ -121,7 +121,8 @@ class AIOptimizeSkillRequest(BaseModel):
     content: str = Field(..., description="Current skill content to optimize")
     language: str = Field(
         default="en",
-        description="Language for optimization (en, zh, ru)",
+        # [hanbao modification] Only support zh + en.
+        description="Language for optimization (en, zh)",
     )
 
 

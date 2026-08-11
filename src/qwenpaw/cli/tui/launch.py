@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Launch the QwenPaw TUI.
+"""Launch the hanbao TUI.
 
 ``qwenpaw``                    open an interactive chat with the active agent
 ``qwenpaw tui``                same, with explicit options
@@ -230,5 +230,5 @@ def tui_cmd(
     resume: str | None,
     project: str | None,
 ) -> None:
-    """Open the QwenPaw terminal chat UI."""
+    """Open the hanbao terminal chat UI."""
     run_tui(agent=agent, resume=resume, project=project)

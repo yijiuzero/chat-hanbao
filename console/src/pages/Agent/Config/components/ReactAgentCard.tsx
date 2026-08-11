@@ -18,8 +18,6 @@ import styles from "../index.module.less";
 const LANGUAGE_OPTIONS = [
   { value: "zh", label: "中文" },
   { value: "en", label: "English" },
-  { value: "id", label: "Bahasa Indonesia" },
-  { value: "ru", label: "Русский" },
 ];
 
 interface ReactAgentCardProps {

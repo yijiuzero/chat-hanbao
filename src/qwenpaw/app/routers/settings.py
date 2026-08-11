@@ -19,7 +19,8 @@ router = APIRouter(prefix="/settings", tags=["settings"])
 
 _SETTINGS_FILE = WORKING_DIR / "settings.json"
 
-_VALID_LANGUAGES = {"en", "zh", "ja", "ru", "pt-BR", "id"}
+# [hanbao modification] Only support zh + en; default to zh.
+_VALID_LANGUAGES = {"en", "zh"}
 
 
 def _load() -> dict:
@@ -41,7 +42,8 @@ def _save(data: dict) -> None:
 
 @router.get("/language", summary="Get UI language")
 async def get_language() -> dict:
-    return {"language": _load().get("language", "en")}
+    # [hanbao modification] Default language: en → zh
+    return {"language": _load().get("language", "zh")}
 
 
 @router.put("/language", summary="Update UI language")

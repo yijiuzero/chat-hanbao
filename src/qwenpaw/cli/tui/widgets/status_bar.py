@@ -188,8 +188,9 @@ class StatusBar(Static):
 
         line = Text()
         # Version badge — top-left (replaces the old "paw" badge).
+        # [hanbao modification] Brand display name: QwenPaw → hanbao
         line.append(
-            f" QwenPaw {self._sb_qwenpaw_version} ",
+            f" hanbao {self._sb_qwenpaw_version} ",
             style="bold on #2a2a3a",
         )
         line.append("  agent:", style="#8a8a8a")

@@ -20,6 +20,11 @@
 | [I-009](#i-009) | 构建机 C 盘 0GB 可用，Docker 无法写入 | 🔥 高（阻塞） | 阶段 1 构建时 | 🟢 已解决（迁 F 盘 Junction） |
 | [I-010](#i-010) | WSL 崩溃转储吞噬 18.58GB 磁盘 | 🔥 高 | 阶段 1 构建前 | 🟢 已解决（crashDumpCount=0） |
 | [I-011](#i-011) | Docker DataFolder 键对 WSL2 后端无效 | 🟠 中 | 阶段 1 构建前 | 🟢 已解决（Junction 重定向） |
+| [I-012](#i-012) | 品牌名残留：JS 命名空间 `window.QwenPaw` | 🟡 低 | 阶段 3 删减定制 | 🔴 待处理 |
+| [I-013](#i-013) | 品牌名残留：localStorage keys (`qwenpaw_*`) | 🟡 低 | 阶段 3 删减定制 | 🔴 待处理 |
+| [I-014](#i-014) | 品牌名残留：CSS 前缀 `qwenpaw` (Ant Design) | 🟡 低 | 阶段 3 删减定制 | 🔴 待处理 |
+| [I-015](#i-015) | 品牌名残留：测试/e2e/website 中的 QwenPaw | 🟢 极低 | 无阻塞 | 🔴 待处理 |
+| [I-016](#i-016) | 品牌名残留：插件 plugin.json author 字段 | 🟢 极低 | 无阻塞 | 🔴 待处理 |
 
 ---
 
@@ -432,6 +437,50 @@ WSL2 后端的 Docker 数据盘路径由 `AppData\Local\Docker\wsl\disk\docker_d
 ### 经验
 - Docker Desktop + WSL2：**别改 `DataFolder`**，改迁数据盘请直接用 **Junction 重定向 `...\Docker\wsl\disk`**。
 - 误改后镜像丢失别慌：`wsl --shutdown` → 删掉 C 盘空 vhdx → 恢复原 vhdx → 恢复 settings，镜像即回。
+
+---
+
+---
+
+<a id="i-012"></a>
+## I-012 · 品牌名残留：JS 命名空间 `window.QwenPaw`
+
+**严重度**：🟡 低 &nbsp;|&nbsp; **状态**：🔴 待处理 &nbsp;|&nbsp; **必须处理时机**：阶段 3 删减定制
+
+- `window.QwenPaw` 是前端插件系统的宿主 API 命名空间，所有外部插件通过它获取 React/antd 等依赖。
+- **不能直接改名**：改了会让所有已安装插件失效。需要在阶段 3 评估兼容方案（如同时暴露 `window.hanbao` 别名 + 保留 `window.QwenPaw` 过渡期）。
+
+<a id="i-013"></a>
+## I-013 · 品牌名残留：localStorage keys (`qwenpaw_*`)
+
+**严重度**：🟡 低 &nbsp;|&nbsp; **状态**：🔴 待处理 &nbsp;|&nbsp; **必须处理时机**：阶段 3 删减定制
+
+- 5 个 localStorage key 使用 `qwenpaw_` 前缀（auth_token、agent-storage、theme、sidebar_mode 等）。
+- **不能直接改名**：会导致所有用户丢失登录态和偏好设置。需要迁移逻辑：读旧 key → 写新 key → 删旧 key。
+
+<a id="i-014"></a>
+## I-014 · 品牌名残留：CSS 前缀 `qwenpaw` (Ant Design ConfigProvider)
+
+**严重度**：🟡 低 &nbsp;|&nbsp; **状态**：🔴 待处理 &nbsp;|&nbsp; **必须处理时机**：阶段 3 删减定制
+
+- `App.tsx` 中 `ConfigProvider prefix="qwenpaw" prefixCls="qwenpaw"` 控制所有 Ant Design 组件的 CSS 类名前缀。
+- **不能直接改名**：改了会让所有样式失效。需同步更新所有 `.less` 文件中的 `&:global(.qwenpaw-*)` 选择器。
+
+<a id="i-015"></a>
+## I-015 · 品牌名残留：测试/e2e/website 中的 QwenPaw
+
+**严重度**：🟢 极低 &nbsp;|&nbsp; **状态**：🔴 待处理 &nbsp;|&nbsp; **必须处理时机**：无阻塞
+
+- `tests/`、`e2e/`、`website/` 目录包含大量 QwenPaw 引用（测试 fixture、文档、博客等）。
+- 不影响容器镜像和用户体验。纯内部文件，后续闲暇时批量替换即可。
+
+<a id="i-016"></a>
+## I-016 · 品牌名残留：插件 plugin.json author 字段
+
+**严重度**：🟢 极低 &nbsp;|&nbsp; **状态**：🔴 待处理 &nbsp;|&nbsp; **必须处理时机**：无阻塞
+
+- `plugins/*/plugin.json` 中 `author: "QwenPaw Team"` 等字段。
+- 用户看不到这些元数据，不影响功能。后续批量替换。
 
 ---
 

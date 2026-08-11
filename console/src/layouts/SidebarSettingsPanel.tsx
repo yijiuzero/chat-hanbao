@@ -8,9 +8,6 @@ import {
   SparkMoonLine,
   SparkChinese02Line,
   SparkEnglish02Line,
-  SparkJapanLine,
-  SparkRusLine,
-  SparkPtLine,
   SparkFullscreenLine,
   SparkExitFullscreenLine,
 } from "@agentscope-ai/icons";
@@ -31,11 +28,8 @@ type CloseBehavior = "ask" | CloseAction;
 // ── Language config ────────────────────────────────────────────────────────
 
 const LANGS = [
-  { key: "en", label: "English", icon: <SparkEnglish02Line size={14} /> },
   { key: "zh", label: "简体中文", icon: <SparkChinese02Line size={14} /> },
-  { key: "ja", label: "日本語", icon: <SparkJapanLine size={14} /> },
-  { key: "ru", label: "Русский", icon: <SparkRusLine size={14} /> },
-  { key: "pt-BR", label: "Português", icon: <SparkPtLine size={14} /> },
+  { key: "en", label: "English", icon: <SparkEnglish02Line size={14} /> },
 ];
 const KNOWN_KEYS = new Set(LANGS.map((l) => l.key));
 

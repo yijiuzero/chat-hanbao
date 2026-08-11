@@ -26,11 +26,12 @@ import {
   getFeatureDemosUrl,
   getFaqUrl,
   getReleaseNotesUrl,
-  PYPI_URL,
-  ONE_HOUR_MS,
+  // [hanbao modification] Disabled — no release channel yet.
+  // PYPI_URL,
+  // ONE_HOUR_MS,
   UPDATE_MD,
-  isStableVersion,
-  compareVersions,
+  // isStableVersion,
+  // compareVersions,
 } from "./constants";
 import { useTheme } from "../contexts/ThemeContext";
 import { useState, useEffect, useRef } from "react";
@@ -88,7 +89,7 @@ export default function Header() {
   const desktop = useDesktopUpdate();
   const onDesktop = isDesktopApp();
   const [version, setVersion] = useState<string>("");
-  const [latestVersion, setLatestVersion] = useState<string>("");
+  const [latestVersion] = useState<string>("");
   const [updateModalOpen, setUpdateModalOpen] = useState(false);
   const [updateMarkdown, setUpdateMarkdown] = useState<string>("");
   const logoClicksRef = useRef<number[]>([]);
@@ -128,58 +129,15 @@ export default function Header() {
     }
   };
 
-  // Web-only PyPI fallback: desktop path is owned by DesktopUpdateContext.
+  // [hanbao modification] Web update check disabled.
+  // QwenPaw's PyPI releases are not hanbao releases. Re-enable when hanbao
+  // has its own release channel (e.g. FlyOS app store version check).
   useEffect(() => {
-    if (onDesktop) return;
-
-    fetch(PYPI_URL)
-      .then((res) => res.json())
-      .then((data) => {
-        const releases = data?.releases ?? {};
-
-        const versionsWithTime = Object.entries(releases)
-          .filter(([v]) => isStableVersion(v))
-          .map(([v, files]) => {
-            const fileList = files as Array<{ upload_time_iso_8601?: string }>;
-            const latestUpload = fileList
-              .map((f) => f.upload_time_iso_8601)
-              .filter(Boolean)
-              .sort()
-              .pop();
-            return { version: v, uploadTime: latestUpload || "" };
-          });
-
-        versionsWithTime.sort((a, b) => {
-          const timeDiff =
-            new Date(b.uploadTime).getTime() - new Date(a.uploadTime).getTime();
-          return timeDiff !== 0
-            ? timeDiff
-            : compareVersions(b.version, a.version);
-        });
-
-        const versions = versionsWithTime.map((v) => v.version);
-        const latest = versions[0] ?? data?.info?.version ?? "";
-
-        const releaseTime = versionsWithTime.find((v) => v.version === latest)
-          ?.uploadTime;
-        const isOldEnough =
-          !!releaseTime &&
-          new Date(releaseTime) <= new Date(Date.now() - ONE_HOUR_MS);
-
-        if (isOldEnough) {
-          setLatestVersion(latest);
-        } else {
-          setLatestVersion("");
-        }
-      })
-      .catch(() => {});
+    // Web update check disabled — no hanbao release channel yet.
+    // Previously fetched PYPI_URL to compare QwenPaw versions.
   }, [onDesktop]);
 
-  const hasUpdate = onDesktop
-    ? desktop.hasUpdate
-    : !!version &&
-      !!latestVersion &&
-      compareVersions(latestVersion, version) > 0;
+  const hasUpdate = onDesktop ? desktop.hasUpdate : false;
 
   const modalVersion = onDesktop ? desktop.version : latestVersion;
 
@@ -347,7 +305,7 @@ export default function Header() {
           <Slot name="header.logo" kind="replace">
             <img
               src={isDark ? "/logo-dark.svg" : "/logo-light.svg"}
-              alt="QwenPaw"
+              alt="hanbao"
               className={styles.logoImg}
             />
           </Slot>

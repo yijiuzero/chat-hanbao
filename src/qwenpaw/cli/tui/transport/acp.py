@@ -68,7 +68,7 @@ _CLOSED = object()
 _STDIO_BUFFER_LIMIT = 50 * 1024 * 1024
 
 _WARMUP_PROMPT = (
-    "Warm up the QwenPaw backend for an interactive terminal session. "
+    "Warm up the hanbao backend for an interactive terminal session. "
     "Reply with exactly: ready. Do not call tools."
 )
 

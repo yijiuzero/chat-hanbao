@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Fun terminal theme gallery for QwenPaw."""
+"""Fun terminal theme gallery for hanbao."""
 
 from __future__ import annotations
 

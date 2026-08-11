@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Textual widgets for the QwenPaw TUI."""
+"""Textual widgets for the hanbao TUI."""
 
 from __future__ import annotations
 

@@ -5,6 +5,8 @@ ARG UV_IMAGE=agentscope-registry.ap-southeast-1.cr.aliyuncs.com/agentscope/uv:la
 # -----------------------------------------------------------------------------
 # Stage 1: build console frontend (dist not committed in repo).
 # -----------------------------------------------------------------------------
+# [hanbao modification] Reorder COPY for layer caching: install deps first
+# (cached unless package.json changes), then copy source and build.
 FROM ${NODE_IMAGE} AS console-builder
 WORKDIR /app
 # [hanbao modification] Raise Node heap limit for the console build.
@@ -13,8 +15,12 @@ WORKDIR /app
 # Override with --build-arg NODE_BUILD_HEAP_MB=<mb> if needed.
 ARG NODE_BUILD_HEAP_MB=4096
 ENV NODE_OPTIONS=--max-old-space-size=${NODE_BUILD_HEAP_MB}
+# Install deps first → cached unless package.json / package-lock.json change.
+COPY console/package.json console/package-lock.json /app/console/
+RUN cd /app/console && npm ci --include=dev
+# Copy source and build → only runs when console/ files change.
 COPY console /app/console
-RUN cd /app/console && npm ci --include=dev && npm run build
+RUN cd /app/console && npm run build
 
 # Alias for uv binary so COPY --from can reference a build-arg image.
 FROM ${UV_IMAGE} AS uv-src
@@ -96,17 +102,29 @@ WORKDIR ${WORKSPACE_DIR}
 RUN python3 -m venv venv
 ENV PATH="/app/venv/bin:$PATH"
 
+# [hanbao modification] Reorder for layer caching: install Python deps first.
+# A minimal package stub (__init__.py + __version__.py) lets uv resolve
+# dependencies without requiring the full source tree; PYTHONPATH makes
+# the stub discoverable by setuptools.
 COPY pyproject.toml setup.py README.md ./
+COPY --from=uv-src /uv /bin/uv
+ENV PYTHONPATH=/app/src
+RUN mkdir -p src/qwenpaw && \
+    echo '' > src/qwenpaw/__init__.py && \
+    echo '__version__ = "0.0.1"' > src/qwenpaw/__version__.py && \
+    uv pip install --no-cache-dir . && \
+    rm -rf ./build && rm -rf src/qwenpaw
+
+# Copy real source and reinstall (dependencies already in venv from above).
 COPY src ./src
 COPY website/public/docs/ ./src/qwenpaw/docs/
 # Inject console dist from build stage (repo does not commit dist).
 COPY --from=console-builder /app/console/dist/ ./src/qwenpaw/console/
-# Speed up Python package installation with uv.
-COPY --from=uv-src /uv /bin/uv
-RUN uv pip install --no-cache-dir . && rm -rf ./build
+RUN uv pip install --no-cache-dir --no-deps . && rm -rf ./build
 
 
-# QwenPaw app port (default 8088). Override at runtime with -e QWENPAW_PORT=3000.
+# [hanbao modification] Brand display name in comment
+# hanbao app port (default 8088). Override at runtime with -e QWENPAW_PORT=3000.
 ENV QWENPAW_PORT=8088
 
 COPY deploy/config/supervisord.conf.template /etc/supervisor/conf.d/supervisord.conf.template

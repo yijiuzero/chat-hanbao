@@ -172,7 +172,8 @@ def _looks_like_project_path(value: str) -> bool:
         "auto": ("qwenpaw.cli.auto", "auto_group", ".auto"),
     },
 )
-@click.version_option(version=__version__, prog_name="QwenPaw")
+# [hanbao modification] Brand display name: QwenPaw → hanbao
+@click.version_option(version=__version__, prog_name="hanbao")
 @click.option("--host", default=None, help="API Host")
 @click.option(
     "--port",
@@ -182,7 +183,7 @@ def _looks_like_project_path(value: str) -> bool:
 )
 @click.pass_context
 def cli(ctx: click.Context, host: str | None, port: int | None) -> None:
-    """QwenPaw CLI."""
+    """hanbao CLI."""
     # default from last run if not provided
     last = read_last_api()
     if host is None or port is None:

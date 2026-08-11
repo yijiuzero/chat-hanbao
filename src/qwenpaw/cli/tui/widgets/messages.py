@@ -54,7 +54,8 @@ class QueuedMessage(_Bubble):
 
 
 class AgentLabel(Static):
-    """The ``qwenpaw`` lane label, shown once at the start of a turn.
+    # [hanbao modification] Brand display name: qwenpaw → hanbao
+    """The ``hanbao`` lane label, shown once at the start of a turn.
 
     Kept separate from :class:`AssistantMessage` so a turn that interleaves
     thinking, tools and several answer chunks shows a single label above the
@@ -63,7 +64,8 @@ class AgentLabel(Static):
 
     def __init__(self) -> None:
         super().__init__(
-            Text("qwenpaw", style="bold #b48cff"),
+            # [hanbao modification] Brand display name: qwenpaw → hanbao
+            Text("hanbao", style="bold #b48cff"),
             classes="agentlabel",
         )
 

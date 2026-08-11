@@ -32,16 +32,16 @@ from ..constant import WORKING_DIR
 SECURITY_WARNING = """
 Security warning — please read.
 
-QwenPaw is a personal assistant that runs in your own environment. It can connect to
+hanbao is a personal assistant that runs in your own environment. It can connect to
 channels (DingTalk, Feishu, QQ, Discord, iMessage, etc.) and run skills that read
 files, run commands, and call external APIs. By default it is a single-operator
 boundary: one trusted user. A malicious or confused prompt can lead the agent to
 do unsafe things if tools are enabled.
 
-If multiple people can message the same QwenPaw instance with tools enabled, they
+If multiple people can message the same hanbao instance with tools enabled, they
 share the same delegated authority (files, commands, secrets the agent can use).
 
-If you are not comfortable with access control and hardening, do not run QwenPaw with
+If you are not comfortable with access control and hardening, do not run hanbao with
 tools or expose it to untrusted users. Get help from someone experienced before
 enabling powerful skills or exposing the bot to the internet.
 
@@ -57,10 +57,10 @@ Review your config and skills regularly; limit tool scope to what you need.
 """
 
 TELEMETRY_INFO = """
-Help improve QwenPaw by sharing anonymous usage data!
+Help improve hanbao by sharing anonymous usage data!
 
 We collect only:
-• QwenPaw version (e.g., 0.0.7)
+• hanbao version (e.g., 0.0.7)
 • Install method (pip, Docker, or desktop app)
 • OS and version (e.g., macOS 14.0, Ubuntu 22.04)
 • Python version (e.g., 3.11)
@@ -68,7 +68,7 @@ We collect only:
 • GPU availability (detected, not detailed specs)
 
 No personal data collected! No files, no credentials, no identifiable information.
-This helps us understand QwenPaw's usage environment and prioritize improvements.
+This helps us understand hanbao's usage environment and prioritize improvements.
 """
 
 
@@ -90,7 +90,7 @@ def _echo_telemetry_info_box() -> None:
     console.print(
         Panel(
             TELEMETRY_INFO.strip(),
-            title="[bold]📊 Help improve QwenPaw[/bold]",
+            title="[bold]📊 Help improve hanbao[/bold]",
             border_style="blue",
         ),
     )
@@ -176,7 +176,8 @@ def init_cmd(
     """Create working dir with config.json and HEARTBEAT.md (interactive)."""
     from ..app.migration import (
         ensure_default_agent_exists,
-        ensure_qa_agent_exists,
+        # [hanbao modification] QA Agent auto-creation disabled.
+        # ensure_qa_agent_exists,
         migrate_legacy_skills_to_skill_pool,
     )
 
@@ -232,8 +233,9 @@ def init_cmd(
     ensure_default_agent_exists()
     migrate_legacy_skills_to_skill_pool()
     click.echo("✓ Default workspace initialized")
-    ensure_qa_agent_exists()
-    click.echo("✓ Builtin QA agent workspace ensured")
+    # [hanbao modification] Disable builtin QA Agent auto-creation.
+    # ensure_qa_agent_exists()
+    # click.echo("✓ Builtin QA agent workspace ensured")
 
     # --- Ensure local skill hub exists ---
     from ..agents.skill_system import ensure_skill_pool_initialized

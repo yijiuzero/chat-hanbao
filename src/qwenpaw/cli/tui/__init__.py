@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-"""QwenPaw terminal chat UI (TUI).
+"""hanbao terminal chat UI (TUI).
 
-A Textual front-end, bundled into QwenPaw, that drives the agent over ACP by
+A Textual front-end, bundled into hanbao, that drives the agent over ACP by
 spawning ``qwenpaw acp`` as a subprocess. The UI layer only ever sees the
 normalized :class:`~qwenpaw.cli.tui.transport.base.TuiTransport` interface and
 the :mod:`~qwenpaw.cli.tui.events` event union, so the transport is a swappable

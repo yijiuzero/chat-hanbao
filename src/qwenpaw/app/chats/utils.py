@@ -100,8 +100,8 @@ def build_env_context(
     powered = f", powered by {active_model_name}" if active_model_name else ""
     parts.append(
         f"- About: You are a personal AI assistant{powered}. "
-        f"You operate in QwenPaw, an open-source agent "
-        f"framework built by AgentScope team from Qwen lab.",
+        f"You operate in hanbao, an open-source agent "
+        f"framework built by the AgentScope team.",
     )
     parts.append(
         "- GitHub: https://github.com/agentscope-ai/QwenPaw",

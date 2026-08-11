@@ -753,7 +753,8 @@ class PawApp(App):
             await self._mount(ErrorMessage(f"Could not resume: {exc}"))
             return
         self._status().set(session=session_id)
-        self._set_terminal_title(f"QwenPaw {session_id[:8]}")
+        # [hanbao modification] Brand display name
+        self._set_terminal_title(f"hanbao {session_id[:8]}")
 
     async def _handle_prompt_paste(self, text: str) -> str | None:
         try:
@@ -888,7 +889,7 @@ class PawApp(App):
         )
         # Start with the session id; replaced by the real title once the
         # agent reports one (see SessionTitle).
-        self._set_terminal_title(f"QwenPaw {str(ev.session_id)[:8]}")
+        self._set_terminal_title(f"hanbao {str(ev.session_id)[:8]}")
         # Populate the `/resume` auto-suggest list from past sessions.
         self._refresh_recent_sessions()
 
@@ -1011,7 +1012,7 @@ class PawApp(App):
             await self._mount(UserMessage(event.text))
 
         elif isinstance(event, SessionTitle):
-            self._set_terminal_title(f"QwenPaw {event.title}")
+            self._set_terminal_title(f"hanbao {event.title}")
 
         elif isinstance(event, AvailableCommands):
             self._agent_commands = list(event.commands)
@@ -1134,7 +1135,8 @@ class PawApp(App):
         )
         return (
             f"No response from {model}{extra}. The model or its API key "
-            "may be misconfigured in QwenPaw — check it with `qwenpaw "
+            # [hanbao modification] Brand display name
+            "may be misconfigured in hanbao — check it with `qwenpaw "
             "doctor` or `qwenpaw models config-key`."
         )
 
@@ -1171,10 +1173,11 @@ class PawApp(App):
 
 
 def _local_commands() -> list[SlashCommand]:
+    # [hanbao modification] Brand display name: QwenPaw → hanbao
     """Slash commands handled by the TUI itself. Model/provider commands are
-    QwenPaw's and are forwarded to the agent, not listed here."""
+    hanbao's and are forwarded to the agent, not listed here."""
     commands = [
-        SlashCommand("help", "show QwenPaw TUI shortcuts"),
+        SlashCommand("help", "show hanbao TUI shortcuts"),
         SlashCommand("resume", "resume a previous session"),
         SlashCommand("theme", "open theme gallery or apply a vibe"),
         SlashCommand("inspect", "toggle deeper thought/tool detail"),
