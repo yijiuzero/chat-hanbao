@@ -27,8 +27,41 @@ from qwenpaw.exceptions import (
 )
 
 from ...config import load_config
+from ...constant import (
+    QWENPAW_MESSAGE_TAG_KEY,
+    SYNTHETIC_USER_MESSAGE_TAGS,
+)
 
 logger = logging.getLogger(__name__)
+
+
+# [hanbao modification] Ported upstream #6602: visual compression collapses
+# history/context ranges into user-role messages with these names. They are
+# model-only reconstructions, not user transcript.
+_VISUAL_PLACEHOLDER_NAMES = frozenset(
+    {"visual_context", "visual_history"},
+)
+
+
+def _is_synthetic_user_message(msg: Msg) -> bool:
+    """Return whether *msg* is a runtime-injected user-role message.
+
+    Loop gates, stop handlers, and rubric evaluation append tagged
+    ``role="user"`` stubs to keep a turn going; visual compression collapses
+    history into ``visual_history`` / ``visual_context`` user messages. None
+    of them is user transcript — rendering them as user cards made the
+    original instruction appear rewritten after a session switch.
+    """
+    if msg.role != "user":
+        return False
+    if msg.name in _VISUAL_PLACEHOLDER_NAMES:
+        return True
+    metadata = getattr(msg, "metadata", None)
+    return (
+        isinstance(metadata, dict)
+        and metadata.get(QWENPAW_MESSAGE_TAG_KEY)
+        in SYNTHETIC_USER_MESSAGE_TAGS
+    )
 
 
 def parse_legacy_memory_state(
@@ -454,6 +487,8 @@ def agentscope_msg_to_message(
         user_tz = timezone.utc
 
     for msg in msgs:
+        if _is_synthetic_user_message(msg):
+            continue
         role = msg.role or "assistant"
 
         ts_value = msg.timestamp

@@ -365,6 +365,15 @@ hanbao 定位「渠道聊天为主」（微信/QQ/Telegram 等），OneBot v11 �
 
 > ⚠️ 备注：P1-20 是针对 Coding Mode 的 Monaco 编辑器 CSS。函包虽已砍 Coding Mode，但 `monaco-editor` 依赖 + `monacoSetup.ts` + `main.tsx` import 仍残留（见 I-024）。该修复对函包价值存疑但无害，已保留；Monaco 残留待阶段3 收尾清理。
 
+### 上游 v2.1.0 渠道完整性修复：切 Agent 会话恢复 / session integrity（2026-08-14，P0-1 #6546 / #6602）
+
+P0-1 渠道完整性三个提交全部落地（#6382 已在前一小节）。
+
+- [修改] P0-1 #6546「切 Agent 会话恢复」：引入 `sessionApi.getActiveOwner/isActiveOwner` epoch 机制（切 Agent 后丢弃旧 Agent 的异步结果）+ `isLocalTimestampId` 过滤临时本地 session id。`sessionApi`/`useSessionListData`/`ChatSessionInitializer`/`agentStore`/`sessionListStore` git apply 干净；`ChatSessionDrawer`/`Chat/index.tsx` 因函包已删 `codingMode` 致上下文偏移，手工移植
+- [修改] P0-1 #6602「session integrity」：客户端消息 ID（`clientMessageId`/`QWENPAW_CLIENT_MESSAGE_ID_KEY`）+ 重连快进（`wrapReplayFastForward`）+ 会话分组持久化（`useCollapsedSessionGroups`）。14 个文件 git apply 干净；`Chat/index.tsx`/`ChatSessionDrawer/index.tsx`/`chats/utils.py`/`constant.py` 手工移植（含依赖确认 `SYNTHETIC_USER_MESSAGE_TAGS` 函包已有、`_is_synthetic_user_message` 核心逻辑独立于 scroll 重构）
+
+**验证**：`hanbao:0.0.19` 构建成功，容器跑通无报错。
+
 ## 阶段 4 · 容器化
 
 _（待执行；须同批修复 I-002 `COPY LICENSE NOTICE` 与 I-003 `.dockerignore` 白名单）_

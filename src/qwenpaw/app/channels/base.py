@@ -567,6 +567,7 @@ class BaseChannel(ABC):
             chat.id,
             payload,
             self._stream_with_tracker,
+            owner=self._workspace,
         )
 
         if is_new:
