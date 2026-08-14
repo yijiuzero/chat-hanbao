@@ -154,13 +154,18 @@ docker run --rm hanbao:<tag> sh -c "ls -l /app/LICENSE /app/NOTICE"
 ### 当前决策
 按用户策略 **先完整移植跑通，不提前裁剪**。本阶段原样构建，仅记录不处理。
 
-### 处理方案（阶段 2 执行）
-确认 hanbao 定位为「Web 聊天为主」后，评估砍掉：
-- XFCE4 + Xvfb（若不需要 GUI 自动化）
-- Chromium（若不需要浏览器工具）
+### 处理方案（阶段 4 执行，2026-08-14 已摸清依赖）
+确认 hanbao 定位为「渠道聊天为主」后，评估砍掉：
+- XFCE4 + Xvfb + dbus-x11（纯 Web 聊天不需要 GUI 桌面，可删）
+- Chromium（**不能直接删**：`agents/tools/browser_control.py`（`browser_use` 浏览器自动化工具，用 Playwright）在 `tools/__init__.py:32` 被注册，依赖 Chromium。删 Chromium 前需先决策「浏览器工具去留」）
 - build-essential（改为多阶段构建，只在 builder 阶段保留）
 
-> 这是**全项目瘦身收益最大的一块**，预计可省 50%+ 体积。
+> **2026-08-14 依赖摸底结论**：
+> - Chromium 依赖链：`browser_control.py`（browser_use 工具）→ Playwright → Chromium（`PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium`）
+> - 桌面环境（XFCE4/Xvfb/dbus）无其他代码依赖，可安全删
+> - 中文字体（fonts-wqy-zenhei/microhei）渲染中文仍需要，保留
+> - **瘦身核心决策点**：浏览器工具 `browser_use` 去留 → 决定 Chromium（约 1-2GB）能否删
+> - 这是**全项目瘦身收益最大的一块**，预计可省 50%+ 体积。
 > ⚠️ 砍之前必须先确认哪些 Skill / Plugin 依赖它们，否则会静默失去能力。
 
 ---
