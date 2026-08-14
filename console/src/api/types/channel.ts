@@ -182,6 +182,8 @@ export interface OneBotConfig extends BaseChannelConfig {
   ws_port: number;
   access_token: string;
   share_session_in_group: boolean;
+  media_base64: boolean;
+  media_base64_max_mb: number;
 }
 
 export interface ChannelConfig {

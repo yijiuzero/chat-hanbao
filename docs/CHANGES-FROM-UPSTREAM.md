@@ -356,7 +356,7 @@ hanbao 定位「渠道聊天为主」（微信/QQ/Telegram 等），OneBot v11 �
 
 **验证**：`hanbao:0.0.17` 构建成功（前端 TSX 重新编译），容器跑通无报错。
 
-**待续（需手工合并，onebot 等文件被函包改过）**：P0-1 #6546/#6602（会话完整性，大改）、P1-14 #6543/#6769（OneBot 文本/媒体顺序 + 引用回复展开，onebot 被 P0-2 改过）。
+**后续**：P0-1 #6546/#6602 见下方「渠道完整性修复」小节；P1-14 #6543/#6769 见下方「OneBot 文本/媒体 + 引用回复」小节。
 
 ### 上游 v2.1.0 渠道/构建修复移植：钉钉凭据 / Monaco CSS 守卫（2026-08-14，P1-15 / P1-20）
 
@@ -373,6 +373,18 @@ P0-1 渠道完整性三个提交全部落地（#6382 已在前一小节）。
 - [修改] P0-1 #6602「session integrity」：客户端消息 ID（`clientMessageId`/`QWENPAW_CLIENT_MESSAGE_ID_KEY`）+ 重连快进（`wrapReplayFastForward`）+ 会话分组持久化（`useCollapsedSessionGroups`）。14 个文件 git apply 干净；`Chat/index.tsx`/`ChatSessionDrawer/index.tsx`/`chats/utils.py`/`constant.py` 手工移植（含依赖确认 `SYNTHETIC_USER_MESSAGE_TAGS` 函包已有、`_is_synthetic_user_message` 核心逻辑独立于 scroll 重构）
 
 **验证**：`hanbao:0.0.19` 构建成功，容器跑通无报错。
+
+### 上游 v2.1.0 OneBot 文本/媒体顺序 + 引用回复（2026-08-14，P1-14 #6543 / #6769）
+
+P1-14 两个提交全部落地（均手工移植，因 onebot/channel.py 已被 P0-2 #6676 安全加固改过 125 行，import 区 / `_EVENT_TASK_HARD_CAP` 后 / `__init__` 三处叠加冲突）。
+
+- [修改] P1-14 #6543「文本/媒体顺序 + 媒体 base64」：
+  - 新增链接清理（`_clean_links`/`_clean_inline_text`/`_clean_onebot_plain_text`，Markdown 链接转裸 URL 供 QQ 自动识别）+ 媒体 base64（`_local_path_from_media_ref`/`_local_media_base64_ref`/`_normalize_media_ref[_sync]`）
+  - `send`/`send_media`/`_send_file` 重构：新增 `send_content_parts`（按原文/媒体顺序发送）、`_resolve_target`/`_send_segments` 抽公共发送逻辑
+  - `config.py` OneBotConfig 新增 `media_base64`/`media_base64_max_mb`；前端 `channel.ts` + `ChannelDrawer.tsx`（开关 + 大小上限）+ en/zh locale（跳过 id/ja/ru/vi/pt-BR）
+- [修改] P1-14 #6769「引用回复保真」：QQ 群聊引用回复时，拉取被引用消息（`get_msg`）并拼入上下文。新增 `_unescape_cq_value`（CQ 码反转义）+ `_normalize_onebot_segments`（array/CQ 码字符串统一解析）+ `_reply_message_id`/`_get_quoted_message_segments`/`_with_quoted_context` 等 11 个 helper；`_handle_message_event` 重构（self_id 提前设置 + 引用处理放在 mention 门之后避免无谓 I/O）；`_resolve_file_urls` 改为按 file segment 索引提取 file_id
+
+**验证**：`hanbao:0.0.21` 构建成功，容器跑通无报错。
 
 ## 阶段 4 · 容器化
 
