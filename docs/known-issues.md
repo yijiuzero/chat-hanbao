@@ -31,7 +31,7 @@
 | [I-020](#i-020) | html2text 为 GPL-3.0 传染性依赖，违反 R5 红线 | 🔥 高 | 上架前必须解决 | 🟢 已解决（换 markdownify MIT） |
 | [I-021](#i-021) | 依赖审计：4 个 LGPL 弱传染依赖（telegram-bot/rope/pytoolconfig/docstring-to-markdown） | 🟠 中 | 上架前备案 | 🟡 处理中（NOTICE 已补声明） |
 | [I-022](#i-022) | web_search 用 Tavily keyless（免费限速），上架后重度使用会撞限速 | 🟡 低 | 上架后可优化 | 🔴 待处理 |
-| [I-023](#i-023) | 本地基线标签 `upstream/v2.0.1` 与官方 v2.0.1 不一致（缺 `_normalize_media_ref`） | 🟡 低 | 下次合并上游前必须核对 | 🔴 待处理 |
+| [I-023](#i-023) | 本地基线标签 `upstream/v2.0.1` 与官方 v2.0.1 不一致（channel.py 缺 `_normalize_media_ref`、memoryspace.py 方法结构差异） | 🔴 高 | 移植 P1-9/合并上游前必须核对 | 🔴 待处理 |
 | [I-024](#i-024) | Monaco 编辑器残留（Coding Mode 砍不干净） | 🟢 极低 | 阶段 3 收尾 | 🔴 待处理 |
 
 ---
@@ -654,31 +654,34 @@ GPL 是 copyleft 传染性许可，与 Apache-2.0 闭源分发目标冲突，违
 ---
 
 <a id="i-023"></a>
-## I-023 · 本地基线标签 `upstream/v2.0.1` 与官方 v2.0.1 不一致（缺 `_normalize_media_ref`）
+## I-023 · 本地基线标签 `upstream/v2.0.1` 与官方 v2.0.1 不一致（多处文件差异）
 
-**严重度**：🟡 低 &nbsp;|&nbsp; **状态**：🔴 待处理 &nbsp;|&nbsp; **必须处理时机**：下次合并上游前必须核对
+**严重度**：🔴 高 &nbsp;|&nbsp; **状态**：🔴 待处理 &nbsp;|&nbsp; **必须处理时机**：移植 P1-9 / 合并上游前必须核对
 
-### 现象（2026-08-14，移植 #6676 时发现）
-- 本地基线 `upstream/v2.0.1`（commit `9b86a97`）的 `src/qwenpaw/app/channels/onebot/channel.py` **不含** `OneBotChannel._normalize_media_ref` 方法。
-- 但上游官方 v2.0.1 release tarball / 仓库的同一文件**含**该方法。
-- 即：本仓库基线标签与上游官方 v2.0.1 并非逐字节一致，**基线偏离了官方**。
+### 现象（2026-08-14 首次发现；当日二次扩展）
+- 实例 1（#6676 时发现）：本地基线 `upstream/v2.0.1`（commit `9b86a97`）的 `src/qwenpaw/app/channels/onebot/channel.py` **不含** `OneBotChannel._normalize_media_ref` 方法，但官方 v2.0.1 同一文件**含**该方法。
+- 实例 2（2026-08-14 移植 P1-9 #6237 时发现）：本地基线的 `src/qwenpaw/agents/context/scroll/memoryspace.py` 与官方 v2.0.1 有**方法结构差异**——本地 `expand()` 是简化版 `WHERE seq BETWEEN ? AND ?`（无 scope 过滤），官方是 `where.append("(agent_id = ? OR agent_id IS NULL)")` + `AND.join(where)` 的带 scope 过滤版；SELECT 字段也有差异。`git apply` 该文件在第 7 个 hunk（`@@ -301`）即失败。
+- 即：本仓库基线标签与上游官方 v2.0.1 **并非逐字节一致，且差异不止一处**，基线偏离了官方。
 
 ### 影响
-- 从上游 patch（v2.0.1→v2.1.0）移植时，凡涉及 `_normalize_media_ref` 的 hunk 会因上下文不匹配而 `git apply` 失败，需手工 3-way merge（见 `upstream-v2.1.0-adoption.md` §9）。
+- 从上游 patch（v2.0.1→v2.1.0）移植时，凡涉及偏离文件（channel.py / memoryspace.py 等）的 hunk 会因上下文不匹配而 `git apply` 失败，需手工 3-way merge。
+- **P1-9（#6237 scroll 重构 + #6824 中文召回）被阻塞**：其核心改动全部落在 memoryspace.py（942 行）+ recall_tool.py（448 行），基线偏离导致无法 `git apply`。
 - 若后续误信"`upstream/v2.0.1` = 官方 v2.0.1"，会漏掉官方在基线里已含、而本地基线缺的修复/改动，导致**基于错误基线做决策**。
 
 ### 根因猜测（待查）
 - 建仓时（`git init` 自 tarball）可能误用了非官方来源，或 tarball 与 tag 取错版本；或本地 `E:\浏览器下载\QwenPaw-2.0.1\` 本身就不是官方 v2.0.1。
 - 也有可能是官方在打 tag 后、发 tarball 前又有一次未打 tag 的提交。需比对官方 tag 与 tarball 确认。
 
-### 处理方案（下次合并上游前）
-1. 比对官方 `git tag v2.0.1` 内容与本地 `9b86a97`：`git diff 9b86a97 <官方v2.0.1> -- src/qwenpaw/app/channels/onebot/channel.py`，列出全部差异。
-2. 将缺的 `_normalize_media_ref` 及官方基线的其他差异，作为「基线补正」单独 commit（带 `[hanbao modification]` + 记入本文件）。
+### 处理方案（移植 P1-9 / 合并上游前）
+1. 比对官方 `git tag v2.0.1` 内容与本地 `9b86a97`：`git diff 9b86a97 <官方v2.0.1> --stat` 列出**全部**差异文件（不止 channel.py / memoryspace.py）。
+2. 将缺的 `_normalize_media_ref`、memoryspace.py 的 scope 过滤版 `expand()` 及官方基线的其他差异，作为「基线补正」单独 commit（带 `[hanbao modification]` + 记入本文件）。
 3. **重新打基线 tag**（如 `upstream/v2.0.1-official` 或直接修正 `upstream/v2.0.1`），让后续 `git diff upstream/v2.0.1..HEAD` 的基线可信。
-4. 在 `upstream-v2.1.0-adoption.md` §9 的可行性结论里补注：本地基线 ≠ 官方基线，72 文件冲突评估需重做（原结论基于"本地基线 = 官方"假设）。
+4. 在 `upstream-v2.1.0-adoption.md` §9 的可行性结论里补注：本地基线 ≠ 官方基线，冲突评估需重做（原结论基于"本地基线 = 官方"假设）。
+5. 基线补正后，P1-9 的 `#6237`/`#6824` 才能以 `git apply` 干净移植；否则只能手工 3-way merge（工作量大、风险高，不推荐）。
 
 ### 当前缓解
 - #6676 移植时已在类定义前插入 helper（避开对 `_normalize_media_ref` 的依赖），编译通过，不阻塞当前工作。
+- P1-9 暂缓：等基线补正后再移植，避免在错误基线上手工 merge 引入更多偏差。
 
 ---
 
@@ -722,3 +725,4 @@ GPL 是 copyleft 传染性许可，与 Apache-2.0 闭源分发目标冲突，违
 | 2026-08-14 | I-006 解决：遥测上报彻底移除（telemetry.py 上传禁用 + 删上报地址、_app.py/init_cmd.py 调用移除）。前端确认无遥测。工具侵权审计补全：make-skill 借鉴的 skill-creator 是 Apache-2.0（非专有），合规 |
 | 2026-08-14 | 上游 v2.1.0 安全修复 #6676 落地（P0-2）：OneBot 反向 WS 绑定改 loopback 默认 + 非 loopback 强制 access_token（常量时间比较、拒 query-param token）。改 3 文件，py_compile 通过，CHANGES 已记。新增 I-023：本地基线 `upstream/v2.0.1` 与官方 v2.0.1 不一致（channel.py 缺 `_normalize_media_ref`），下次合并上游前必须核对重打基线 |
 | 2026-08-14 | v2.1.0 P0/P1 移植第一批（P0-4/8/9/11 + P1-26 后端 + P1-28 + P0-1#6382 + P1-12/15/20）全部落地，commit `315294d` + 后续 #6382/#6907/#6709/#6639。新增 I-024：Monaco 编辑器残留（Coding Mode 砍不干净，阶段3 收尾清理） |
+| 2026-08-14 | v2.1.0 移植第二批（P1-14 #6543/#6769 + P1-26 前端 UI + P0-10 #6495）落地，commit `5154f61`/`cad5be0`/`70db5c5`。**I-023 二次扩展**：移植 P1-9 #6237 时发现 memoryspace.py 也有方法结构差异（expand 简化版 vs 官方 scope 过滤版），P1-9 被基线偏离阻塞，暂缓待基线补正 |

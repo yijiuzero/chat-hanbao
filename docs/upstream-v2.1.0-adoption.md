@@ -107,7 +107,7 @@
 | P1-6 | Scroll 上下文溢出自动压缩 + 重试 | #6267 | `qwenpaw/scroll` | 长对话不崩。移植"上下文超限→压缩→重试一次"。 |
 | P1-7 | 长对话任务驻留 + 可搜索历史索引 | #6323 | `qwenpaw/scroll`、历史检索 | 长聊天体验。 |
 | P1-8 | Visual Compact（长上下文压缩输入） | #6456 | `qwenpaw/scroll`、多模态处理 | 省 token，对云 API 成本友好；确认支持多模态时保留源可恢复。 |
-| P1-9 | Scroll 中文(CJK) 召回修复 | #6824 | `qwenpaw/scroll` 检索 | **中文用户关键**。移植完整 CJK turn 召回 + 拒绝反向扩展范围。 |
+| P1-9 | Scroll 中文(CJK) 召回修复 | #6824 | `qwenpaw/scroll` 检索 | **中文用户关键**。移植完整 CJK turn 召回 + 拒绝反向扩展范围。**⛔ 暂缓：依赖 #6237 scroll 重构（memoryspace/recall_tool），而本地基线 memoryspace.py 偏离官方 v2.0.1（见 known-issues I-023），git apply 失败。需先做「基线补正」再移植。** |
 | P1-10 | 后台长任务工具（进度/取消） | #6151 | `qwenpaw` 工具执行 | 长工具不阻塞。 |
 | P1-11 | 工具流复用/分支/循环/并行 | #5698 | `qwenpaw` 工具编排 | Agent 能力增强。 |
 | P1-12 | 渠道自定义网关端点（飞书/QQ/WeCom/等） | #6907 | `qwenpaw/channels/*` | opt-in，不改默认。按需移植网关端点配置项。 |
