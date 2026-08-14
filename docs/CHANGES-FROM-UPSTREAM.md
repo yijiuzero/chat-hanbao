@@ -343,10 +343,12 @@ hanbao 定位「渠道聊天为主」（微信/QQ/Telegram 等），OneBot v11 �
 - [修改] `src/qwenpaw/drivers/manager.py` — P1-28 / #6894：`list_capabilities` 的 handler 循环加 try/except（单个 Driver 失败不影响整体）；注：上游 hunk 含 `scope_id` 参数（函包 v2.0.1 无），故手工移植核心逻辑而非 git apply
 - [修改] `src/qwenpaw/agent_stats/models.py` + `service.py` — P1-26 / #6503：新增 `agent_prompt_tokens`/`agent_completion_tokens`/`agent_llm_calls` 字段；`_extract_turn_usage_tokens` 从 per-turn metadata 提取当前 Agent token 用量（独立于全局 overlay）
 - [修改] `console/src/api/types/agentStats.ts` — P1-26 / #6503：`DailyStats`/`AgentStatsSummary` 加 `agent_prompt_tokens`/`agent_completion_tokens`/`agent_llm_calls` 可选字段（后端数据结构类型对齐）
+- [修改] `console/src/pages/Settings/AgentStats/index.tsx` + `index.module.less` — P1-26 / #6503 前端 UI（两提交 #6503 + 「narrow」叠加）：页面收窄为「当前 Agent」视角——顶部标题改为 `getAgentDisplayName` 显示的 Agent 名；删「全部 Agent 汇总」区（全局 prompt/completion/llmCalls 卡片 + 全局 token 趋势图）；当前 Agent 区保留 session/message/当前 Agent token/Recorded Turns/toolCalls 卡片 + 当前 Agent token 趋势图 + LLM 轮次&工具趋势图。类型 `ChartDataItem` 删 `displayDate`/`totalMessages`/`promptTokens`/`completionTokens`/`llmCalls`，加 `agentLlmCalls`
+- [修改] `console/src/locales/{en,zh}.json` — P1-26：agentStats 段删 10 个废弃 key（`description`/`llmCalls`/`channel`/`sessionCount`/`sessions`/`messages`/`promptTokensTooltip`/`completionTokensTooltip`/`llmCallsTooltip`/`tokenTrendTooltip`），新增 5 个 `currentAgent*` key，改 `llmAndToolTrendTooltip`（跳过 id/ja/ru/vi/pt-BR）
 
 **验证**：`hanbao:0.0.16` 构建成功，容器跑通无 import 错误。
 
-**待续（复杂项，单独处理）**：P1-9 中文召回（665 行 FTS CJK 支持，上下文不匹配需手工）、P1-26 前端 UI（AgentStats 页面图表 + 中英 locale，跳过 id/ja/ru 等多语言，两提交共约 1100 行）、P0-1 渠道完整性（混合提交）、P0-10 视频转发（多 provider）。
+**待续（复杂项，单独处理）**：P1-9 中文召回（665 行 FTS CJK 支持，上下文不匹配需手工）、P0-10 视频转发（多 provider）。
 
 ### 上游 v2.1.0 渠道修复移植：渠道身份泄漏 / 自定义网关端点（2026-08-14，P0-1#6382 / P1-12#6907）
 
