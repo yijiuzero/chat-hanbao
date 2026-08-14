@@ -348,7 +348,15 @@ hanbao 定位「渠道聊天为主」（微信/QQ/Telegram 等），OneBot v11 �
 
 **验证**：`hanbao:0.0.16` 构建成功，容器跑通无 import 错误。
 
-**待续（复杂项，单独处理）**：P1-9 中文召回（665 行 FTS CJK 支持，上下文不匹配需手工）。
+### 上游 v2.1.0 Scroll 中文(CJK) 召回 + 检索重构（2026-08-14，P1-9）
+
+按依赖顺序移植三个提交（见 known-issues I-023「patch 提交依赖」）：
+
+- [修改] **PATCH 066 #6068**（前置依赖，仅取 memoryspace.py 片段）：`expand()` 从 `WHERE seq BETWEEN` 改为带 `session_id`/`agent_id` scope 过滤版（`where.append` + `AND.join`），保留 `agent_id IS NULL` 兼容早期迁移。**其余 session 迁移重构（sync.py/history.py/session.py）为独立功能，未纳入**。
+- [修改] **#6237 `feat(scroll): improve exchange and date-aware history recall`**：scroll 记忆检索核心重构。`memoryspace.py`/`recall_tool.py`/`repl.py`/`manager.py`/`history.py` git apply 干净；`_app.py`/`builder.py`/`command_handler.py` 手工移植（scroll 组件构建同步化后，用 `run_sync_io` 异步包装，`_build_scroll_components` 改 `async def`）。
+- [修改] **#6824 `fix(scroll): recall CJK substrings as complete turns`**：中文召回核心——`_CJK_QUERY_RE` 识别 CJK 字符，查询含中文时路由到 LIKE 字面子串搜索（绕过 `unicode61` 不做 CJK 分词的缺陷）；`_or_query_groups` 支持大写 OR 组；LIKE 路径多词 AND + OR；`recall_tool._normalize_expand_args` 拒绝反向 `lo>hi` span。
+
+**验证**：`hanbao:0.0.24` 构建成功，容器跑通无报错。
 
 ### 上游 v2.1.0 视频传递修复：跨 provider 视频数据（2026-08-14，P0-10 #6495）
 

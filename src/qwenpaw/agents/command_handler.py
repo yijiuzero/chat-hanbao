@@ -4,6 +4,7 @@
 This module handles system commands like /compact, /new, /clear, etc.
 """
 
+import asyncio
 import json
 import logging
 import re
@@ -17,6 +18,7 @@ from ..config.config import load_agent_config, get_model_max_input_length
 from ..constant import DEBUG_HISTORY_FILE, MAX_LOAD_HISTORY_COUNT
 from ..exceptions import SystemCommandException
 from ..loop.gates.runner import clear_pending_gate_state
+from ..utils.io_utils import run_sync_io
 
 if TYPE_CHECKING:
     from agentscope.agent import Agent
@@ -364,7 +366,9 @@ class CommandHandler(ConversationCommandHandlerMixin):
             # native, so under the scroll strategy we drive the scroll manager
             # directly here. Native sessions fall through untouched.
             scroll_mgr = (
-                self._build_standalone_scroll_manager()
+                await run_sync_io(
+                    self._build_standalone_scroll_manager,
+                )
                 if self._agent is None
                 else None
             )
@@ -1333,7 +1337,6 @@ class CommandHandler(ConversationCommandHandlerMixin):
 
         elif args == "off":
             try:
-                import asyncio
                 from .memory import proactive_tasks
 
                 if self.agent_name in proactive_tasks:
