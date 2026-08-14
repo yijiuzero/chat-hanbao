@@ -348,7 +348,17 @@ hanbao 定位「渠道聊天为主」（微信/QQ/Telegram 等），OneBot v11 �
 
 **验证**：`hanbao:0.0.16` 构建成功，容器跑通无 import 错误。
 
-**待续（复杂项，单独处理）**：P1-9 中文召回（665 行 FTS CJK 支持，上下文不匹配需手工）、P0-10 视频转发（多 provider）。
+**待续（复杂项，单独处理）**：P1-9 中文召回（665 行 FTS CJK 支持，上下文不匹配需手工）。
+
+### 上游 v2.1.0 视频传递修复：跨 provider 视频数据（2026-08-14，P0-10 #6495）
+
+函包只走 OpenAI 兼容，故跳过 `openai_response_provider.py`（Responses API）与 `anthropic_provider.py`（Anthropic）两个 provider 专属改动，只移植通用核心。
+
+- [修改] `src/qwenpaw/agents/model_factory.py` — 视频传递边界修复 + response_api 支持：`_format_openai_video_block` 加 `response_api` 参数（`input_video` vs `video_url`）；`_substitute_video_blocks` 跳过 `assistant` role（视频块在 assistant 内容里多数 provider 不合法）；`_replace_video_placeholders` 只处理 `user`/`tool`/`system`；`_promote_tool_result_videos` 同步 `response_api`
+- [修改] `src/qwenpaw/providers/multimodal_prober.py` — 新增 `evaluate_video_probe_answer`（视频颜色探测答案评估抽成公共模块，供所有 provider 复用同一套蓝系关键词 + 日志）
+- [修改] `src/qwenpaw/providers/openai_provider.py` — `_evaluate_video_response` 委托给 `evaluate_video_probe_answer`（删本地 `_BLUE_KW` 重复逻辑）
+
+**验证**：`hanbao:0.0.23` 构建成功，容器跑通无报错。
 
 ### 上游 v2.1.0 渠道修复移植：渠道身份泄漏 / 自定义网关端点（2026-08-14，P0-1#6382 / P1-12#6907）
 
