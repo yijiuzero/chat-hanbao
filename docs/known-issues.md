@@ -32,7 +32,7 @@
 | [I-021](#i-021) | 依赖审计：4 个 LGPL 弱传染依赖（telegram-bot/rope/pytoolconfig/docstring-to-markdown） | 🟠 中 | 上架前备案 | 🟡 处理中（NOTICE 已补声明） |
 | [I-022](#i-022) | web_search 用 Tavily keyless（免费限速），上架后重度使用会撞限速 | 🟡 低 | 上架后可优化 | 🔴 待处理 |
 | [I-023](#i-023) | patch 累积 diff 的提交依赖（原「基线偏离」为误判，本地基线=官方 v2.0.1） | 🟡 低 | 移植靠后提交前先识别前置依赖 | 🟢 已澄清 |
-| [I-024](#i-024) | Monaco 编辑器残留（Coding Mode 砍不干净） | 🟢 极低 | 阶段 3 收尾 | 🔴 待处理 |
+| [I-024](#i-024) | Monaco 编辑器残留（Coding Mode 砍不干净） | 🟢 极低 | 阶段 3 收尾 | 🟢 已解决（依赖移除+占位符） |
 
 ---
 
@@ -689,7 +689,7 @@ GPL 是 copyleft 传染性许可，与 Apache-2.0 闭源分发目标冲突，违
 
 ## I-024 · Monaco 编辑器残留（Coding Mode 砍不干净）
 
-**严重度**：🟢 极低 &nbsp;|&nbsp; **状态**：🔴 待处理 &nbsp;|&nbsp; **必须处理时机**：阶段 3 收尾
+**严重度**：🟢 极低 &nbsp;|&nbsp; **状态**：🟢 已解决（2026-08-14） &nbsp;|&nbsp; **必须处理时机**：阶段 3 收尾
 
 ### 现象（2026-08-14，移植 P1-20 时发现）
 函包已砍 Coding Mode（编码模式），但 Monaco 编辑器组件未一并清理，残留：
@@ -697,14 +697,14 @@ GPL 是 copyleft 传染性许可，与 Apache-2.0 闭源分发目标冲突，违
 - `console/src/monacoSetup.ts`（Monaco 离线加载配置，注释明确"为 Coding page 文件预览/编辑服务"）
 - `console/src/main.tsx` 的 `import "./monacoSetup"`
 
-### 影响
-- Monaco 编辑器成为死代码，体积约 +X MB（monaco-editor 较大），且构建时仍处理其 CSS/worker。
-- P1-20（Monaco CSS 构建守卫）也因此对函包价值存疑（无人用 Monaco）。
+### 解决（2026-08-14 阶段 3 收尾）
+- `console/package.json`：删 `monaco-editor` + `@monaco-editor/react` 依赖、删 `verify:monaco-css` script、`build`/`build:prod` 去掉 `&& npm run verify:monaco-css`
+- `console/package-lock.json`：`npm install --package-lock-only` 同步（纯删 62 行，零版本漂移）
+- `console/src/main.tsx`：删 `import "./monacoSetup"` 及注释
+- `console/src/monacoSetup.ts`：清空为占位符（`export {}`），因 `tsc -b` 会编译 src 下所有 .ts，直接删依赖会 TS2307
+- `console/scripts/verify-monaco-css.mjs`：保留为孤儿（.mjs 不被 tsc 编译、script 已删不调用），**待用户手动删**
 
-### 处理方案（阶段 3 收尾，与前端审批 UI 死代码清理同批）
-1. 确认 Monaco 是否被 Coding Mode 之外的功能复用（grep `Monaco`/`@monaco-editor/react` 引用）。
-2. 若纯死代码：删 `monaco-editor`/`@monaco-editor/react` 依赖 + `monacoSetup.ts` + `main.tsx` import + 一并移除 P1-20 的 `verify:monaco-css` 守卫。
-3. 记入 CHANGES-FROM-UPSTREAM.md。
+> ⚠️ 环境教训：本机 git rm 删除文件曾触发整个 `console/` 目录 553 文件从磁盘消失（文件系统异常，类似 I-018），故本轮未用 git rm 删文件，改用「清空占位 + 留孤儿文件」，物理删除交用户手动。
 
 ---
 

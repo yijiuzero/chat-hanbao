@@ -292,6 +292,18 @@ hanbao 是独立 fork 产品，分发给第三方用户，不应把「多少人�
 - [修改] `src/qwenpaw/cli/init_cmd.py` — 移除遥测代码块、`TELEMETRY_INFO` 文案、`_echo_telemetry_info_box`（init 交互模式的 "Share usage data?" 提示一并删除）
 - [确认] 前端 console 无遥测（无 analytics/posthog/sentry 依赖，无上报端点）
 
+### Monaco 编辑器残留清理（2026-08-14，I-024，阶段 3 收尾）
+
+Coding Mode 移除时 Monaco 编辑器未一并清理，本次收尾：
+
+- [修改] `console/package.json` — 删 `monaco-editor` + `@monaco-editor/react` 依赖、删 `verify:monaco-css` script、`build`/`build:prod` 去掉 `&& npm run verify:monaco-css`
+- [修改] `console/package-lock.json` — `npm install --package-lock-only` 同步（纯删 62 行，零版本漂移）
+- [修改] `console/src/main.tsx` — 删 `import "./monacoSetup"` 及注释
+- [修改] `console/src/monacoSetup.ts` — 清空为占位符 `export {}`（`tsc -b` 会编译 src 下所有 .ts，直接删依赖报 TS2307）
+- [保留] `console/scripts/verify-monaco-css.mjs` — 孤儿文件（.mjs 不被 tsc 编译、script 已删不调用），物理删除待用户手动执行
+
+> ⚠️ 环境教训：本机 `git rm` 删除文件曾触发整个 `console/` 目录 553 文件从磁盘消失（文件系统异常，类似 I-018），故未用 git rm，改用「清空占位 + 留孤儿文件」，物理删除交用户手动。
+
 ### 构建修复记录
 
 - 修复 2 处 Python 文件中误用的 `// [hanbao]` 注释（JS 语法，Python 解析报错）→ 改为 `# [hanbao]`
