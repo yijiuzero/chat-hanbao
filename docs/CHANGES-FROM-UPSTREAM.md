@@ -342,10 +342,28 @@ hanbao 定位「渠道聊天为主」（微信/QQ/Telegram 等），OneBot v11 �
 - [修改] `src/qwenpaw/drivers/handlers/mcp_stateful_client.py` — P1-28 / #6894：`_is_transport_error` 识别 `McpError`（"session terminated"/"connection closed"）与嵌套异常；`list_tools` 在会话失败时返回缓存 tool schema 并等待重连重试；`_handle_transport_error` 返回 bool
 - [修改] `src/qwenpaw/drivers/manager.py` — P1-28 / #6894：`list_capabilities` 的 handler 循环加 try/except（单个 Driver 失败不影响整体）；注：上游 hunk 含 `scope_id` 参数（函包 v2.0.1 无），故手工移植核心逻辑而非 git apply
 - [修改] `src/qwenpaw/agent_stats/models.py` + `service.py` — P1-26 / #6503：新增 `agent_prompt_tokens`/`agent_completion_tokens`/`agent_llm_calls` 字段；`_extract_turn_usage_tokens` 从 per-turn metadata 提取当前 Agent token 用量（独立于全局 overlay）
+- [修改] `console/src/api/types/agentStats.ts` — P1-26 / #6503：`DailyStats`/`AgentStatsSummary` 加 `agent_prompt_tokens`/`agent_completion_tokens`/`agent_llm_calls` 可选字段（后端数据结构类型对齐）
 
 **验证**：`hanbao:0.0.16` 构建成功，容器跑通无 import 错误。
 
-**待续（复杂项，单独处理）**：P1-9 中文召回（665 行 FTS CJK 支持，上下文不匹配需手工）、P1-26 前端（AgentStats 页面 + 中英 locale，跳过 id/ja/ru 等多语言）、P0-1 渠道完整性（混合提交）、P0-10 视频转发（多 provider）。
+**待续（复杂项，单独处理）**：P1-9 中文召回（665 行 FTS CJK 支持，上下文不匹配需手工）、P1-26 前端 UI（AgentStats 页面图表 + 中英 locale，跳过 id/ja/ru 等多语言，两提交共约 1100 行）、P0-1 渠道完整性（混合提交）、P0-10 视频转发（多 provider）。
+
+### 上游 v2.1.0 渠道修复移植：渠道身份泄漏 / 自定义网关端点（2026-08-14，P0-1#6382 / P1-12#6907）
+
+- [修改] `console/src/pages/Chat/sessionApi/index.ts` — P0-1 / #6382：新增 `resetWindowIdentity()`；`getSessionIdentity()` 增强（window 全局仅在仍能解析到当前列表 session 时才信任，否则 fallback 默认，防止切 Agent 后继承旧 channel/已删除渠道）
+- [修改] `console/src/pages/Chat/index.tsx` — P0-1 / #6382：4 处改用 `sessionApi.getSessionIdentity()` 替代直接读 `window.currentUserId/currentChannel`；切 Agent 时调用 `resetWindowIdentity()`
+- [修改] `src/qwenpaw/app/channels/{feishu,qq,wecom,xiaoyi,yuanbao}/` + `config.py` — P1-12 / #6907：渠道 `domain` 支持自定义 http(s) 网关端点（私有/自定义部署）；feishu 新增 `_sdk_domain()` 统一返回 SDK base URL
+
+**验证**：`hanbao:0.0.17` 构建成功（前端 TSX 重新编译），容器跑通无报错。
+
+**待续（需手工合并，onebot 等文件被函包改过）**：P0-1 #6546/#6602（会话完整性，大改）、P1-14 #6543/#6769（OneBot 文本/媒体顺序 + 引用回复展开，onebot 被 P0-2 改过）。
+
+### 上游 v2.1.0 渠道/构建修复移植：钉钉凭据 / Monaco CSS 守卫（2026-08-14，P1-15 / P1-20）
+
+- [修改] `src/qwenpaw/app/channels/qrcode_auth_handler.py` — P1-15 / #6709：钉钉组织应用审批的二维码认证，新增 `_DINGTALK_PENDING_STATUSES`/`_DINGTALK_FAILED_STATUSES` 与 `_clean_str`（中间态持续轮询、`null` 不转 `"None"`）
+- [修改] `console/package.json` + `console/vite.config.ts` + 新增 `console/scripts/verify-monaco-css.mjs` — P1-20 / #6639：生产构建守卫（断言 Monaco 样式表未被 stub 掉）
+
+> ⚠️ 备注：P1-20 是针对 Coding Mode 的 Monaco 编辑器 CSS。函包虽已砍 Coding Mode，但 `monaco-editor` 依赖 + `monacoSetup.ts` + `main.tsx` import 仍残留（见 I-024）。该修复对函包价值存疑但无害，已保留；Monaco 残留待阶段3 收尾清理。
 
 ## 阶段 4 · 容器化
 
