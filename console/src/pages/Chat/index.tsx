@@ -53,9 +53,6 @@ import { wrapReplayFastForward } from "./replayFastForward";
 import { useTurnUsageStore } from "./turnUsageStore";
 import ChatHeaderTitle from "./components/ChatHeaderTitle";
 import ChatSessionInitializer from "./components/ChatSessionInitializer";
-import { ApprovalCard } from "../../components/ApprovalCard/ApprovalCard";
-import { commandsApi } from "../../api/modules/commands";
-import { useApprovalContext } from "../../contexts/ApprovalContext";
 import {
   useChatScalarSnapshot,
   useChatListSnapshot,
@@ -68,7 +65,6 @@ import {
 import { ChatScalar, ChatList } from "../../plugins/registry/slotKeys";
 import { HostRequestCard, HostResponseCard } from "./HostBubbles";
 import { withGenericFallback } from "../../components/Chat/ToolCards/adapters/v1Adapter";
-import { applyApprovalLevelToRequestBody } from "./approvalPayload";
 import {
   createHeadlineFilterState,
   filterHeadlineDelta,
@@ -76,27 +72,6 @@ import {
   type HeadlineStreamFilterState,
   stripScrollHeadlineTextBlocks,
 } from "./headlineFilter";
-
-interface ApprovalMessageData {
-  requestId: string;
-  sessionId: string;
-  rootSessionId?: string;
-  agentId: string;
-  toolName: string;
-  toolSource?: string;
-  severity: string;
-  findingsCount: number;
-  findingsSummary: string;
-  toolParams: Record<string, unknown>;
-  createdAt: number;
-  timeoutSeconds: number;
-  // Approval-scope choice (console-only). When isGeneralized is true the
-  // card offers Approve Pattern (similar) vs Approve Exact (exact).
-  isGeneralized?: boolean;
-  exactTarget?: string;
-  similarTarget?: string;
-}
-
 
 import {
   toDisplayUrl,
@@ -121,9 +96,6 @@ import {
 import { openExternalLink } from "../../utils/openExternalLink";
 import { useUploadLimitStore } from "../../stores/uploadLimitStore";
 import MessageQueuePanel from "./components/MessageQueuePanel";
-import ApprovalLevelToggle from "./components/ApprovalLevelToggle";
-import { useAgentRunningConfigApprovalLevel } from "../../hooks/useAgentRunningConfigApprovalLevel";
-import { type ToolExecutionLevel } from "../../utils/approval";
 import {
   useMessageQueueStore,
   type QueueItem,
@@ -1162,9 +1134,6 @@ export default function ChatPage() {
   const autoSendTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevQueueLenRef = useRef(messageQueue.length);
 
-  const sessionApprovalLevelRef = useRef<ToolExecutionLevel | null>(null);
-  const runningConfigApprovalLevel = useAgentRunningConfigApprovalLevel();
-
   // Track pending attachments for queue support
   const pendingFileListRef = useRef<
     {
@@ -1349,10 +1318,6 @@ export default function ChatPage() {
   chatLoadingRef.current = chatLoading;
   const prevChatLoadingRef = useRef<boolean | string>(false);
   const { message } = useAppMessage();
-  const { approvals, setApprovals } = useApprovalContext();
-  const [approvalRequests, setApprovalRequests] = useState<
-    Map<string, ApprovalMessageData>
-  >(new Map());
   const { mode: sidebarMode } = useSidebarModeStore();
   const isFullMode = sidebarMode === "full";
 
@@ -1451,145 +1416,6 @@ export default function ChatPage() {
       document.removeEventListener("keydown", handleKeyDown, true);
     };
   }, [isChatActive]);
-
-  // Consume approvals from Context and filter by current session.
-  // Uses a serialized key to avoid creating a new Map (and triggering
-  // re-renders of the entire Chat tree) when the filtered result is identical.
-  const prevApprovalKeyRef = useRef("");
-
-  useEffect(() => {
-    const currentSessionId = window.currentSessionId || chatId || "";
-
-    // When no session ID is available yet, use the first approval's
-    // root_session_id as a hint (handles the race where approval arrives
-    // before the session ID is propagated).
-    let effectiveSessionId = currentSessionId;
-    if (!effectiveSessionId && approvals.length > 0) {
-      effectiveSessionId = approvals[0].root_session_id;
-    }
-
-    const sessionApprovals = effectiveSessionId
-      ? approvals.filter(
-          (approval) => approval.root_session_id === effectiveSessionId,
-        )
-      : approvals;
-
-    // Build a stable key from the filtered request IDs so we can skip
-    // the Map rebuild when nothing changed (avoids re-render every 2.5s poll).
-    const approvalKey = sessionApprovals
-      .map((a) => a.request_id)
-      .sort()
-      .join(",");
-
-    if (approvalKey === prevApprovalKeyRef.current) return;
-    prevApprovalKeyRef.current = approvalKey;
-
-    const newMap = new Map<string, ApprovalMessageData>();
-    for (const approval of sessionApprovals) {
-      newMap.set(approval.request_id, {
-        requestId: approval.request_id,
-        sessionId: approval.session_id,
-        rootSessionId: approval.root_session_id,
-        agentId: approval.agent_id,
-        toolName: approval.tool_name,
-        toolSource: approval.tool_source,
-        severity: approval.severity,
-        findingsCount: approval.findings_count,
-        findingsSummary: approval.findings_summary,
-        toolParams: approval.tool_params,
-        createdAt: approval.created_at,
-        timeoutSeconds: approval.timeout_seconds,
-        isGeneralized: approval.is_generalized,
-        exactTarget: approval.exact_target,
-        similarTarget: approval.similar_target,
-      });
-    }
-
-    setApprovalRequests(newMap);
-  }, [approvals, chatId]);
-
-  const handleApprove = useCallback(
-    async (requestId: string, scope?: "exact" | "similar") => {
-      const request = approvalRequests.get(requestId);
-      if (!request) return;
-
-      const rootSessionId = request.rootSessionId || request.sessionId;
-
-      try {
-        const cardElement = document.querySelector(
-          `[data-approval-id="${requestId}"]`,
-        );
-        if (cardElement) {
-          cardElement.classList.add("approvalCardExit");
-        }
-
-        await commandsApi.sendApprovalCommand(
-          "approve",
-          requestId,
-          rootSessionId,
-          undefined,
-          scope,
-        );
-        setApprovals((prev) =>
-          prev.filter((item) => item.request_id !== requestId),
-        );
-        message.success(t("approval.approved"));
-
-        // Delay removal to let exit animation complete
-        setTimeout(() => {
-          setApprovalRequests((prev) => {
-            const next = new Map(prev);
-            next.delete(requestId);
-            return next;
-          });
-        }, 300);
-      } catch (error) {
-        message.error(t("approval.approveFailed"));
-        console.error("Failed to approve:", error);
-      }
-    },
-    [approvalRequests, chatId, t, message, setApprovals],
-  );
-
-  const handleDeny = useCallback(
-    async (requestId: string) => {
-      const request = approvalRequests.get(requestId);
-      if (!request) return;
-
-      // Use currentSessionId (root session) instead of request.sessionId (sub-agent session)
-      const rootSessionId = request.rootSessionId || request.sessionId;
-
-      try {
-        // Add exit animation class
-        const cardElement = document.querySelector(
-          `[data-approval-id="${requestId}"]`,
-        );
-        if (cardElement) {
-          cardElement.classList.add("approvalCardExit");
-        }
-
-        await commandsApi.sendApprovalCommand("deny", requestId, rootSessionId);
-        setApprovals((prev) =>
-          prev.filter((item) => item.request_id !== requestId),
-        );
-        message.success(t("approval.denied"));
-
-        // Delay removal to let animation complete
-        // Backend will remove from pending list, next poll will update UI
-        setTimeout(() => {
-          setApprovalRequests((prev) => {
-            const next = new Map(prev);
-            next.delete(requestId);
-            return next;
-          });
-        }, 300); // Match animation duration
-      } catch (error) {
-        message.error(t("approval.denyFailed"));
-        console.error("Failed to deny:", error);
-      }
-    },
-    [approvalRequests, chatId, t, message, setApprovals],
-  );
 
   // Use custom hooks for better separation of concerns
   const isComposingRef = useIMEComposition(isChatActive);
@@ -2271,12 +2097,6 @@ export default function ChatPage() {
         }
       }
 
-      applyApprovalLevelToRequestBody(
-        requestBody,
-        sessionApprovalLevelRef.current,
-        runningConfigApprovalLevel,
-      );
-
       const backendChatId =
         sessionApi.getRealIdForSession(String(requestBody.session_id || "")) ??
         chatIdRef.current ??
@@ -2328,7 +2148,7 @@ export default function ChatPage() {
 
       return wrapChatResponseUsageStream(response, chatRef);
     },
-    [extLists, selectedAgent, runningConfigApprovalLevel],
+    [extLists, selectedAgent],
   );
 
   const handleFileUpload = useCallback(
@@ -2766,13 +2586,6 @@ export default function ChatPage() {
               onCompact={handleCompactCommand}
               onNew={handleNewCommand}
             />
-            <ApprovalLevelToggle
-              sessionId={queueSessionId}
-              runningConfigApprovalLevel={runningConfigApprovalLevel}
-              onChange={(sessionOverride) => {
-                sessionApprovalLevelRef.current = sessionOverride;
-              }}
-            />
           </span>
         ),
         attachments: {
@@ -3008,7 +2821,6 @@ export default function ChatPage() {
     consoleSkills,
     loopAvailableModes,
     selectedAgent,
-    runningConfigApprovalLevel,
     queueSessionId,
     onFileCardClick,
     isWideMode,
@@ -3092,72 +2904,6 @@ export default function ChatPage() {
             </div>
           </div>
         )}
-
-        {/* Render approval cards as overlays */}
-        {Array.from(approvalRequests.values()).map((request) => (
-          <div
-            key={request.requestId}
-            data-approval-id={request.requestId}
-            style={{
-              position: "fixed",
-              bottom: 80,
-              right: 24,
-              zIndex: 1000,
-              maxWidth: 480,
-              width: "calc(100vw - 48px)",
-            }}
-          >
-            <ApprovalCard
-              requestId={request.requestId}
-              agentId={request.agentId}
-              toolName={request.toolName}
-              toolSource={request.toolSource}
-              severity={request.severity}
-              findingsCount={request.findingsCount}
-              findingsSummary={request.findingsSummary}
-              toolParams={request.toolParams}
-              createdAt={request.createdAt}
-              timeoutSeconds={request.timeoutSeconds}
-              sessionId={request.sessionId}
-              rootSessionId={request.rootSessionId}
-              isGeneralized={request.isGeneralized}
-              exactTarget={request.exactTarget}
-              similarTarget={request.similarTarget}
-              onApprove={(reqId, scope) => handleApprove(reqId, scope)}
-              onDeny={handleDeny}
-              onCancel={() => {
-                const sessionId =
-                  request.rootSessionId || window.currentSessionId || "";
-                const resolvedChatId =
-                  sessionApi.getRealIdForSession(sessionId) ??
-                  chatIdRef.current ??
-                  sessionId;
-
-                if (resolvedChatId) {
-                  console.log("[Chat] Calling stopChat with:", resolvedChatId);
-                  chatApi
-                    .stopChat(resolvedChatId)
-                    .then(() => {
-                      console.log("[Chat] stopChat succeeded");
-                      setApprovals((prev) =>
-                        prev.filter(
-                          (item) =>
-                            item.root_session_id !== request.rootSessionId,
-                        ),
-                      );
-                    })
-                    .catch((err) => {
-                      console.error("[Chat] stopChat failed:", err);
-                    });
-                } else {
-                  console.warn(
-                    "[Chat] No chat_id resolved, cannot cancel task",
-                  );
-                }
-              }}
-            />
-          </div>
-        ))}
 
         <Modal
           open={showModelPrompt}

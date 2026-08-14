@@ -283,14 +283,17 @@ hanbao 定位私人豆包，主要通过聊天渠道（微信等）交互，交�
 - [保留] 灾难级命令拦截（`rm -rf /`、`mkfs`、`dd`、fork bomb 等）仍在 policy 层 DENY，不受影响
 - [保留] 前端审批 UI（`ApprovalCard`/`ApprovalContext`/`ApprovalLevelToggle`/`PendingApprovalsDrawer`）—— 后端不再发 ASK，已变死代码不再弹窗；因深度耦合 App/Sidebar/Chat/Inbox/Channels，暂不硬删，待后续单独清理
 
-### 审批前端 UI 清理第一批（2026-08-14）
+### 审批前端 UI 清理（2026-08-14）
 
-审批事件产生函数 `_ask_user_approval` 已零调用点，前端审批 UI 永远空，故清理用户可见的两处审批 UI：
+审批事件产生函数 `_ask_user_approval` 已零调用点，前端审批 UI 永远空，故清理全部前端审批死代码：
 
 - [修改] `console/src/pages/Inbox/index.tsx` — 删收件箱「审批」Tab（`TabKey` 收紧为 `messages`、删 `handleApproveRequest`/`handleRejectRequest`/`handleCancelTask`、删 `GlobalApprovalCard`/`useApprovalContext`/`commandsApi`/`chatApi`/`sessionApi`/`PackageOpen` import、删 tab 记忆 localStorage）
 - [修改] `console/src/pages/Agent/Config/index.tsx` + `useAgentConfig.tsx` — 删「工具执行安全」Tab（`ToolExecutionLevelCard`）及 `approvalLevel` 状态/加载/保存/返回
+- [修改] `console/src/pages/Chat/index.tsx` — 删 6 个审批 import + `ApprovalMessageData` 接口 + `sessionApprovalLevelRef`/`runningConfigApprovalLevel`/`approvals`/`approvalRequests` 状态 + 消费 useEffect + `handleApprove`/`handleDeny` + `applyApprovalLevelToRequestBody` 调用 + `ApprovalLevelToggle`/`ApprovalCard` 渲染 + 依赖数组
+- [修改] `console/src/components/ConsolePollService/index.tsx` — 删审批轮询（保留推送消息气泡）
+- [修改] `console/src/App.tsx` — 删 `ApprovalProvider` 挂载 + import
 - [修改] `console/src/pages/Agent/Config/useAgentConfig.test.tsx` — 删 3 个审批相关测试用例
-- [保留] Chat 页审批卡片/开关、`ApprovalContext`、`ConsolePollService` 轮询、`App.tsx` `ApprovalProvider` 等深层死代码 —— 审批事件不产生故不显示，且耦合深，留作后续彻底清理
+- [保留] 孤儿文件（已无引用，物理删除待用户手动）：`ApprovalContext.tsx`、`ApprovalCard.tsx`（全局+Inbox）、`ApprovalLevelToggle.tsx`、`approvalPayload.ts`、`utils/approval.ts`、`useAgentRunningConfigApprovalLevel.ts`、`ToolExecutionLevelCard.tsx`
 - [保留] 后端 `approvals/` 服务 + `routers/approval.py` —— 仍被 ACP server/console/协调器调用，非纯死代码，暂不动
 
 ### 遥测移除（2026-08-14，I-006）

@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { MessageCircle, X } from "lucide-react";
 import { consoleApi, type PushMessage } from "../../api/modules/console";
-import { useApprovalContext } from "../../contexts/ApprovalContext";
 import styles from "./index.module.less";
 
 const POLL_INTERVAL_MS = 2500;
@@ -21,7 +20,6 @@ export default function ConsolePollService() {
   const seenIdsRef = useRef<Set<string>>(new Set());
   const originalTitleRef = useRef(document.title);
   const blinkRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const { setApprovals } = useApprovalContext();
 
   const dismiss = (id: string) => {
     setItems((prev) => prev.filter((i) => i.id !== id));
@@ -32,22 +30,10 @@ export default function ConsolePollService() {
   }, []);
 
   useEffect(() => {
-    const prevApprovalsRef = { current: "" };
     const tick = () => {
       consoleApi
         .getPushMessages()
         .then((res) => {
-          // Update pending approvals only when they actually change,
-          // to avoid triggering unnecessary re-renders in Chat component
-          // every 2.5s polling cycle.
-          if (res?.pending_approvals) {
-            const serialized = JSON.stringify(res.pending_approvals);
-            if (serialized !== prevApprovalsRef.current) {
-              prevApprovalsRef.current = serialized;
-              setApprovals(res.pending_approvals);
-            }
-          }
-
           // Update message bubbles
           if (!res?.messages?.length) return;
           const seen = seenIdsRef.current;
