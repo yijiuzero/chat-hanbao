@@ -21,17 +21,12 @@ import {
   DownOutlined,
   ToolOutlined,
 } from "@ant-design/icons";
-import { PackageOpen, Bell } from "lucide-react";
+import { Bell } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useTranslation } from "react-i18next";
 import { PageHeader } from "@/components/PageHeader";
 import { externalLinkMarkdownComponents } from "@/components/Markdown/externalLinkComponents";
-import { ApprovalCard as GlobalApprovalCard } from "../../components/ApprovalCard/ApprovalCard";
-import { useApprovalContext } from "../../contexts/ApprovalContext";
-import { commandsApi } from "../../api/modules/commands";
-import { chatApi } from "../../api/modules/chat";
-import sessionApi from "../Chat/sessionApi";
 import { PushMessageCard } from "./components";
 import { useInboxData } from "./hooks/useInboxData";
 import { useTraceViewer } from "./hooks/useTraceViewer";
@@ -47,25 +42,12 @@ import {
 } from "./utils/traceUtils";
 import styles from "./index.module.less";
 
-type TabKey = "approvals" | "messages";
-const INBOX_TAB_STORAGE_KEY = "qwenpaw.inbox.activeTab";
 const PUSH_MESSAGES_PAGE_SIZE = 5;
 
 const SOURCE_TYPE_LABEL_KEYS: Record<string, string> = {
   cron: "inbox.sourceTypeCron",
   heartbeat: "inbox.sourceTypeHeartbeat",
   memory: "inbox.sourceTypeMemory",
-};
-
-const resolveInitialTab = (): TabKey => {
-  if (typeof window === "undefined") {
-    return "messages";
-  }
-  const stored = window.localStorage.getItem(INBOX_TAB_STORAGE_KEY);
-  if (stored === "approvals" || stored === "messages") {
-    return stored;
-  }
-  return "messages";
 };
 
 const renderMarkdownText = (text: string, className: string) => (
@@ -81,7 +63,6 @@ const renderMarkdownText = (text: string, className: string) => (
 
 export default function InboxPage() {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState<TabKey>(resolveInitialTab);
   const [markAllReading, setMarkAllReading] = useState(false);
   const [selectedAgentFilter, setSelectedAgentFilter] = useState<
     string | undefined
@@ -93,7 +74,6 @@ export default function InboxPage() {
   const [selectedMessageIds, setSelectedMessageIds] = useState<string[]>([]);
   const [batchMode, setBatchMode] = useState(false);
   const agents = useAgentStore((state) => state.agents);
-  const { approvals: pendingApprovals, setApprovals } = useApprovalContext();
   const {
     summary,
     pushMessages,
@@ -157,7 +137,6 @@ export default function InboxPage() {
         label: t(SOURCE_TYPE_LABEL_KEYS[type] || type),
       }));
   }, [pushMessages, t]);
-  const approvalCount = pendingApprovals.length;
   const pagedPushMessages = useMemo(() => {
     const start = (messagesPage - 1) * PUSH_MESSAGES_PAGE_SIZE;
     return filteredPushMessages.slice(start, start + PUSH_MESSAGES_PAGE_SIZE);
@@ -177,43 +156,6 @@ export default function InboxPage() {
     Math.ceil(filteredPushMessages.length / PUSH_MESSAGES_PAGE_SIZE),
   );
 
-  const handleApproveRequest = async (
-    requestId: string,
-    rootSessionId: string,
-    scope?: "exact" | "similar",
-  ) => {
-    await commandsApi.sendApprovalCommand(
-      "approve",
-      requestId,
-      rootSessionId,
-      undefined,
-      scope,
-    );
-    setApprovals((prev) =>
-      prev.filter((item) => item.request_id !== requestId),
-    );
-    message.success(t("approval.approved"));
-  };
-
-  const handleRejectRequest = async (
-    requestId: string,
-    rootSessionId: string,
-  ) => {
-    await commandsApi.sendApprovalCommand("deny", requestId, rootSessionId);
-    setApprovals((prev) =>
-      prev.filter((item) => item.request_id !== requestId),
-    );
-    message.success(t("approval.denied"));
-  };
-
-  const handleCancelTask = async (rootSessionId: string) => {
-    const resolvedChatId =
-      sessionApi.getRealIdForSession(rootSessionId) ?? rootSessionId;
-    await chatApi.stopChat(resolvedChatId);
-    setApprovals((prev) =>
-      prev.filter((item) => item.root_session_id !== rootSessionId),
-    );
-  };
   const {
     detailOpen,
     selectedMessage,
@@ -227,12 +169,6 @@ export default function InboxPage() {
     copyTraceBlock,
     handleTraceScroll,
   } = useTraceViewer(markMessageAsRead);
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(INBOX_TAB_STORAGE_KEY, activeTab);
-    }
-  }, [activeTab]);
 
   useEffect(() => {
     if (messagesPage > totalMessagePages) {
@@ -429,78 +365,6 @@ export default function InboxPage() {
         </div>
       ),
     },
-    {
-      key: "approvals",
-      label: (
-        <span className={styles.tabLabel}>
-          <PackageOpen size={16} />
-          {t("inbox.tabApprovals")}
-          {approvalCount > 0 && <Badge count={approvalCount} color="#ff7f16" />}
-        </span>
-      ),
-      children: (
-        <div className={styles.tabContent}>
-          {pendingApprovals.length > 0 ? (
-            <div className={styles.cardList}>
-              {pendingApprovals.map((approval) => (
-                <GlobalApprovalCard
-                  key={approval.request_id}
-                  requestId={approval.request_id}
-                  agentId={approval.agent_id}
-                  ownerAgentId={approval.owner_agent_id}
-                  showInboxAgentContext
-                  toolName={approval.tool_display_name || approval.tool_name}
-                  toolSource={approval.tool_source}
-                  severity={approval.severity}
-                  findingsCount={approval.findings_count}
-                  findingsSummary={approval.findings_summary}
-                  toolParams={approval.tool_params}
-                  createdAt={approval.created_at}
-                  timeoutSeconds={approval.timeout_seconds}
-                  sessionId={approval.session_id}
-                  rootSessionId={approval.root_session_id}
-                  isGeneralized={approval.is_generalized}
-                  exactTarget={approval.exact_target}
-                  similarTarget={approval.similar_target}
-                  onApprove={(_reqId, scope) =>
-                    handleApproveRequest(
-                      approval.request_id,
-                      approval.root_session_id,
-                      scope,
-                    )
-                  }
-                  onDeny={() =>
-                    handleRejectRequest(
-                      approval.request_id,
-                      approval.root_session_id,
-                    )
-                  }
-                  onCancel={() => {
-                    void handleCancelTask(approval.root_session_id);
-                  }}
-                  onAcknowledge={(requestId) => {
-                    return commandsApi
-                      .sendApprovalCommand(
-                        "deny",
-                        requestId,
-                        approval.root_session_id,
-                      )
-                      .catch(() => undefined)
-                      .then(() => {
-                        setApprovals((prev) =>
-                          prev.filter((item) => item.request_id !== requestId),
-                        );
-                      });
-                  }}
-                />
-              ))}
-            </div>
-          ) : (
-            <Empty description={t("inbox.emptyApprovals")} />
-          )}
-        </div>
-      ),
-    },
   ];
 
   return (
@@ -509,8 +373,7 @@ export default function InboxPage() {
 
       <div className={styles.pageContent}>
         <Tabs
-          activeKey={activeTab}
-          onChange={(key) => setActiveTab(key as TabKey)}
+          activeKey="messages"
           items={tabItems}
           className={styles.inboxTabs}
         />

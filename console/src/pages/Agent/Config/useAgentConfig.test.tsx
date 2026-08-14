@@ -180,26 +180,6 @@ describe("useAgentConfig", () => {
     });
   });
 
-  it("fetchConfig defaults approval_level to AUTO when missing", async () => {
-    apiMocks.getAgentRunningConfig.mockResolvedValue(
-      makeConfig({ approval_level: undefined }),
-    );
-    const { result } = renderConfigHook();
-    await waitFor(() => {
-      expect(result.current.approvalLevel).toBe("AUTO");
-    });
-  });
-
-  it("fetchConfig uppercases an existing lowercased approval_level", async () => {
-    apiMocks.getAgentRunningConfig.mockResolvedValue(
-      makeConfig({ approval_level: "strict" }),
-    );
-    const { result } = renderConfigHook();
-    await waitFor(() => {
-      expect(result.current.approvalLevel).toBe("STRICT");
-    });
-  });
-
   it("fetchConfig sets error on failure", async () => {
     apiMocks.getAgentRunningConfig.mockRejectedValue(new Error("boom"));
     const { result } = renderConfigHook();
@@ -250,25 +230,6 @@ describe("useAgentConfig", () => {
 
     expect(apiMocks.updateAgentRunningConfig).toHaveBeenCalledTimes(1);
     expect(messageMock.success).toHaveBeenCalledWith("agentConfig.saveSuccess");
-  });
-
-  it("handleSave persists configToSave containing approval_level", async () => {
-    apiMocks.updateAgentRunningConfig.mockResolvedValue(makeConfig());
-    const { result } = renderConfigHook();
-    await waitFor(() => {
-      expect(result.current.loading).toBe(false);
-    });
-
-    act(() => {
-      result.current.setApprovalLevel("STRICT");
-    });
-
-    await act(async () => {
-      await result.current.handleSave();
-    });
-
-    const saved = apiMocks.updateAgentRunningConfig.mock.calls[0][0] as Config;
-    expect(saved.approval_level).toBe("STRICT");
   });
 
   it("handleSave includes unmounted custom loop template values", async () => {

@@ -10,7 +10,6 @@ import {
   MEMORY_MANAGER_BACKEND_MAPPINGS,
   MEMORY_MANAGER_BACKEND_OPTIONS,
 } from "../../../constants/backendMappings";
-import type { ToolExecutionLevel } from "./components/ToolExecutionLevelCard";
 
 export function useAgentConfig() {
   const { t } = useTranslation();
@@ -24,8 +23,6 @@ export function useAgentConfig() {
   const [savingLang, setSavingLang] = useState(false);
   const [timezone, setTimezone] = useState<string>("UTC");
   const [savingTimezone, setSavingTimezone] = useState(false);
-  const [approvalLevel, setApprovalLevel] =
-    useState<ToolExecutionLevel>("AUTO");
   const originalConfigRef = useRef<AgentsRunningConfig | null>(null);
 
   const fetchConfig = useCallback(async () => {
@@ -37,10 +34,6 @@ export function useAgentConfig() {
         api.getAgentLanguage(),
         api.getUserTimezone(),
       ]);
-      const loadedLevel = (
-        config.approval_level || "AUTO"
-      ).toUpperCase() as ToolExecutionLevel;
-      setApprovalLevel(loadedLevel);
       const contextBackend =
         config.context_manager_backend in CONTEXT_MANAGER_BACKEND_MAPPINGS
           ? config.context_manager_backend
@@ -167,7 +160,6 @@ export function useAgentConfig() {
           original.auto_title_config,
           formValues.auto_title_config,
         ) as typeof original.auto_title_config,
-        approval_level: approvalLevel,
       };
 
       await api.updateAgentRunningConfig(configToSave);
@@ -183,7 +175,7 @@ export function useAgentConfig() {
     } finally {
       setSaving(false);
     }
-  }, [form, t, selectedAgent, approvalLevel]);
+  }, [form, t, selectedAgent]);
 
   const handleLanguageChange = useCallback(
     (value: string): void => {
@@ -256,8 +248,6 @@ export function useAgentConfig() {
     savingLang,
     timezone,
     savingTimezone,
-    approvalLevel,
-    setApprovalLevel,
     fetchConfig,
     handleSave,
     handleLanguageChange,
