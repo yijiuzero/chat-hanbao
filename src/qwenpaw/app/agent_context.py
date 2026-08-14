@@ -139,7 +139,6 @@ async def get_agent_for_request(
 def get_coding_dir(workspace: "Workspace") -> Path:
     """Return the active coding project directory for *workspace*.
 
-    If the agent has set a ``coding_mode.project_dir`` in its config, that
     path is returned.  Otherwise the agent's default ``workspace_dir`` is used.
     """
     from ..config.config import load_agent_config
@@ -147,7 +146,6 @@ def get_coding_dir(workspace: "Workspace") -> Path:
     try:
         config = load_agent_config(workspace.agent_id)
         project_dir = (
-            config.coding_mode.project_dir if config.coding_mode else None
         )
     except Exception:
         project_dir = None

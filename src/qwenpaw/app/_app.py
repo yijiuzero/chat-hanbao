@@ -52,7 +52,6 @@ from .routers import create_agent_scoped_router
 from .routers import router as api_router
 from .routers.agent_scoped import AgentContextMiddleware
 from .routers.approval import router as approval_router
-from .routers.coding_mode import router as coding_mode_router
 from .routers.healthz import router as healthz_router
 from .routers.loops import router as loops_router
 from .routers.tool_calls import router as tool_calls_router
@@ -102,22 +101,8 @@ async def lifespan(  # pylint: disable=too-many-statements,too-many-branches
     auto_register_from_env()
     check_proxy_config_sanity()
 
-    try:
-        from ..utils.telemetry import (
-            collect_and_upload_telemetry,
-            has_telemetry_been_collected,
-            is_telemetry_opted_out,
-        )
-
-        if not is_telemetry_opted_out(
-            WORKING_DIR,
-        ) and not has_telemetry_been_collected(WORKING_DIR):
-            collect_and_upload_telemetry(WORKING_DIR)
-    except Exception:
-        logger.debug(
-            "Telemetry collection skipped due to error",
-            exc_info=True,
-        )
+    # [hanbao modification] Telemetry removed — hanbao is an independent
+    # fork and must not phone home to QwenPaw's telemetry endpoint (I-006).
 
     logger.debug("Checking for legacy config migration...")
     migrate_legacy_workspace_to_default_agent()
@@ -773,8 +758,7 @@ app.include_router(tool_calls_router, prefix="/api")
 # Approval router: /api/approval/approve, /api/approval/deny, etc.
 app.include_router(approval_router, prefix="/api")
 
-# Coding Mode router: /api/coding-mode
-app.include_router(coding_mode_router, prefix="/api")
+# [hanbao] Coding mode router removed.
 
 # Loops router: /api/loops
 app.include_router(loops_router, prefix="/api")

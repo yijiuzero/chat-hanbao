@@ -87,7 +87,7 @@ class ContextVarsSetupHook(LifecycleHook):
             set_current_shell_command_executable(
                 running.shell_command_executable or None,
             )
-            _cm = getattr(cfg, "coding_mode", None)
+            # [hanbao] Coding removed. _cm = None
             if (
                 _cm
                 and getattr(_cm, "enabled", False)

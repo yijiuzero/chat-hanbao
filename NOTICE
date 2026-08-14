@@ -45,3 +45,12 @@ This product depends on third-party software distributed under their own
 licenses, including AgentScope (Apache-2.0) and other packages declared in
 pyproject.toml and console/package.json. Their respective licenses and
 copyright notices apply to those components.
+
+LGPL components (weak copyleft — dynamically linked via Python import,
+source unmodified, closed-source redistribution permitted under LGPL):
+
+    python-telegram-bot (LGPLv3)      — Telegram channel
+    docstring-to-markdown (LGPLv2+)   — pylint dependency
+
+LGPL license texts: https://www.gnu.org/licenses/lgpl-3.0.txt and
+https://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt

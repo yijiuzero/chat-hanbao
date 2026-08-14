@@ -60,14 +60,12 @@ dependencies = [
     "anyio>=4.0.0,<4.13.0",
     "watchfiles>=0.22",
     "orjson>=3.9",
-    # Coding Mode — Python LSP server bundled as a zero-config fallback
-    # so the `lsp` tool always works for .py files (see PROPOSAL §3.4).
-    "python-lsp-server[all]>=1.10",
-    # Coding Mode — multi-language AST pattern matcher used by ast_search.
-    # Pure-Python wrapper around a prebuilt Rust binary; PyPI distributes
-    # wheels for all three OSes.
-    "ast-grep-cli>=0.20",
-    "html2text>=2024.2.26",
+    # [hanbao modification] markdownify (MIT) replaces html2text (GPL-3.0) —
+    # GPL is copyleft and incompatible with Apache-2.0 redistribution (R5).
+    "markdownify>=1.0.0",
+    # [hanbao modification] Read PDF/Office documents via MarkItDown (MIT)
+    # after removing Anthropic-proprietary docx/pdf/pptx/xlsx skills (I-019).
+    "markitdown[pdf,docx,pptx,xlsx]>=0.1.0",
 ]
 
 [project.urls]

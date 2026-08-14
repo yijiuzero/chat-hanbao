@@ -32,7 +32,6 @@ import {
   syncSessionsGlobal,
   type ExtendedSession,
 } from "../stores/sessionListStore";
-import { useCodingMode } from "../stores/codingModeStore";
 import { useSidebarModeStore } from "../stores/sidebarModeStore";
 import { buildSessionPath, getSessionIdFromPath } from "../utils/sessionRoute";
 import sessionApi from "../pages/Chat/sessionApi";
@@ -113,12 +112,11 @@ export default function Sidebar({ selectedKey }: SidebarProps) {
   const { t } = useTranslation();
   const { message } = useAppMessage();
   const { isDark } = useTheme();
-  // When coding mode is on, the sidebar "Chat" entry should land on /coding
   // (FileTree + Editor + Chat panel) rather than the bare Chat page.
-  const { codingMode } = useCodingMode();
+  // [hanbao modification] Coding mode removed, always chat.
   const currentSessionId = getSessionIdFromPath(location.pathname);
   const chatPath = buildSessionPath(
-    codingMode ? "coding" : "chat",
+    "chat",
     currentSessionId,
   );
   const [authEnabled, setAuthEnabled] = useState(false);
@@ -344,10 +342,10 @@ export default function Sidebar({ selectedKey }: SidebarProps) {
       window.dispatchEvent(new CustomEvent("qwenpaw:sidebar-new-chat"));
     } else {
       sessionStorage.setItem("qwenpaw_pending_new_chat", "1");
-      const mode = codingMode ? "coding" : "chat";
+      const mode = "chat";
       navigate(`/${mode}`);
     }
-  }, [location.pathname, navigate, codingMode]);
+  }, [location.pathname, navigate]);
 
   /**
    * Session click: navigate directly without relying on ChatSessionInitializer.
@@ -356,12 +354,12 @@ export default function Sidebar({ selectedKey }: SidebarProps) {
    */
   const handleSidebarSessionClick = useCallback(
     (sessionId: string) => {
-      const mode = codingMode ? "coding" : "chat";
+      const mode = "chat";
       const effectiveId = sessionApi.getEffectiveSessionId(sessionId);
       const targetPath = buildSessionPath(mode, effectiveId);
       navigate(targetPath);
     },
-    [codingMode, navigate],
+    [navigate],
   );
 
   const handleUpdateProfile = async (values: {

@@ -205,10 +205,9 @@ SUPPORTED_AGENT_LANGUAGES: frozenset[str] = _discover_agent_languages()
 BUILTIN_QA_AGENT_ID = "QwenPaw_QA_Agent_0.2"
 BUILTIN_QA_AGENT_NAME = "QA Agent"
 # Default skills when the builtin QA workspace is first created only.
-BUILTIN_QA_AGENT_SKILL_NAMES: tuple[str, ...] = (
-    "guidance",
-    "QA_source_index",
-)
+# [hanbao modification] guidance / QA_source_index removed — the builtin QA
+# Agent starts with no pre-assigned skills.
+BUILTIN_QA_AGENT_SKILL_NAMES: tuple[str, ...] = ()
 
 # CoPaw-era builtin QA; may remain in config.json — disabled when the current
 # ``BUILTIN_QA_AGENT_ID`` profile is first created (see ``migration``), not

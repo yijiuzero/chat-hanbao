@@ -538,8 +538,8 @@ export function useSkillPool() {
       for (const skillName of broadcastSkillNames) {
         await checkScanWarnings(
           skillName,
-          api.getBlockedHistory,
-          api.getSkillScanner,
+          undefined as any,
+          undefined as any,
           t,
         );
       }
@@ -826,8 +826,8 @@ export function useSkillPool() {
       await loadData(true);
       await checkScanWarnings(
         result.name || skillName,
-        api.getBlockedHistory,
-        api.getSkillScanner,
+        undefined as any,
+        undefined as any,
         t,
       );
     };
@@ -944,8 +944,8 @@ export function useSkillPool() {
           for (const name of result.imported) {
             await checkScanWarnings(
               name,
-              api.getBlockedHistory,
-              api.getSkillScanner,
+              undefined as any,
+              undefined as any,
               t,
             );
           }
@@ -993,8 +993,8 @@ export function useSkillPool() {
       await loadData(true);
       await checkScanWarnings(
         result.name,
-        api.getBlockedHistory,
-        api.getSkillScanner,
+        undefined as any,
+        undefined as any,
         t,
       );
     } catch (error) {

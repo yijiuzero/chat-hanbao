@@ -6,7 +6,6 @@ import {
   buildSessionPath,
   getSessionIdFromPath,
 } from "../../../../utils/sessionRoute";
-import { useCodingMode } from "../../../../stores/codingModeStore";
 import {
   useSessionListStore,
   type ExtendedSession,
@@ -34,7 +33,7 @@ import { useCreateNewSession } from "../../hooks/useCreateNewSession";
 const ChatSessionInitializer: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { codingMode } = useCodingMode();
+  const mode = "chat";
 
   // Issue #5142: Match both /chat/<id> and /coding/<id> so that Coding mode
   // sessions are restored from the URL on page refresh, just like Chat mode.
@@ -65,8 +64,6 @@ const ChatSessionInitializer: React.FC = () => {
   const sessionsRef = useRef(sessions);
   sessionsRef.current = sessions;
 
-  const codingModeRef = useRef(codingMode);
-  codingModeRef.current = codingMode;
 
   const createNewSessionRef = useRef(createNewSession);
   createNewSessionRef.current = createNewSession;
@@ -147,7 +144,6 @@ const ChatSessionInitializer: React.FC = () => {
         .sessionId;
       if (!sessionId) return;
 
-      const mode = codingModeRef.current ? "coding" : "chat";
       const currentSessions = sessionsRef.current;
       const matching = currentSessions.find((s) => s.id === sessionId);
 

@@ -4,7 +4,7 @@
 """Web search and fetch tools.
 
 web_search uses Tavily keyless API.
-web_fetch uses direct HTTP GET + html2text.
+web_fetch uses direct HTTP GET + markdownify (MIT).
 """
 
 import logging
@@ -13,8 +13,10 @@ import ssl
 
 from urllib.parse import urlparse
 
-import html2text
 import httpx
+# [hanbao modification] markdownify (MIT) replaces html2text (GPL-3.0) —
+# GPL is a copyleft license incompatible with Apache-2.0 redistribution (R5).
+from markdownify import markdownify as md
 
 from agentscope.message import TextBlock
 from agentscope.tool import ToolChunk
@@ -47,15 +49,6 @@ _FETCH_HEADERS = {
         "Chrome/120.0.0.0 Safari/537.36"
     ),
 }
-
-
-def _new_html2text() -> html2text.HTML2Text:
-    """Create a configured HTML2Text converter."""
-    h = html2text.HTML2Text()
-    h.ignore_links = False
-    h.ignore_images = True
-    h.body_width = 0
-    return h
 
 
 def _is_ssl_error(exc: BaseException) -> bool:
@@ -174,13 +167,16 @@ def _extract_title(html_content: str) -> str:
 
 
 def _html_to_text(html_content: str) -> str:
-    """Convert HTML to readable markdown via html2text.
+    """Convert HTML to readable markdown via markdownify (MIT).
 
     Always prepends the <title> as a heading when present.
     """
     title = _extract_title(html_content)
-    h = _new_html2text()
-    body = h.handle(html_content).strip()
+    body = md(
+        html_content,
+        heading_style="ATX",
+        strip=["img", "script", "style"],
+    ).strip()
     if title and body:
         return f"# {title}\n\n{body}"
     if title:

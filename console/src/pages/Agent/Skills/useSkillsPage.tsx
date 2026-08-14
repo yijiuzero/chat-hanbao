@@ -132,8 +132,8 @@ export function useSkillsPage() {
   const checkScanWarnings = async (skillName: string) => {
     await checkScanWarningsShared(
       skillName,
-      api.getBlockedHistory,
-      api.getSkillScanner,
+      Promise.resolve({ records: [], blocked: [] }),
+      ({ getBlockedHistory: async () => ({ records: [], blocked: [] }), rescan: async () => {} }) as any,
       t,
     );
   };

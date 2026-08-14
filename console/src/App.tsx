@@ -26,8 +26,6 @@ import MainLayout from "./layouts/MainLayout";
 import { ThemeProvider, useTheme } from "./contexts/ThemeContext";
 import { PluginProvider, usePlugins } from "./plugins/PluginContext";
 import { ApprovalProvider } from "./contexts/ApprovalContext";
-import { DesktopUpdateProvider } from "./contexts/DesktopUpdateContext";
-import { UpdateTakeoverGate } from "./components/UpdateTakeoverPage";
 import { Suspense } from "react";
 import { lazyImportWithRetry } from "./utils/lazyWithRetry";
 
@@ -36,8 +34,6 @@ import { authApi } from "./api/modules/auth";
 import { languageApi } from "./api/modules/language";
 import { useUploadLimitStore } from "./stores/uploadLimitStore";
 import { getApiUrl, getApiToken, clearAuthToken } from "./api/config";
-import CloseWindowPrompt from "./tauri/CloseWindowPrompt";
-import { isTauri } from "@tauri-apps/api/core";
 import { isDesktopTauriRuntime } from "./utils/openExternalLink";
 import { interceptBlankLinkClicks } from "./utils/interceptBlankLinkClicks";
 import "./styles/layout.css";
@@ -175,7 +171,6 @@ function AppInner() {
   // users cannot open DevTools via right-click. DevTools is still available
   // through the hidden 8-click logo gesture handled in Header.tsx.
   useEffect(() => {
-    if (!isTauri()) return;
     const preventContextMenu = (e: MouseEvent) => e.preventDefault();
     window.addEventListener("contextmenu", preventContextMenu);
     return () => window.removeEventListener("contextmenu", preventContextMenu);
@@ -213,10 +208,7 @@ function AppInner() {
         }}
       >
         <AntdApp>
-          <CloseWindowPrompt />
-          <DesktopUpdateProvider>
-            <UpdateTakeoverGate>
-              <ApprovalProvider>
+          <ApprovalProvider>
                 <Routes>
                   <Route
                     path="/login"
@@ -236,8 +228,6 @@ function AppInner() {
                   />
                 </Routes>
               </ApprovalProvider>
-            </UpdateTakeoverGate>
-          </DesktopUpdateProvider>
         </AntdApp>
       </ConfigProvider>
     </BrowserRouter>

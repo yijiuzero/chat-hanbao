@@ -200,10 +200,7 @@ class AgentBuilder:
         agent_id = getattr(ctx, "agent_id", None) or "default"
         agent_config = load_agent_config(agent_id)
         request_context = self._build_request_context(ctx)
-        agent_config = self._apply_request_coding_project(
-            agent_config,
-            request_context,
-        )
+        # [hanbao modification] Coding mode project application removed.
         ctx.agent_config = agent_config
 
         # Validate model availability.
@@ -242,16 +239,11 @@ class AgentBuilder:
                 active_modes = plugins.active_mode_names(ctx)
 
         # Governor (governance policy layer).
-        _cm = getattr(agent_config, "coding_mode", None)
-        _project_dir = (
-            _cm.project_dir
-            if _cm and getattr(_cm, "project_dir", None)
-            else None
-        )
+        # [hanbao modification] Coding mode removed; project_dir always None.
         governor = await run_sync_io(
             self._init_governor,
             workspace_dir,
-            _project_dir,
+            None,
         )
 
         # Inject governor into local_workspace so list_tools() can
@@ -261,13 +253,8 @@ class AgentBuilder:
             local_ws.set_governor(governor)
 
         # Toolkit.
-        extra_tools = self._collect_coding_mode_tools(
-            agent_config,
-            workspace_dir,
-            agent_id,
-            request_context,
-            governor,
-        )
+        # [hanbao modification] Coding mode tools removed.
+        extra_tools: list = []
         (
             driver_tools,
             driver_prompt_hints,
@@ -543,77 +530,6 @@ class AgentBuilder:
         return rc
 
     @staticmethod
-    def _apply_request_coding_project(
-        agent_config: Any,
-        request_context: dict[str, Any],
-    ) -> Any:
-        """Enable Coding Mode when ACP or fork worktree supplies a project."""
-        from ..agents.fork_project import resolve_allowed_fork_project_dir
-
-        raw_project_dir = request_context.get(ACP_CODING_PROJECT_META_KEY)
-        fork_raw = request_context.get("fork_project_dir")
-        if not isinstance(raw_project_dir, str) or not raw_project_dir.strip():
-            # spawn_subagent(fork=True) places the worktree here.
-            raw_project_dir = fork_raw
-        if not isinstance(raw_project_dir, str) or not raw_project_dir.strip():
-            return agent_config
-
-        # When fork_project_dir is present, the final coding project MUST be
-        # the validated worktree — never fall through to an unchecked ACP path.
-        if isinstance(fork_raw, str) and fork_raw.strip():
-            existing_cm = getattr(agent_config, "coding_mode", None)
-            existing_pd = (
-                getattr(existing_cm, "project_dir", None)
-                if existing_cm and getattr(existing_cm, "enabled", False)
-                else None
-            )
-            workspace_hint = request_context.get("workspace_dir") or getattr(
-                agent_config,
-                "workspace_dir",
-                None,
-            )
-            validated = resolve_allowed_fork_project_dir(
-                fork_raw,
-                workspace_dir=workspace_hint,
-                coding_project_dir=existing_pd,
-            )
-            if validated is None:
-                _logger.warning(
-                    "Rejecting fork_project_dir outside allowed worktree "
-                    "subtree: %s",
-                    fork_raw,
-                )
-                return agent_config
-            raw_project_dir = str(validated)
-
-        project_dir = Path(raw_project_dir).expanduser().resolve()
-        if not project_dir.is_dir():
-            _logger.warning(
-                "Ignoring non-directory Coding Mode project: %s",
-                raw_project_dir,
-            )
-            return agent_config
-
-        if not hasattr(agent_config, "model_copy"):
-            _logger.warning(
-                "Ignoring request Coding Mode project for unsupported config "
-                "type: %s",
-                type(agent_config).__name__,
-            )
-            return agent_config
-
-        agent_config = agent_config.model_copy(deep=True)
-        cm = getattr(agent_config, "coding_mode", None)
-        if cm is None:
-            from ..config.config import CodingModeConfig
-
-            cm = CodingModeConfig()
-            agent_config.coding_mode = cm
-        cm.enabled = True
-        cm.project_dir = str(project_dir)
-        return agent_config
-
-    @staticmethod
     def _build_env_context(ctx: Any, agent_config: Any) -> str:
         import os
         import sys
@@ -623,14 +539,8 @@ class AgentBuilder:
         workspace_dir = getattr(ctx, "workspace_dir", None)
         ws = str(workspace_dir) if workspace_dir else str(WORKING_DIR)
 
-        _cm = getattr(agent_config, "coding_mode", None)
-        _project_dir = (
-            _cm.project_dir
-            if _cm
-            and getattr(_cm, "enabled", False)
-            and getattr(_cm, "project_dir", None)
-            else None
-        )
+        # [hanbao modification] Coding mode removed; project_dir always None.
+        _project_dir = None
         # Prefer validated fork worktree as the shell/file working_dir.
         request = getattr(ctx, "request", None)
         _payload = (
@@ -672,24 +582,6 @@ class AgentBuilder:
             default_shell=_default_shell,
             project_dir=_project_dir,
             active_model_name=_model_name,
-        )
-
-    @staticmethod
-    def _collect_coding_mode_tools(
-        agent_config: Any,
-        workspace_dir: Any,
-        agent_id: str,
-        request_context: dict[str, Any],
-        governor: Any = None,
-    ) -> list[Any]:
-        from ..modes.coding import collect_coding_tools
-
-        return collect_coding_tools(
-            agent_config,
-            workspace_dir,
-            agent_id=agent_id,
-            request_context=request_context,
-            governor=governor,
         )
 
     @staticmethod

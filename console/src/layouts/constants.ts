@@ -2,7 +2,7 @@
 
 export const PYPI_URL = "https://pypi.org/pypi/qwenpaw/json";
 
-export const GITHUB_URL = "https://github.com/agentscope-ai/QwenPaw" as const;
+export const GITHUB_URL = "https://github.com/yijiuzero/chat-hanbao" as const;
 
 // ── Timing ────────────────────────────────────────────────────────────────
 

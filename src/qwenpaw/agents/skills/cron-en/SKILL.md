@@ -2,7 +2,7 @@
 name: cron
 description: Use this skill only for scheduled or recurring tasks. Manage jobs with qwenpaw cron list/create/get/state/update/pause/resume/delete/run, and always pass --agent-id explicitly.
 metadata:
-  builtin_skill_version: "1.7"
+  builtin_skill_version: "1.0"
   qwenpaw:
     emoji: "⏰"
 ---

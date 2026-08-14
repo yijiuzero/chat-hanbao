@@ -16,7 +16,6 @@ import { useLocation, useNavigate } from "react-router-dom";
 import sessionApi from "./sessionApi";
 import defaultConfig, { getDefaultConfig } from "./OptionsPanel/defaultConfig";
 import { chatApi } from "../../api/modules/chat";
-import { agentApi } from "../../api/modules/agent";
 import { skillApi } from "../../api/modules/skill";
 import { getApiUrl } from "../../api/config";
 import { buildAuthHeaders } from "../../api/authHeaders";
@@ -25,7 +24,6 @@ import type { ProviderInfo, ModelInfo, SkillSpec } from "../../api/types";
 import ModelSelector from "./ModelSelector";
 import { useTheme } from "../../contexts/ThemeContext";
 import { useAgentStore } from "../../stores/agentStore";
-import { useCodingMode } from "../../stores/codingModeStore";
 import {
   beginLoopModeSubmission,
   fetchActiveLoopMode,
@@ -93,9 +91,6 @@ interface ApprovalMessageData {
   similarTarget?: string;
 }
 
-import WhisperSpeechButton, {
-  WhisperSpeechButtonRef,
-} from "./components/WhisperSpeechButton";
 
 import {
   toDisplayUrl,
@@ -118,7 +113,6 @@ import {
   type SessionRouteMode,
 } from "../../utils/sessionRoute";
 import { openExternalLink } from "../../utils/openExternalLink";
-import { getLastEditorCopy } from "../Coding/lastEditorCopy";
 import { useUploadLimitStore } from "../../stores/uploadLimitStore";
 import MessageQueuePanel from "./components/MessageQueuePanel";
 import ApprovalLevelToggle from "./components/ApprovalLevelToggle";
@@ -1010,56 +1004,6 @@ function useChatInputDraft(isChatActive: () => boolean, agentId?: string) {
   }, [isChatActive, storageKey]);
 }
 
-/**
- * When the user pastes into the chat textarea text that was just copied
- * from the Coding-mode editor, swap the raw paste for the formatted
- * `path:line[-line]` version (plus optional fenced code). Cmd/Ctrl+C in
- * the editor stays as a plain-text copy for paste-anywhere; only Chat
- * pastes get the editor-context format.
- *
- * Not gated by route: the Chat composer is also embedded in Coding
- * mode (side-by-side with the editor), and that's the primary place
- * users do an editor→chat copy. The handler is already selective (it
- * checks the paste target is a sender textarea AND the pasted text
- * matches the last editor copy), so a global listener is safe.
- */
-function useChatPasteFromEditor() {
-  useEffect(() => {
-    // Anything older than this is treated as stale (different copy session).
-    const STALE_MS = 60_000;
-
-    const handlePaste = (e: ClipboardEvent) => {
-      const target = e.target as HTMLElement | null;
-      if (!target || target.tagName !== "TEXTAREA") return;
-      if (!target.closest('[class*="sender"]')) return;
-
-      const last = getLastEditorCopy();
-      if (!last) return;
-      if (Date.now() - last.ts > STALE_MS) return;
-
-      const pasted = e.clipboardData?.getData("text/plain");
-      if (pasted == null || pasted !== last.text) return;
-
-      e.preventDefault();
-      const textarea = target as HTMLTextAreaElement;
-      const start = textarea.selectionStart ?? textarea.value.length;
-      const end = textarea.selectionEnd ?? textarea.value.length;
-      const before = textarea.value.slice(0, start);
-      const after = textarea.value.slice(end);
-      const next = before + last.formatted + after;
-      setTextareaValue(textarea, next);
-      const caret = before.length + last.formatted.length;
-      requestAnimationFrame(() => {
-        textarea.selectionStart = textarea.selectionEnd = caret;
-      });
-    };
-
-    document.addEventListener("paste", handlePaste, true);
-    return () => {
-      document.removeEventListener("paste", handlePaste, true);
-    };
-  }, []);
-}
 
 function RuntimeLoadingBridge({
   bridgeRef,
@@ -1134,9 +1078,6 @@ export default function ChatPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { isDark } = useTheme();
-  const { codingMode, initialized } = useCodingMode();
-  const codingModeRef = useRef(codingMode);
-  codingModeRef.current = codingMode;
   const loopAvailableModes = useLoopStore((state) => state.availableModes);
 
   // Wide mode toggle: expand chat content to full available width
@@ -1163,17 +1104,6 @@ export default function ChatPage() {
     });
   }, []);
 
-  // Redirect to /coding when coding mode is active, preserving sessionId.
-  useEffect(() => {
-    if (initialized && codingMode && !location.pathname.startsWith("/coding")) {
-      // Issue #5142: Carry over the current chatId so the session survives
-      // the redirect from /chat/<id> to /coding/<id>.
-      const currentChatId = getSessionIdFromPath(location.pathname);
-      navigate(buildSessionPath("coding", currentChatId), {
-        replace: true,
-      });
-    }
-  }, [initialized, codingMode, navigate, location.pathname]);
 
   const chatId = useMemo(
     () => getSessionIdFromPath(location.pathname),
@@ -1458,12 +1388,9 @@ export default function ChatPage() {
   }, [selectedAgent]);
 
   const isChatActiveRef = useRef(false);
-  // Issue #5142: In Coding mode the Chat component is embedded under /coding/*,
-  // so session callbacks must also fire on /coding paths.
   isChatActiveRef.current =
     location.pathname === "/" ||
-    location.pathname.startsWith("/chat") ||
-    location.pathname.startsWith("/coding");
+    location.pathname.startsWith("/chat")
 
   const isChatActive = useCallback(() => isChatActiveRef.current, []);
 
@@ -1676,37 +1603,9 @@ export default function ChatPage() {
   }, [fetchMultimodalCaps]);
 
   const pendingClearHistoryRef = useRef(false);
-  const whisperSpeechRef = useRef<WhisperSpeechButtonRef>(null);
-  const [whisperEnabled, setWhisperEnabled] = useState(false);
-  const [whisperChecked, setWhisperChecked] = useState(false);
-
-  // Check if Whisper transcription is configured
-  useEffect(() => {
-    agentApi
-      .getTranscriptionProviderType()
-      .then((res) => {
-        setWhisperEnabled(res.transcription_provider_type !== "disabled");
-      })
-      .catch(() => setWhisperEnabled(false))
-      .finally(() => setWhisperChecked(true));
-  }, []);
-
-  const handleWhisperTranscription = useCallback((text: string) => {
-    const senderContainer = document.querySelector('[class*="sender"]');
-    const textarea = senderContainer?.querySelector(
-      "textarea",
-    ) as HTMLTextAreaElement | null;
-    if (textarea) {
-      const currentValue = textarea.value || "";
-      const newValue = currentValue ? `${currentValue} ${text}` : text;
-      setTextareaValue(textarea, newValue);
-      textarea.focus();
-    }
-  }, []);
 
   useMessageHistoryNavigation(chatRef, isChatActive, isComposingRef);
   useChatInputDraft(isChatActive, selectedAgent);
-  useChatPasteFromEditor();
 
   // ── Message Queue ───────────────────────────────────────────────────────
 
@@ -1975,25 +1874,6 @@ export default function ChatPage() {
     [],
   );
 
-  // Shortcut key for voice recording (Ctrl+Shift+M or Cmd+Shift+M on Mac)
-  useEffect(() => {
-    const handleShortcut = (e: KeyboardEvent) => {
-      if (!isChatActive()) return;
-      // Check for Ctrl+Shift+M (Windows/Linux) or Cmd+Shift+M (Mac)
-      if (
-        (e.ctrlKey || e.metaKey) &&
-        e.shiftKey &&
-        e.key.toLowerCase() === "m"
-      ) {
-        e.preventDefault();
-        if (whisperEnabled) {
-          whisperSpeechRef.current?.toggleRecording();
-        }
-      }
-    };
-    document.addEventListener("keydown", handleShortcut);
-    return () => document.removeEventListener("keydown", handleShortcut);
-  }, [isChatActive, whisperEnabled]);
   chatIdRef.current = chatId;
   navigateRef.current = navigate;
 
@@ -2038,7 +1918,7 @@ export default function ChatPage() {
 
   useEffect(() => {
     const getCurrentRouteMode = (): SessionRouteMode =>
-      codingModeRef.current ? "coding" : "chat";
+"chat";
 
     const buildCurrentSessionPath = (sessionId: string) =>
       buildSessionPath(getCurrentRouteMode(), sessionId);
@@ -2717,7 +2597,7 @@ export default function ChatPage() {
       welcome: {
         ...i18nConfig.welcome,
         nick: extNick ?? "hanbao",
-        avatar: extAvatar ?? "/qwenpaw.png",
+        avatar: extAvatar ?? "/online.svg",
         ...(extGreeting !== undefined ? { greeting: extGreeting } : {}),
         ...(extDescription !== undefined
           ? { description: extDescription }
@@ -2729,7 +2609,6 @@ export default function ChatPage() {
       sender: {
         ...(i18nConfig as any)?.sender,
         beforeSubmit: handleBeforeSubmit,
-        allowSpeech: whisperChecked && !whisperEnabled,
         beforeUI: showSenderBeforeUI ? (
           <>
             {isQueueOnlyTab && (
@@ -2757,12 +2636,6 @@ export default function ChatPage() {
         ) : undefined,
         prefix: (
           <>
-            {whisperEnabled ? (
-              <WhisperSpeechButton
-                ref={whisperSpeechRef}
-                onTranscription={handleWhisperTranscription}
-              />
-            ) : null}
             <LoopModeSelector />
             {pluginSenderPrefix}
           </>
@@ -3009,9 +2882,6 @@ export default function ChatPage() {
     runningConfigApprovalLevel,
     queueSessionId,
     onFileCardClick,
-    whisperChecked,
-    whisperEnabled,
-    handleWhisperTranscription,
     isWideMode,
     toggleWideMode,
     hasQueueItems,

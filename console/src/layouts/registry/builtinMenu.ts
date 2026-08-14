@@ -24,26 +24,18 @@
 import {
   SparkAgentLine,
   SparkBarChartLine,
-  SparkBrowseLine,
   SparkDataLine,
   SparkDateLine,
   SparkDebugLine,
   SparkEmailLine,
-  SparkInternetLine,
   SparkLocalFileLine,
   SparkMagicWandLine,
   SparkMcpMcpLine,
-  SparkMicLine,
   SparkModePlazaLine,
   SparkModifyLine,
-  SparkMyApplicationLine,
   SparkOtherLine,
-  SparkPluginLine,
-  SparkSaveLine,
-  SparkScanLine,
   SparkToolLine,
   SparkUserGroupLine,
-  SparkVoiceChat01Line,
   SparkWifiLine,
 } from "@agentscope-ai/icons";
 import i18next from "i18next";
@@ -63,15 +55,6 @@ export const BUILTIN_MENU: MenuItem[] = [
     icon: SparkEmailLine,
     route: "core.inbox",
     order: 10,
-  },
-
-  {
-    id: "core.app-center",
-    location: "primary.agentScoped",
-    label: navLabel("nav.apps", "Apps"),
-    icon: SparkMyApplicationLine,
-    route: "core.app-center",
-    order: 15,
   },
 
   // control-group
@@ -110,17 +93,8 @@ export const BUILTIN_MENU: MenuItem[] = [
     order: 30,
   },
   {
-    id: "core.heartbeat",
-    location: "primary.agentScoped",
-    parentId: "core.control-group",
-    label: navLabel("nav.heartbeat"),
-    icon: SparkVoiceChat01Line,
-    route: "core.heartbeat",
-    order: 40,
-  },
 
   // agent-group
-  {
     id: "core.agent-group",
     location: "primary.agentScoped",
     label: navLabel("nav.agent"),
@@ -162,15 +136,6 @@ export const BUILTIN_MENU: MenuItem[] = [
     icon: SparkMcpMcpLine,
     route: "core.mcp",
     order: 40,
-  },
-  {
-    id: "core.acp",
-    location: "primary.agentScoped",
-    parentId: "core.agent-group",
-    label: navLabel("nav.acp"),
-    icon: SparkScanLine,
-    route: "core.acp",
-    order: 50,
   },
   {
     id: "core.agent-config",
@@ -227,24 +192,6 @@ export const BUILTIN_MENU: MenuItem[] = [
     order: 30,
   },
   {
-    id: "core.environments",
-    location: "primary.settings",
-    parentId: "core.settings-group",
-    label: navLabel("nav.environments"),
-    icon: SparkInternetLine,
-    route: "core.environments",
-    order: 50,
-  },
-  {
-    id: "core.security",
-    location: "primary.settings",
-    parentId: "core.settings-group",
-    label: navLabel("nav.security"),
-    icon: SparkBrowseLine,
-    route: "core.security",
-    order: 60,
-  },
-  {
     id: "core.token-usage",
     location: "primary.settings",
     parentId: "core.settings-group",
@@ -254,24 +201,6 @@ export const BUILTIN_MENU: MenuItem[] = [
     order: 70,
   },
   {
-    id: "core.backups",
-    location: "primary.settings",
-    parentId: "core.settings-group",
-    label: navLabel("nav.backups"),
-    icon: SparkSaveLine,
-    route: "core.backups",
-    order: 80,
-  },
-  {
-    id: "core.voice-transcription",
-    location: "primary.settings",
-    parentId: "core.settings-group",
-    label: navLabel("nav.voiceTranscription"),
-    icon: SparkMicLine,
-    route: "core.voice-transcription",
-    order: 90,
-  },
-  {
     id: "core.debug",
     location: "primary.settings",
     parentId: "core.settings-group",
@@ -279,15 +208,6 @@ export const BUILTIN_MENU: MenuItem[] = [
     icon: SparkDebugLine,
     route: "core.debug",
     order: 100,
-  },
-  {
-    id: "core.plugin-manager",
-    location: "primary.settings",
-    parentId: "core.settings-group",
-    label: navLabel("nav.pluginManager", "Plugin Manager"),
-    icon: SparkPluginLine,
-    route: "core.plugin-manager",
-    order: 110,
   },
 ];
 

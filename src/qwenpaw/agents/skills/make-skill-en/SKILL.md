@@ -2,7 +2,7 @@
 name: make-skill
 description: "Use this skill when sedimenting a session into a reusable workspace skill. Triggers when the user wants to turn the current conversation, workflow, or troubleshooting path into a SKILL.md. Phrases like 'turn this into a skill', 'remember how I did X', 'save this workflow', 'make a skill from this', and any /make-skill <focus> invocation should fire this skill."
 metadata:
-  builtin_skill_version: "1.1"
+  builtin_skill_version: "1.0"
   qwenpaw:
     emoji: "✍️"
     requires: {}

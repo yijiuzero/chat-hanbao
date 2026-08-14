@@ -293,9 +293,18 @@ class QQConfig(BaseChannelConfig):
 
 
 class OneBotConfig(BaseChannelConfig):
-    """OneBot v11 channel: reverse WebSocket for NapCat/go-cqhttp/Lagrange."""
+    # [hanbao] adopted from upstream v2.1.0 (#6676): ws_host defaults to
+    # loopback so the reverse WS server is not network-reachable without an
+    # explicit opt-in; binding to a non-loopback address requires
+    # access_token to be set.
+    """OneBot v11 channel: reverse WebSocket for NapCat/go-cqhttp/Lagrange.
 
-    ws_host: str = "0.0.0.0"
+    ``ws_host`` defaults to loopback so the reverse WebSocket server is
+    not reachable from the network without an explicit opt-in.  Binding
+    to a non-loopback address requires ``access_token`` to be set.
+    """
+
+    ws_host: str = "127.0.0.1"
     ws_port: int = 6199
     access_token: str = ""
     share_session_in_group: bool = False
@@ -1654,9 +1663,6 @@ class PlanConfig(BaseModel):
     )
 
 
-class CodingModeConfig(BaseModel):
-    """Configuration for the Coding Mode feature."""
-
     enabled: bool = Field(
         default=False,
         description="Enable Coding Mode IDE layout and tools",
@@ -1752,10 +1758,6 @@ class AgentProfileConfig(BaseModel):
     plan: PlanConfig = Field(
         default_factory=PlanConfig,
         description="Plan mode configuration for this agent",
-    )
-    coding_mode: CodingModeConfig = Field(
-        default_factory=CodingModeConfig,
-        description="Coding Mode configuration for this agent",
     )
 
 
@@ -2326,7 +2328,7 @@ class SecurityConfig(BaseModel):
         default_factory=SkillScannerConfig,
     )
     sandbox_enabled: bool = Field(
-        default=False,
+        default=True,
         description=(
             "Global switch for governance sandbox execution. Defaults to "
             "False (sandbox off). When True, shell tools with no matching "

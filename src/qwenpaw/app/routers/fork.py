@@ -55,7 +55,6 @@ def _get_project_dir(agent_id: str) -> Optional[Path]:
     """Resolve the project directory for fork operations.
 
     Priority:
-    1. coding_mode.project_dir (if coding mode is enabled)
     2. workspace_dir (fallback)
 
     Returns the directory as a Path if it is a git repository,
@@ -69,7 +68,7 @@ def _get_project_dir(agent_id: str) -> Optional[Path]:
             detail=f"Agent '{agent_id}' not found: {exc}",
         ) from exc
 
-    cm = config.coding_mode
+    # [hanbao] Coding removed. cm = None
     if cm and cm.enabled and cm.project_dir:
         candidate = Path(cm.project_dir).expanduser().resolve()
     else:
@@ -284,7 +283,6 @@ async def fork_agent(
     ``spawn_subagent(fork=True)`` in the tool layer.
 
     Steps:
-    1. Resolve project dir (coding_mode.project_dir or workspace).
     2. Read parent session state.
     3. Write fork session file with inherited state.
     4. If project_dir is a git repo, create worktree.

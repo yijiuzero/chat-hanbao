@@ -2,7 +2,7 @@
 name: make-skill
 description: "用于把当前会话沉淀为可复用的 workspace skill。当用户希望把当前对话、工作流或排错路径写成 SKILL.md 时触发。触发表达包括「把这个变成 skill」「记住我是怎么做 X 的」「保存这个工作流」「make a skill from this」以及任何 /make-skill <focus> 调用。"
 metadata:
-  builtin_skill_version: "1.1"
+  builtin_skill_version: "1.0"
   qwenpaw:
     emoji: "✍️"
     requires: {}

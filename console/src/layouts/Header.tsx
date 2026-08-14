@@ -6,14 +6,12 @@ import {
   Tooltip,
   Dropdown,
   Popover,
-  message,
 } from "antd";
 import type { MenuProps } from "antd";
 import LanguageSwitcher, {
   LANGUAGE_LIST,
 } from "../components/LanguageSwitcher/index";
 import ThemeToggleButton from "../components/ThemeToggleButton";
-import CodingModeToggle from "../components/CodingModeToggle";
 import { useTranslation } from "react-i18next";
 import { Button, Modal } from "@agentscope-ai/design";
 import styles from "./index.module.less";
@@ -22,9 +20,6 @@ import { openExternalLink } from "../utils/openExternalLink";
 import { ExternalMarkdownLink } from "../components/Markdown/externalLinkComponents";
 import {
   GITHUB_URL,
-  getDocsUrl,
-  getFeatureDemosUrl,
-  getFaqUrl,
   getReleaseNotesUrl,
   // [hanbao modification] Disabled — no release channel yet.
   // PYPI_URL,
@@ -35,22 +30,15 @@ import {
 } from "./constants";
 import { useTheme } from "../contexts/ThemeContext";
 import { useState, useEffect, useRef } from "react";
-import { invoke } from "@tauri-apps/api/core";
 import { Slot } from "../plugins/registry/Slot";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { useDesktopUpdate } from "../contexts/DesktopUpdateContext";
-import { isDesktopApp } from "../tauri/backendRuntime";
 import {
   CopyOutlined,
   CheckOutlined,
   TagOutlined,
   GithubOutlined,
-  FileTextOutlined,
-  ReadOutlined,
-  PlayCircleOutlined,
   InfoCircleOutlined,
-  DownOutlined,
   SyncOutlined,
   CheckCircleOutlined,
   ExclamationCircleOutlined,
@@ -86,8 +74,8 @@ function UpdateCodeBlock({ code }: { code: string }) {
 export default function Header() {
   const { t, i18n } = useTranslation();
   const { isDark, setThemeMode } = useTheme();
-  const desktop = useDesktopUpdate();
-  const onDesktop = isDesktopApp();
+  const desktop = { hasUpdate: false, version: "", isBackground: false, phase: "", supportsLaterInstall: false, body: "", startInstall() {}, startBackgroundDownload() {}, installDownloaded() {}, total: 0, downloaded: 0, error: null } as any;
+  const onDesktop = false;
   const [version, setVersion] = useState<string>("");
   const [latestVersion] = useState<string>("");
   const [updateModalOpen, setUpdateModalOpen] = useState(false);
@@ -114,18 +102,7 @@ export default function Header() {
     logoClicksRef.current.push(now);
     if (logoClicksRef.current.length >= 8) {
       logoClicksRef.current = [];
-      invoke("open_devtools")
-        .then(() => message.success("DevTools opened"))
-        .catch((err: unknown) => {
-          const errMsg =
-            err instanceof Error
-              ? err.message
-              : typeof err === "string"
-              ? err
-              : JSON.stringify(err);
-          console.error("Failed to open DevTools:", errMsg);
-          message.error(`DevTools error: ${errMsg}`);
-        });
+      // [hanbao] DevTools removed.
     }
   };
 
@@ -141,38 +118,6 @@ export default function Header() {
 
   const modalVersion = onDesktop ? desktop.version : latestVersion;
 
-  const resourcesMenuItems: MenuProps["items"] = [
-    {
-      key: "tutorial",
-      icon: <ReadOutlined />,
-      label: t("header.tutorial"),
-      onClick: () => handleNavClick(getDocsUrl(i18n.language)),
-    },
-    {
-      key: "featureDemos",
-      icon: <PlayCircleOutlined />,
-      label: t("header.featureDemos"),
-      onClick: () => handleNavClick(getFeatureDemosUrl(i18n.language)),
-    },
-    {
-      key: "changelog",
-      icon: <FileTextOutlined />,
-      label: t("header.changelog"),
-      onClick: () => handleNavClick(getReleaseNotesUrl(i18n.language)),
-    },
-    {
-      key: "faq",
-      icon: <InfoCircleOutlined />,
-      label: t("header.faq"),
-      onClick: () => handleNavClick(getFaqUrl(i18n.language)),
-    },
-    {
-      key: "github",
-      icon: <GithubOutlined />,
-      label: t("header.github"),
-      onClick: () => handleNavClick(GITHUB_URL),
-    },
-  ];
 
   const mobileMenuItems: MenuProps["items"] = [
     {
@@ -208,8 +153,6 @@ export default function Header() {
         },
       ],
     },
-    { type: "divider" },
-    ...resourcesMenuItems,
   ];
 
   const handleOpenUpdateModal = () => {
@@ -389,13 +332,6 @@ export default function Header() {
         <Slot name="header.left" kind="fill" />
         <Space size="middle">
           <Slot name="header.right" kind="fill" />
-          {resourcesMenuItems.length > 0 && (
-            <Dropdown menu={{ items: resourcesMenuItems }}>
-              <Button type="text" className={styles.hideOnMobile}>
-                {t("header.resources")} <DownOutlined />
-              </Button>
-            </Dropdown>
-          )}
           <Tooltip title={t("header.github")}>
             <Button
               type="text"
@@ -408,7 +344,6 @@ export default function Header() {
           </Tooltip>
           <div className={styles.headerDivider} />
           <span className={styles.hideOnMobile}>
-            <CodingModeToggle />
           </span>
           <div className={styles.headerDivider} />
           <span className={styles.hideOnMobile}>

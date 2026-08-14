@@ -2,7 +2,6 @@ import { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useChatAnywhereSessions } from "@agentscope-ai/chat";
 import sessionApi from "../sessionApi";
-import { useCodingMode } from "../../../stores/codingModeStore";
 import { buildBasePath } from "../../../utils/sessionRoute";
 
 /**
@@ -16,12 +15,12 @@ import { buildBasePath } from "../../../utils/sessionRoute";
 export function useCreateNewSession(): () => Promise<void> {
   const navigate = useNavigate();
   const { createSession } = useChatAnywhereSessions();
-  const { codingMode } = useCodingMode();
+  // [hanbao] Coding removed.
 
   return useCallback(async () => {
-    const mode = codingMode ? "coding" : "chat";
+    const mode = "chat";
     navigate(buildBasePath(mode), { replace: true });
     sessionApi.userInitiatedCreate = true;
     await createSession();
-  }, [navigate, createSession, codingMode]);
+  }, [navigate, createSession]);
 }

@@ -255,17 +255,19 @@ async def _guarded_tool_check_permissions(
                 ),
             )
 
-    # Anything left needs the user.
-    agent_id = self._qp_agent_id  # pylint: disable=protected-access
-    request_context = getattr(self, "_qp_request_context", None) or {}
-    decision = await _ask_user_approval(
-        agent_id=agent_id,
-        tool_name=tool_name,
-        input_data=input_data,
-        guard_result=guard_result,
-        request_context=request_context,
+    # [hanbao modification] Approval flow removed. hanbao is a single-user
+    # assistant (mostly driven through chat channels such as WeChat) where
+    # blocking on an interactive approval card is not viable. Catastrophic
+    # commands (wipe/mkfs/dd/fork-bomb) are already auto-denied above and the
+    # sandbox (enabled by default) confines every remaining tool call, so
+    # non-catastrophic findings are auto-allowed instead of asking the user.
+    return PermissionDecision(
+        behavior=PermissionBehavior.ALLOW,
+        message=(
+            "Tool guard: auto-allowed (hanbao approval disabled). "
+            "Non-catastrophic finding runs inside the sandbox."
+        ),
     )
-    return decision
 
 
 def _strict_info_guard_result(

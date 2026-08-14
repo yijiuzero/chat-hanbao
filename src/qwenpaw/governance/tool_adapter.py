@@ -334,16 +334,16 @@ async def _policy_tool_check_permissions(
             message="governance: sandbox fallback.",
         )
     elif decision.action is GovernanceAction.ASK:
-        # Requires user confirmation
-        self._qp_policy_decision = decision
-
-        return await _ask_user_approval(
-            governor=governor,
-            tc_spec=tc_spec,
-            request_context=getattr(self, "_qp_request_context", {}) or {},
-            policy_findings=decision.findings,
-            governance_reason=decision.reason,
-            source=decision.source,
+        # [hanbao modification] Approval flow removed. hanbao is a
+        # single-user assistant (mostly driven through chat channels such as
+        # WeChat) where blocking on an interactive approval card is not
+        # viable. ASK findings are auto-allowed; the sandbox (enabled by
+        # default) still confines any out-of-workspace access, and truly
+        # catastrophic commands were already DENY'd earlier in the policy
+        # pipeline.
+        return PermissionDecision(
+            behavior=PermissionBehavior.ALLOW,
+            message="governance: ASK auto-allowed (hanbao approval disabled).",
         )
     else:
         # Unknown decision → deny as safe default
@@ -405,7 +405,6 @@ async def _policy_tool_call(
     )
 
     governor = getattr(self, "_qp_governor", None)
-    request_context = getattr(self, "_qp_request_context", {}) or {}
 
     if governor is None:
         # No governor, can't approve — return the violation as DENIED
@@ -421,72 +420,42 @@ async def _policy_tool_call(
             ],
         )
 
-    # Trigger approval flow — reuse tc_spec from check_permissions
+    # Record the sandbox violation and reject the call (no user prompt).
     tc_spec = getattr(self, "_qp_tc_spec", None)
     if tc_spec is None:
         # Fallback: reconstruct if check_permissions didn't run
         self._qp_raw_params = {}
         tc_spec = self._build_tc_spec()
 
-    governance_reason = getattr(
-        getattr(self, "_qp_policy_decision", None),
-        "reason",
-        None,
-    )
-    governance_source = getattr(
-        getattr(self, "_qp_policy_decision", None),
-        "source",
-        "No rule hit",
-    )
-
-    # Record the ASK escalation (sandbox violation → ask user)
+    # Record the sandbox violation as a DENY (no user prompt in hanbao).
     governor.audit(
         tc_spec,
         GovernanceDecision(
-            action=GovernanceAction.ASK,
+            action=GovernanceAction.DENY,
             reason=(
                 f"sandbox violation: {violation_msg}"
                 if violation_msg
-                else "sandbox violation, ask user"
+                else "sandbox violation"
             ),
         ),
     )
 
-    from agentscope.permission import PermissionBehavior
-
-    decision = await _ask_user_approval(
-        governor=governor,
-        tc_spec=tc_spec,
-        request_context=request_context,
-        violation_msg=violation_msg or None,
-        governance_reason=governance_reason,
-        source=governance_source,
+    # [hanbao modification] Approval flow removed. A sandbox violation means
+    # the tool tried to touch something outside its allowed workspace. In
+    # hanbao this is rejected outright — there is no interactive approval to
+    # lift the restriction, and the model is told why via the denial message.
+    return ToolChunk(
+        is_last=True,
+        state=ToolResultState.DENIED,
+        content=[
+            TextBlock(
+                type="text",
+                text=f"Sandbox violation: {violation_msg}\n"
+                f"Command was blocked by sandbox security policy.\n\n"
+                f"{_NO_RETRY_INSTRUCTION}",
+            ),
+        ],
     )
-
-    if decision.behavior == PermissionBehavior.ALLOW:
-        # User approved: retry without sandbox
-        logger.info(
-            "PolicyGuardedTool: user approved sandbox violation, "
-            "retrying without sandbox for '%s'",
-            getattr(self, "name", "Unknown"),
-        )
-        kwargs.pop("sandbox_config", None)
-        self._qp_sandbox_mode = False
-        return await FunctionTool.__call__(self, *args, **kwargs)
-    else:
-        # User denied: return the violation as DENIED
-        return ToolChunk(
-            is_last=True,
-            state=ToolResultState.DENIED,
-            content=[
-                TextBlock(
-                    type="text",
-                    text=f"Sandbox violation: {violation_msg}\n"
-                    f"Command was blocked and user denied approval.\n\n"
-                    f"{_NO_RETRY_INSTRUCTION}",
-                ),
-            ],
-        )
 
 
 # ---------------------------------------------------------------------------

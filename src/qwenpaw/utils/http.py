@@ -5,6 +5,27 @@ import ipaddress
 from urllib.parse import urlparse
 
 _LOOPBACK_HOSTNAMES = {"localhost"}
+# [hanbao] adopted from upstream v2.1.0 (#6676): wildcard->loopback probe helper
+# used by OneBot channel to health-check its own listener safely.
+_WILDCARD_PROBE_HOSTS = {
+    "": "127.0.0.1",
+    "0.0.0.0": "127.0.0.1",
+    "::": "::1",
+}
+
+
+def probe_host_for_bind_host(host: str) -> str:
+    """Return an address that can be connected to for a bind address.
+
+    A wildcard bind address accepts connections but cannot be used as a
+    ``connect`` target, so callers probing their own listener must use
+    the loopback address of the matching family instead.  A blank host
+    binds every interface of both families, so it maps to IPv4 loopback.
+    Any other host is returned unchanged, minus whitespace and IPv6 URL
+    brackets.
+    """
+    normalized = host.strip().strip("[]")
+    return _WILDCARD_PROBE_HOSTS.get(normalized, normalized)
 
 
 def is_loopback_host(host: str) -> bool:

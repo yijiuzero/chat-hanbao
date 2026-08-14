@@ -44,7 +44,6 @@ from .agent_management import (
 )
 from .delegate_external_agent import delegate_external_agent
 from .make_skill_tools import materialize_skill
-from .ast_tool import ast_search
 
 
 def discover_builtin_tool_funcs() -> list[Callable]:

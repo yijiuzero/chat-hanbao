@@ -147,7 +147,180 @@ _目标：先完整移植并跑通上游原版，确认改造基线。本阶段�
 
 ## 阶段 3 · 删减定制
 
-_（待执行）_
+hanbao 定位为「个人 AI Web 聊天」，以下上游功能对 hanbao 不适用或属冗余，已移除。
+
+### 编码模式（Coding Mode）移除（2026-08-11~12）
+
+hanbao 不做代码编辑器/项目开发场景，Coding Mode（代码项目上下文、编码智能体、多 Tab 编辑器等）全部移除。
+
+**前端 files 删除：**
+- `console/src/pages/Coding/`（完整目录）
+- `console/src/stores/codingModeStore.ts` / `codingTabsStore.ts` / `useSyncCodingMode.ts`（含 `.test.ts`）
+- `console/src/stores/codeFileCacheStore.ts` / `loopStore.ts`（含 `.test.ts`）
+
+**后端 files 删除：**
+- `src/qwenpaw/modes/coding/`（完整目录：`__init__.py`, `hooks.py`, `mixin.py`）
+- `src/qwenpaw/app/routers/coding_mode.py`
+- `src/qwenpaw/app/routers/coding_project.py`
+
+**后端 修改 required to remove dangling imports：**
+- `src/qwenpaw/app/_app.py` — 注释 `app.include_router(coding_mode_router)`
+- `src/qwenpaw/app/routers/__init__.py` — 移除 `coding_project_router` import & include
+- `src/qwenpaw/runtime/builder.py` — CodingMode 从 mode 注册移除，coding_project_dir 传 `None`
+- `src/qwenpaw/runtime/react_agent.py` — `CodingModeMixin` 从 ReactAgentChat MRO 移除
+- `src/qwenpaw/config/config.py` — 注释 `CodingModeConfig`
+- `src/qwenpaw/runtime/prompt_contributors.py` — `CodingModeContributor` 移除
+- `src/qwenpaw/agents/agent_context.py` — coding_mode 引用替换为 `None`
+- `src/qwenpaw/agents/fork_project.py` — coding_project_dir 引用替换为 `None`
+- `src/qwenpaw/app/routers/fork.py` — coding_mode 引用替换为 `None`
+- `src/qwenpaw/app/workspace/bootstrap_factory.py` — `CodingMode` import 移除
+- `src/qwenpaw/hooks/request_setup/contextvars_hook.py` — coding_mode 分支替换为 `None`
+
+**前端 修改：**
+- `console/src/layouts/registry/builtinRoutes.tsx` — 移除 Coding 路由 & DefaultRedirect
+- `console/src/layouts/Header.tsx` — 移除 CodingModeToggle
+- `console/src/pages/Chat/index.tsx` — 移除 useCodingMode, codingMode 重定向, lastEditorCopy
+- `console/src/pages/Chat/components/ChatSessionInitializer/index.tsx` — mode 固定为 `"chat"`
+
+### Tauri 桌面端移除（2026-08-11）
+
+hanbao 仅做 Web 聊天，桌面打包（Tauri + Rust）需求不存在。
+
+**文件删除：**
+- `console/src-tauri/`（完整目录，含 Cargo.toml, Rust src, icons, NSIS installer）
+- `src/qwenpaw/tauri/`（完整目录，Python 后端侧车进程支持）
+- `console/src/tauri/`（完整目录，Tauri 前端运行时）
+- `console/tauri.html`（Tauri 入口 HTML）
+- `console/src/contexts/DesktopUpdateContext.tsx`（桌面端更新检查）
+- `console/src/components/UpdateTakeoverPage/`（桌面端更新拦截页）
+
+**前端修改：**
+- `console/src/App.tsx` — 移除 DesktopUpdateProvider, UpdateTakeoverGate, isTauri
+- `console/src/layouts/Header.tsx` — 移除 invoke/useDesktopUpdate/isDesktopApp，onDesktop 固定 `false`，desktop stub 化
+- `console/src/layouts/SidebarSettingsPanel.tsx` — 移除关闭窗口偏好设置（Tauri-only）
+- `console/src/utils/openExternalLink.ts` — `isDesktopTauriRuntime()` 固定 `false`
+- `console/src/utils/downloadFileFromUrl.ts` — 移除 Tauri invoke/save import
+- `console/src/pages/Agent/ACP/index.tsx` — 移除 Tauri 文件选择器
+
+### 品牌资源替换（2026-08-12）
+
+- [修改] `console/public/online.svg` — favicon 替换为 hanbao 图标（墨风角色肖像）
+- [删除] `console/public/qwenpaw.png` — 默认 Agent 头像，Chat 代码改为 fallback `/online.svg`
+- [删除] `console/public/qwenpawBack.png` — 未使用的品牌背景图
+- [修改] `console/src/pages/Chat/index.tsx:2703` — `"/qwenpaw.png"` → `"/online.svg"`
+- [修改] `console/src/layouts/constants.ts` — `GITHUB_URL` → 本项目仓库
+- [修改] `.gitignore` — `dist/` 收窄为 `/dist/`（防误伤）；`console/package-lock.json` 取消忽略
+
+### UI 功能精简（2026-08-12~13）
+
+- [删除] Resources 下拉菜单（Header 中 QwenPaw 文档/教程/FAQ 链接）
+- [删除] 心跳（Heartbeat）设置页面（前端 only：page/API/路由/菜单；后端 Agent 心跳核心保留）
+- [删除] 应用中心 / PawApps（前端 only：AppCenter 页面、PawApps 设置页、pawapp-sdk、API 模块；后端 pawapp 路由保留未触）
+- [删除] ACP（Agent 级配置）设置页面（前端 only：`pages/Agent/ACP/`、`api/modules/acp.ts`、`api/types/acp.ts`、路由/菜单；后端 `agent_scoped.py` 中间件与 `agents/acp/` 通信协议保留未触）
+- [删除] 环境变量设置页面（`pages/Settings/Environments/`；后端 `routers/envs.py` 保留未触）
+- [删除] 语音转写（`pages/Settings/VoiceTranscription/` 设置页 + Chat 麦克风按钮 `WhisperSpeechButton` + 录音快捷键；后端 `audio_transcription.py` 保留未触）
+- [删除] 插件管理页面（`pages/Settings/PluginManager/` 全部 18 文件 + `api/modules/plugin.ts` + `api/modules/pluginMarket.ts` + 路由/菜单；插件加载基础设施 `console/src/plugins/` 与后端 `plugins/`/`src/qwenpaw/plugins/` 保留未触，渠道 azure_bot 与图像工具插件正常加载）
+- [删除] 备份功能（前端 `pages/Settings/Backups/` 全部 37 文件 + `api/modules/backup.ts` + `api/types/backup.ts` + 路由/菜单；后端 `routers/backup.py` + `routers/_backup_helpers.py` + `routers/__init__.py` 注册。**保留** `src/qwenpaw/backup/_utils/safe_swap.py` 及 `_mount_swap.py`——被 `app/_app.py` 启动清理与 `envs/store.py` 环境变量存储共用，不可删。数据保护交由飞牛 NAS 快照/volume 持久化）
+
+### 内置技能精简（2026-08-13）
+
+hanbao 定位私人聊天机器人，移除与 QwenPaw 官方答疑、浏览器自动化、桌面、邮件、编码无关的技能（每个技能中英双语各删一份）：
+
+- [删除] `QA_source_index`（查 QwenPaw 官方文档）、`guidance`（QwenPaw 安装配置问答）—— 改 hanbao 后无意义
+- [删除] `browser_cdp`、`browser_visible`（浏览器自动化，依赖 Chromium，阶段4 瘦身）
+- [删除] `dingtalk_channel`（靠浏览器自动配置钉钉；钉钉渠道后端保留）
+- [删除] `himalaya`（邮件客户端）
+- [修改] `src/qwenpaw/constant.py` — `BUILTIN_QA_AGENT_SKILL_NAMES` 清空为 `()`（原引用已删的 guidance/QA_source_index）
+- [保留] 7 个技能：`channel_message`、`chat_with_agent`、`multi_agent_collaboration`、`make_plan`、`make-skill`、`cron`、`file_reader`
+- [保留] 联网搜索：`web_search`（Tavily keyless API，免费无密钥）+ `web_fetch` 已内置，无需额外 skill/API key
+
+### 文档处理技能：Anthropic 专有 → 删除 + markitdown 替代（2026-08-13，P0 侵权红线）
+
+上游 `docx`/`pdf`/`pptx`/`xlsx` 4 个技能的 `LICENSE.txt` 为 **Anthropic 专有许可**（禁止分发/复制/衍生/销售），Anthropic 官方确认这 4 个文档技能是 source-available 而非开源。hanbao 作为再分发者打包 FPK = 侵权。
+
+- [删除] `docx`、`pdf`、`pptx`、`xlsx` 4 个技能（含中英双语 SKILL.md + scripts + Anthropic LICENSE.txt，共 8 目录）—— ✅ 已删除
+- [决策] 放弃文档「创建/编辑」能力（微信聊天场景低频），仅保留「读文档」
+- [替代] 读文档用 `markitdown`（微软，MIT 许可）：docx/pdf/pptx/xlsx → Markdown 供 Agent 读取 —— ✅ 已接入
+- [修改] `pyproject.toml` — 新增依赖 `markitdown[pdf,docx,pptx,xlsx]>=0.1.0`
+- [新增] `document_reader` 技能（中英双语 `agents/skills/document_reader-{en,zh}/SKILL.md`）—— 用 markitdown 读 PDF/Office 文档转 Markdown，明确「只读不改」
+- [缺陷] 记录为 I-019：改文档（需 python-docx/openpyxl）与创建文档暂不提供，后续需要再评估自研简化版
+
+### 编码工具删除（2026-08-13）
+
+编码模式（Coding Mode）已在阶段 3 早期移除，其配套的编码工具现为死代码，本轮清除：
+
+- [删除] `src/qwenpaw/agents/tools/_lsp_client.py`、`_lsp_servers.py`、`lsp_tool.py`（LSP 代码辅助，`make_lsp_tool` 无任何加载点）
+- [删除] `src/qwenpaw/agents/tools/ast_tool.py`（AST 代码分析 `ast_search`）
+- [修改] `src/qwenpaw/agents/react_agent.py` — 移除 `ast_search` 与 5 个 `lsp_*` 工具注册
+- [修改] `src/qwenpaw/agents/tools/__init__.py` — 移除 `ast_tool` import
+- [修改] `pyproject.toml` — 移除 `python-lsp-server[all]` 与 `ast-grep-cli` 依赖（连带消除 rope/pytoolconfig 两个 LGPL 传递依赖，见 I-021）
+
+### 待办：浏览器/桌面工具（阶段4 随 Chromium 瘦身一并处理）
+
+- `browser_control`（被 `_app.py` stop_all_browsers 依赖）、`browser_snapshot`、`desktop_screenshot`（被 proactive 依赖）
+- 上述工具与 Chromium/XFCE 绑定，阶段4 瘦身时统一移除并清依赖链
+
+### 安全策略：默认锁定 + 删配置页（2026-08-13）
+
+hanbao 定位「私人版豆包」，面向飞牛 NAS 普通用户，**无需也不该暴露安全配置**。
+
+- [删除] Security 设置页面（`pages/Settings/Security/` 全部 16 文件 + `api/modules/security.ts` + `utils/scanError.ts` + 路由/菜单）
+- [修改] `src/qwenpaw/config/config.py` — `sandbox_enabled` 默认值 `False` → `True`（沙箱默认开启，Agent 工具调用隔离执行，无法触碰 NAS 数据）
+- [保留] 后端安全运行时：`sandbox/`（bubblewrap/landlock/seatbelt/win）、`security/tool_guard/`（引擎 + 文件/Shell 守卫）—— 静默生效
+- [保留] `app/approvals/` 审批服务后端代码（不再被主路径调用，属死代码；见下方「审批流程移除」）
+- [保留] Skill Scanner 后端（内置 skill 加载时扫描，无害）；前端以 no-op stub 兼容
+- [修改] `console/src/utils/scanError.ts` — 重写为 no-op stub（`checkScanWarnings` 恒返回 `{passed:true}`、`handleScanError` 恒返回 `false`）
+- [修改] `console/src/api/modules/security.ts` — 重写为类型兼容 stub
+- [修改] `console/src/pages/Agent/Skills/useSkills.ts` / `useSkillsPage.tsx` / `Settings/SkillPool/useSkillPool.tsx` — 移除对已删 `api.getBlockedHistory`/`api.getSkillScanner` 的调用，替换为内联 stub
+
+### 审批流程移除（2026-08-13）
+
+hanbao 定位私人豆包，主要通过聊天渠道（微信等）交互，交互式审批卡片不可行；且沙箱已默认开启隔离文件访问，审批的「确认」环节冗余。故移除审批，保留灾难级命令拦截与沙箱兜底。
+
+- [修改] `src/qwenpaw/governance/tool_adapter.py`（主路径 `PolicyGuardedTool.check_permissions`）— `GovernanceAction.ASK` 分支改为直接 `ALLOW`（敏感文件/中风险不再弹审批，靠沙箱挡越界）
+- [修改] `src/qwenpaw/governance/tool_adapter.py`（主路径 `__call__` 沙箱违规）— 沙箱违规由「审批问用户」改为直接返回 `DENIED`（越界即拒绝，附 `_NO_RETRY_INSTRUCTION` 让 Agent 向用户解释）
+- [修改] `src/qwenpaw/runtime/tool_guard.py`（fallback 路径 `GuardedFunctionTool`，governor 缺失时）— `_ask_user_approval` 调用改为直接 `ALLOW`
+- [保留] 灾难级命令拦截（`rm -rf /`、`mkfs`、`dd`、fork bomb 等）仍在 policy 层 DENY，不受影响
+- [保留] 前端审批 UI（`ApprovalCard`/`ApprovalContext`/`ApprovalLevelToggle`/`PendingApprovalsDrawer`）—— 后端不再发 ASK，已变死代码不再弹窗；因深度耦合 App/Sidebar/Chat/Inbox/Channels，暂不硬删，待后续单独清理
+
+### 遥测移除（2026-08-14，I-006）
+
+hanbao 是独立 fork 产品，分发给第三方用户，不应把「多少人装了函包」透露给 QwenPaw 官方，也不符合「本地数据主权」定位。
+
+- [修改] `src/qwenpaw/utils/telemetry.py` — `_upload_telemetry_sync` 改为 no-op（恒 `return False`），删除 `TELEMETRY_ENDPOINT`（`https://qwenpawelemetry-*.fcapp.run` 上报地址）；模块其余函数（marker 机制）保留供 `clean_cmd.py` 引用
+- [修改] `src/qwenpaw/app/_app.py` — 移除启动时「未 opt-out 且未上报过则自动上报」的 try 块
+- [修改] `src/qwenpaw/cli/init_cmd.py` — 移除遥测代码块、`TELEMETRY_INFO` 文案、`_echo_telemetry_info_box`（init 交互模式的 "Share usage data?" 提示一并删除）
+- [确认] 前端 console 无遥测（无 analytics/posthog/sentry 依赖，无上报端点）
+
+### 构建修复记录
+
+- 修复 2 处 Python 文件中误用的 `// [hanbao]` 注释（JS 语法，Python 解析报错）→ 改为 `# [hanbao]`
+- 修复 `src/qwenpaw/app/routers/__init__.py` 因 git 操作被静默清空导致 `ImportError` — 已从上游恢复
+- 修复 `builtinRoutes.tsx` / `builtinMenu.ts` / `Chat/index.tsx` 删除功能后遗留的孤儿代码（悬空 `{`/`},`、孤儿 `try/catch`、未用变量）→ 用 Python 内容匹配精确清理
+- 测试文件 `acp.test.ts` / `backup.test.ts` 因引用已删模块改为空 stub
+
+### 上游 v2.1.0 安全修复采纳：OneBot 反向 WS 鉴权加固（2026-08-14，P0-2 / #6676）
+
+hanbao 定位「渠道聊天为主」（微信/QQ/Telegram 等），OneBot v11 反向 WebSocket 是核心渠道之一。上游 v2.1.0 的 **#6676** 修复了「`ws_host` 默认 `0.0.0.0` 且无 `access_token` 时，反向 WS 服务端暴露全网且无鉴权」的漏洞。该修复对 hanbao 属 **P0（安全）**，故从上游 patch 手工移植（未整仓库 `git am`，避免连带引入无关改动），仅移植 #6676 相关 hunk。
+
+**移植方式**：从 `qwenpaw_v201_v210.patch` 提取 #6676 的 3 个文件 diff；因手工提取截断末段 hunk 导致 `git apply --check` 报 corrupt patch，改用 Edit 工具逐文件移植 #6676 专属 hunk，其余 OneBot 改动不动。
+
+**改动文件清单（3 个）：**
+- [修改] `src/qwenpaw/utils/http.py` — 新增 `[hanbao]` helper `_WILDCARD_PROBE_HOSTS`（通配符绑定地址 → 对应 loopback 探测地址）与 `probe_host_for_bind_host()`，供 OneBot 健康检查时安全连接自身 listener。已有的 `is_loopback_host()` 为上游原函，直接复用。（上游同名改动，语义一致）
+- [修改] `src/qwenpaw/app/channels/onebot/channel.py` — 核心安全逻辑（带 `[hanbao modification]` 标注）：
+  - 新增 `import hmac`、`from ....utils.http import is_loopback_host, probe_host_for_bind_host`
+  - 模块级常量 `_DEFAULT_WS_HOST = "127.0.0.1"`、`_AUTH_SCHEMES = frozenset({"bearer","token"})` 与 helper `_extract_auth_token` / `_tokens_match`（`hmac.compare_digest` 常量时间比较）/ `_log_remote`（清洗 `request.remote` 防日志注入）
+  - `ws_host` 默认值 `0.0.0.0` → `127.0.0.1`（`__init__` / `from_env` / `from_config` 三处）
+  - `_auth_required = not is_loopback_host(self._ws_host)`：绑定 loopback 不强制 token，绑定非 loopback **强制** `access_token`
+  - `_handle_ws_connection` 重写：缺 token 且 `_auth_required` → 401；token 校验仅走 `Authorization` header（**拒绝 query-param token**，防 URL 记录泄漏）；`_token_authorized` 用常量时间比较
+  - `_is_server_healthy` 改用 `probe_host_for_bind_host(self._ws_host)` 探测；连接/断开日志改用 `_log_remote(request)`
+- [修改] `src/qwenpaw/config/config.py` — `OneBotConfig.ws_host` 默认值 `"0.0.0.0"` → `"127.0.0.1"`；docstring 注明「非 loopback 绑定需 `access_token`」
+
+**验证**：`python -m py_compile` 三文件通过；grep 确认 `probe_host_for_bind_host` / `is_loopback_host` / `_auth_required` / `_token_authorized` / `_log_remote` 符号均存在。
+
+**合规**：本改动源自上游 Apache-2.0 代码，仅移植安全 hunk，未触碰 LICENSE/NOTICE/合规文档（R2 红线守住）。
+
+> 关联：完整 v2.1.0 采纳规划见 [`upstream-v2.1.0-adoption.md`](./upstream-v2.1.0-adoption.md)；本项为其中 P0-2 的首个落地。
 
 ## 阶段 4 · 容器化
 

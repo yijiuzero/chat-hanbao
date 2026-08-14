@@ -113,7 +113,7 @@
     "tokenUsage": "Token 消耗",
     "agentStats": "智能体统计",
     "voiceTranscription": "语音转写",
-    "debug": "调试",
+    "debug": "日志",
     "plugins": "插件",
     "backups": "备份",
     "pluginManager": "插件管理"
@@ -160,7 +160,7 @@
     "fullMode": "完整模式"
   },
   "debug": {
-    "title": "调试",
+    "title": "日志",
     "desc": "查看后端守护进程日志文件，便于排查问题。在此页面打开时日志会自动刷新。",
     "level": {
       "all": "全部"

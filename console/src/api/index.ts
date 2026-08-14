@@ -5,9 +5,7 @@ export { request } from "./request";
 export { getApiUrl, getApiToken } from "./config";
 
 import { rootApi } from "./modules/root";
-import { acpApi } from "./modules/acp";
 import { channelApi } from "./modules/channel";
-import { heartbeatApi } from "./modules/heartbeat";
 import { cronJobApi } from "./modules/cronjob";
 import { chatApi, sessionApi } from "./modules/chat";
 import { envApi } from "./modules/env";
@@ -22,10 +20,8 @@ import { mcpApi } from "./modules/mcp";
 import { tokenUsageApi } from "./modules/tokenUsage";
 import { agentStatsApi } from "./modules/agentStats";
 import { toolsApi } from "./modules/tools";
-import { securityApi } from "./modules/security";
 import { userTimezoneApi } from "./modules/userTimezone";
 import { languageApi } from "./modules/language";
-import { backupApi } from "./modules/backup";
 import { consoleApi } from "./modules/console";
 import { accessControlApi } from "./modules/accessControl";
 
@@ -33,14 +29,10 @@ export const api = {
   // Root
   ...rootApi,
 
-  // ACP
-  ...acpApi,
 
   // Channels
   ...channelApi,
 
-  // Heartbeat
-  ...heartbeatApi,
 
   // Cron Jobs
   ...cronJobApi,
@@ -82,8 +74,6 @@ export const api = {
   // Tools
   ...toolsApi,
 
-  // Security
-  ...securityApi,
 
   // User Timezone
   ...userTimezoneApi,
@@ -91,8 +81,6 @@ export const api = {
   // Language
   ...languageApi,
 
-  // Backups
-  ...backupApi,
 
   // Console
   ...consoleApi,

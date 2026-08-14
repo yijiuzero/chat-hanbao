@@ -355,7 +355,7 @@ def resolve_git_project_dir(
             from ..config.config import load_agent_config
 
             cfg = load_agent_config(aid)
-            cm = getattr(cfg, "coding_mode", None)
+            # [hanbao] Coding removed. cm = None
             if cm and getattr(cm, "enabled", False) and cm.project_dir:
                 candidates.append(
                     Path(cm.project_dir).expanduser().resolve(),

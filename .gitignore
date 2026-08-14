@@ -30,7 +30,10 @@ cookbook/_build
 
 # production
 /build
-dist/
+# [hanbao modification] Scoped to repo root. The bare "dist/" matched every
+# dist directory in the tree, including console/src/.../dist and plugins/.../dist
+# which contain committed build output that MUST be tracked.
+/dist/
 .wheelshim/
 # Console frontend build (generated in Docker/CI, do not commit)
 console/.cursor/
@@ -79,7 +82,9 @@ yarn-error.log*
 openapi-ts*.log
 
 # Only ignore npm lockfiles inside subpackages
-console/package-lock.json
+# [hanbao modification] console/package-lock.json is tracked (needed for
+# reproducible npm ci in Docker builds). Only website lockfile stays ignored.
+# console/package-lock.json
 website/package-lock.json
 
 # MacOS

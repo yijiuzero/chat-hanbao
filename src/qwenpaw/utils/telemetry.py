@@ -14,9 +14,9 @@ from typing import Any, Callable
 
 logger = logging.getLogger(__name__)
 
-TELEMETRY_ENDPOINT = (
-    "https://qwenpawelemetry-sukzkbfzhc.ap-southeast-1.fcapp.run"
-)
+# [hanbao modification] Telemetry endpoint removed — hanbao must not phone
+# home to QwenPaw (I-006). The upload path is disabled (see
+# `_upload_telemetry_sync` below) and this module is now effectively inert.
 TELEMETRY_MARKER_FILE = ".telemetry_collected"
 
 
@@ -155,24 +155,15 @@ def _detect_gpu() -> bool | str:
 
 
 def _upload_telemetry_sync(data: dict[str, Any]) -> bool:
-    """Upload telemetry data (synchronous).
+    """[hanbao modification] Telemetry upload disabled.
 
-    Args:
-        data: Telemetry data to upload
-
-    Returns:
-        True if upload succeeded, False otherwise
+    hanbao is an independent fork and must NOT phone home to QwenPaw's
+    telemetry endpoint. This function is retained as a no-op so the
+    collection flow (and its marker-file dedup) keeps working without ever
+    sending data. See known-issues I-006 and CHANGES-FROM-UPSTREAM.
     """
-    try:
-        import httpx
-
-        with httpx.Client(timeout=2.0) as client:
-            response = client.post(TELEMETRY_ENDPOINT, json=data)
-            return response.status_code in (200, 201, 204)
-    except Exception as e:
-        # Silent failure - don't break installation
-        logger.debug("Telemetry upload failed: %s", e)
-        return False
+    logger.debug("Telemetry upload disabled (hanbao): nothing sent")
+    return False
 
 
 def _get_current_version() -> str:

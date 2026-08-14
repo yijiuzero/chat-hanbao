@@ -45,8 +45,8 @@ export function useSkills() {
     (skillName: string) =>
       checkScanWarningsShared(
         skillName,
-        api.getBlockedHistory,
-        api.getSkillScanner,
+        Promise.resolve({ records: [], blocked: [] }),
+        ({ getBlockedHistory: async () => ({ records: [], blocked: [] }), rescan: async () => {} }) as any,
         t,
       ),
     [t],

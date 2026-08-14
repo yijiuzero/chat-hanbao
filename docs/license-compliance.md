@@ -89,6 +89,8 @@ Apache License 2.0 是**宽松许可（permissive）**，明确授权：
 - [ ] 删除的功能模块不影响 LICENSE/NOTICE 完整性
 - [ ] 删除动作记入 CHANGES
 - [ ] 若引入新的第三方依赖，核对其许可是否与 Apache-2.0 兼容（禁止引入 GPL/AGPL，见 §5）
+- [ ] **全依赖树 license 审计**：不能只看顶层 Apache-2.0，依赖树里可能藏 GPL 库（html2text 教训，I-020）或第三方专有内容（Anthropic 技能教训，I-019）
+- [ ] **内置技能/内容的 license 检查**：`agents/skills/` 等内置内容可能带独立 LICENSE（上游 QwenPaw 的 docx/pdf/pptx/xlsx 技能即 Anthropic 专有），逐一核对 source/许可后再决定保留或替换
 
 ### 阶段 4 · 容器化
 - [ ] Dockerfile 中 `COPY LICENSE NOTICE /app/` —— 详见 [known-issues.md I-002](./known-issues.md#i-002)
@@ -122,9 +124,12 @@ Apache License 2.0 是**宽松许可（permissive）**，明确授权：
 | R2 | 批量替换品牌时把 `LICENSE`/`NOTICE` 里的 `QwenPaw` 一并替换掉 | **本项目最可能踩的坑**：`sed -i 's/QwenPaw/hanbao/g'` 全仓库执行即触发 R1。品牌替换脚本必须显式排除 `LICENSE`、`NOTICE`、`docs/license-compliance.md` |
 | R3 | 声称 hanbao 为完全自主原创 / 隐瞒派生关系 | 违反归属义务，且上架审核存在欺诈风险 |
 | R4 | 在 hanbao 名称、Logo、宣传中使用 "QwenPaw"/"AgentScope"/"Qwen"/"通义" 等商标暗示官方背书 | Apache-2.0 **§6 不授予商标许可**，属独立的商标法问题 |
-| R5 | 引入 GPL / AGPL / SSPL 等传染性许可的依赖 | 会污染整个分发物，强制 hanbao 开源，与闭源分发目标冲突 |
+| R5 | 引入 GPL / AGPL / SSPL 等**强传染**许可的依赖 | 会污染整个分发物，强制 hanbao 开源，与闭源分发目标冲突 |
 | R6 | 修改文件却不加修改标注 | 违反 §4(b) |
 | R7 | 保留上游遥测上报却不告知用户 | 非许可问题，但属隐私合规风险；改造时必须移除或改向（见项目规划） |
+| R8 | 引入**第三方专有许可**的内容/技能（如 Anthropic 文档技能） | 专有许可通常明令禁止「分发/复制/衍生」，再分发即著作权侵权，比商标红线更严重（见 I-019） |
+
+> **LGPL 补充说明（弱传染，不属 R5）**：LGPL（Lesser GPL）是**弱 copyleft**，允许闭源软件**动态链接**（Python `import` 即动态链接）且不修改库本身，仅需在分发物中附 LGPL license 文本 + 版权声明 + 允许用户替换库。与 GPL/AGPL/SSPL（强传染，链接即强制开源）有本质区别。函包已审计出的 LGPL 依赖见 I-021，NOTICE 已补声明。
 
 > **R2 单独强调**：这是"技术操作导致法律违约"的典型场景。阶段 2（品牌改造）执行任何批量替换前，必须先确认排除清单。
 

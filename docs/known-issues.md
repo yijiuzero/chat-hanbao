@@ -14,7 +14,7 @@
 | [I-003](#i-003) | `.dockerignore` 的 `*.md` 会排除合规文档 | 🔥 高（法务） | 阶段 3 容器化 | 🔴 待处理 |
 | [I-004](#i-004) | 镜像含完整 XFCE4 桌面 + Chromium，体积巨大 | 🟠 中 | 阶段 2 删减定制 | 🔴 待处理 |
 | [I-005](#i-005) | 基础镜像拉取失败（buildkit 并发鉴权 EOF） | 🟠 中 | 阶段 1 构建时 | 🟢 已解决（预拉规避） |
-| [I-006](#i-006) | 上游自带遥测上报 | 🟠 中 | 阶段 2 删减定制 | 🔴 待处理 |
+| [I-006](#i-006) | 上游自带遥测上报 | 🟠 中 | 阶段 2 删减定制 | 🟢 已解决（上报禁用+调用移除） |
 | [I-007](#i-007) | Web Console 默认无认证 | 🟠 中 | 阶段 2 / FPK 向导 | 🔴 待处理 |
 | [I-008](#i-008) | console 前端构建 OOM，4GB WSL 内存不足 | 🔥 高（曾阻塞） | 阶段 1 构建时 | 🟢 已解决 |
 | [I-009](#i-009) | 构建机 C 盘 0GB 可用，Docker 无法写入 | 🔥 高（阻塞） | 阶段 1 构建时 | 🟢 已解决（迁 F 盘 Junction） |
@@ -25,6 +25,13 @@
 | [I-014](#i-014) | 品牌名残留：CSS 前缀 `qwenpaw` (Ant Design) | 🟡 低 | 阶段 3 删减定制 | 🔴 待处理 |
 | [I-015](#i-015) | 品牌名残留：测试/e2e/website 中的 QwenPaw | 🟢 极低 | 无阻塞 | 🔴 待处理 |
 | [I-016](#i-016) | 品牌名残留：插件 plugin.json author 字段 | 🟢 极低 | 无阻塞 | 🔴 待处理 |
+| [I-017](#i-017) | sed 产生 JS 注释 `//` 污染 Python 文件 | 🔥 高 | 阶段 3 删减定制 | 🟢 已解决 |
+| [I-018](#i-018) | git checkout 导致 gitignored 文件从磁盘消失 | 🔥 高 | 阶段 3 删减定制 | 🟡 处理中 |
+| [I-019](#i-019) | 文档处理能力降级：Anthropic 技能侵权，只能读不能改/创建 | 🔥 高 | 上架前必须解决 | 🟡 处理中（已定方案 A + markitdown） |
+| [I-020](#i-020) | html2text 为 GPL-3.0 传染性依赖，违反 R5 红线 | 🔥 高 | 上架前必须解决 | 🟢 已解决（换 markdownify MIT） |
+| [I-021](#i-021) | 依赖审计：4 个 LGPL 弱传染依赖（telegram-bot/rope/pytoolconfig/docstring-to-markdown） | 🟠 中 | 上架前备案 | 🟡 处理中（NOTICE 已补声明） |
+| [I-022](#i-022) | web_search 用 Tavily keyless（免费限速），上架后重度使用会撞限速 | 🟡 低 | 上架后可优化 | 🔴 待处理 |
+| [I-023](#i-023) | 本地基线标签 `upstream/v2.0.1` 与官方 v2.0.1 不一致（缺 `_normalize_media_ref`） | 🟡 低 | 下次合并上游前必须核对 | 🔴 待处理 |
 
 ---
 
@@ -222,7 +229,7 @@ Git Bash 下需要超时控制时，应使用 `timeout.exe` 之外的方式，�
 <a id="i-006"></a>
 ## I-006 · 上游自带遥测上报
 
-**严重度**：🟠 中 &nbsp;|&nbsp; **状态**：🔴 待处理 &nbsp;|&nbsp; **必须处理时机**：阶段 2 删减定制
+**严重度**：🟠 中 &nbsp;|&nbsp; **状态**：🟢 已解决 &nbsp;|&nbsp; **必须处理时机**：阶段 2 删减定制
 
 ### 现象
 `qwenpaw init` 等命令会向上游上报使用数据。
@@ -233,6 +240,13 @@ hanbao 将**分发给第三方用户**（飞牛应用中心下载）。让用户
 ### 处理方案（阶段 2 执行）
 定位遥测代码 → 默认关闭或彻底移除 → 在 CHANGES-FROM-UPSTREAM.md 记录该修改。
 若保留任何形式的数据上报，必须在 FPK 安装向导中明确告知用户并提供开关。
+
+### 已处置（2026-08-14）
+- [修改] `src/qwenpaw/utils/telemetry.py` — `_upload_telemetry_sync` 改为 no-op（return False），删除 `TELEMETRY_ENDPOINT`（`qwenpawelemetry-*.fcapp.run` 上报地址）
+- [修改] `src/qwenpaw/app/_app.py` — 移除启动时的自动上报调用
+- [修改] `src/qwenpaw/cli/init_cmd.py` — 移除遥测代码块 + `TELEMETRY_INFO` 文案 + `_echo_telemetry_info_box`
+- [确认] 前端 console 无遥测（grep 无 analytics/posthog/sentry 依赖与上报端点）
+- 结果：hanbao 不再向 QwenPaw 官方上报任何数据，全链路零上报
 
 ---
 
@@ -250,6 +264,10 @@ QwenPaw Web Console（8088）默认不开启认证，设计假设是"个人本�
 ### 处理方案
 - 阶段 2：确认上游是否已有认证开关，能开则默认开启
 - FPK 向导：强制要求用户设置访问密码，或明确警告"仅限内网访问"
+
+### 关联改动（2026-08-14，非本项解决）
+- **OneBot 反向 WS 服务端**获独立加固（上游 v2.1.0 #6676，P0-2）：`ws_host` 默认改 loopback，非 loopback 绑定强制 `access_token`（常量时间比较，拒绝 query-param token）。见 `CHANGES-FROM-UPSTREAM.md` 阶段 3 对应条目。
+- ⚠️ 上述加固**只覆盖 OneBot 渠道的 WS 服务端**，本 I-007 专指 **Web Console 8088 本身无认证**，二者是不同攻击面。Console 8088 认证**仍待处理**，未因 #6676 而解决。
 
 ---
 
@@ -484,6 +502,185 @@ WSL2 后端的 Docker 数据盘路径由 `AppData\Local\Docker\wsl\disk\docker_d
 
 ---
 
+<a id="i-017"></a>
+## I-017 · sed 产生 JS 注释 `//` 污染 Python 文件
+
+**严重度**：🔥 高 &nbsp;|&nbsp; **状态**：🟢 已解决（2026-08-12）
+
+### 现象
+在 `_app.py` 中用 sed 注释掉 `app.include_router(coding_mode_router)` 时，sed 替换产生了 `// [hanbao] Coding mode router removed.`。Python 不认识 `//`，导致 `SyntaxError`，容器启动后 app 进程反复 `exit status 1`。
+
+### 根因
+用 sed 删代码时习惯性地写了 JS/TS 风格的 `//` 注释，忘了 Python 要求 `#`。
+
+### 处理
+手动改为 `# [hanbao]`。同时修复了 `contextvars_hook.py` 中另一处同类错误。
+
+### 可复用经验
+**sed 操作 Python 文件时必须用时 `#` 而非 `//` 作为注释前缀。** 建议在 sed 命令中显式使用 `#` 避免思维惯性。
+
+---
+
+<a id="i-018"></a>
+## I-018 · git checkout 导致 gitignored 跟踪文件从磁盘消失
+
+**严重度**：🔥 高 &nbsp;|&nbsp; **状态**：🟡 处理中 &nbsp;|&nbsp; **必须处理时机**：阶段 3 完成前
+
+### 现象
+在阶段 3 删减定制过程中，多次出现执行 `git checkout HEAD -- <path>` 恢复文件后，`console/src/api/` 和 `src/qwenpaw/app/routers/` 等目录下的文件从磁盘消失。具体表现为：
+
+1. **第一次**（2026-08-11）：`git checkout` 后 `console/src/api/modules/` 目录整个变空，Docker 构建阶段 `tsc` 报 200+ 个 `TS2307: Cannot find module`。
+2. **第二次**（2026-08-12）：`src/qwenpaw/app/routers/__init__.py` 被清空，容器启动后 `ImportError: cannot import name 'create_agent_scoped_router'`。
+3. **第三次**（2026-08-12）：`routers/` 下 5 个 `.py` 文件（`_backup_helpers.py`, `tool_calls.py`, `tools.py`, `voice.py`, `workspace.py`）同时消失。
+
+### 根因
+这些文件在上游 tarball 中存在，但被 `.gitignore` 规则（主要是 `dist/`、`*.md` 的变体影响）匹配。初始建仓时虽然 `git add -f` 强制纳入了，但后续的 `git rm --cached` 或 check-ignore 路径匹配导致它们从 staging area 丢失。一旦文件不在 git index 中，`git checkout` 无法恢复它们。
+
+### 临时方案
+- 从上游本地源码（`E:\浏览器下载\QwenPaw-2.0.1\`）用 `cp -r` 恢复缺失文件
+- 或用 `git checkout HEAD -- <path>` 恢复（仅对仍在 index 中的文件有效）
+
+### 根本修复方向
+1. 彻底审核 `.gitignore` 中所有可能误伤的规则（已做：`dist/` → `/dist/`，`console/package-lock.json` 取消忽略）
+2. 建立验证脚本：每次 git 操作后运行 `git ls-files | wc -l` 对比基线 2846
+3. 优先用 `cp -r` 从上游恢复而非依赖 `git checkout`
+
+---
+
+## I-019 · 文档处理能力降级：Anthropic 技能侵权，只能读不能改/创建
+
+**严重度**：🔥 高 &nbsp;|&nbsp; **状态**：🟡 处理中 &nbsp;|&nbsp; **必须处理时机**：上架前
+
+### 现象
+上游 QwenPaw 内置的 4 个文档处理技能 `docx`/`pdf`/`pptx`/`xlsx`，其 `LICENSE.txt` 为 **Anthropic 专有许可**（`© 2025 Anthropic, PBC. All rights reserved.`），明确禁止「分发 / 复制 / 衍生作品 / 销售」。Anthropic 官方仓库也确认这 4 个文档技能是 **source-available, not open source**（源码可见但非开源）。
+
+函包作为 fork QwenPaw 的再分发者，把这 4 个技能打包进 FPK 上架飞牛 = **著作权侵权**，比商标红线（R2）更严重。
+
+### 已确认事实
+- 4 个侵权技能：`docx` / `pdf` / `pptx` / `xlsx`（含 SKILL.md + scripts + LICENSE.txt，全 Anthropic 专有）
+- 其余 7 个内置技能：无 license 字段，继承 Apache-2.0，安全
+- 上游 QwenPaw 自己把这些技能标 `Proprietary` 并附 Anthropic LICENSE.txt（知情）
+
+### 决策（2026-08-13 泽零拍板）
+- **方案 A**：接受「只能读不能改/创建」，暂时放弃文档创建/编辑能力
+- **读文档**：用 `markitdown`（微软，MIT）替代——docx/pdf/pptx/xlsx → Markdown，纯读不碰原文件
+- **改文档**：暂不补（依赖 python-docx/openpyxl + 技能指引，微信场景低频）
+- **创建文档**：暂不补（后续需要再自研或评估开源替代质量）
+
+### 能力现状对照
+| 能力 | 状态 |
+|---|---|
+| 读 docx/pdf/pptx/xlsx 内容 | 🟡 markitdown 待接入（当前 file_io 只读文本） |
+| 改 docx/xlsx 样式/内容 | ❌ 不可（无 python-docx/openpyxl 库 + 无技能指引） |
+| 创建 docx/xlsx/pptx | ❌ 不可（已放弃） |
+
+### 待办
+1. [x] 删除 4 个 Anthropic 专有技能目录（docx/pdf/pptx/xlsx 的中英双语 + LICENSE.txt + scripts）—— ✅ 已删除（2026-08-13）
+2. [x] 接入 `markitdown`（加依赖 `markitdown[pdf,docx,pptx,xlsx]>=0.1.0` + 新增 `document_reader` 技能中英双语）—— ✅ 已完成（2026-08-13，构建验证通过 hanbao:0.0.12）
+3. [ ] 后续评估是否需要补「改文档」能力（自研简化版）
+
+---
+
+## I-020 · html2text 为 GPL-3.0 传染性依赖，违反 R5 红线
+
+**严重度**：🔥 高 &nbsp;|&nbsp; **状态**：🟢 已解决 &nbsp;|&nbsp; **必须处理时机**：上架前
+
+### 现象
+工具依赖审计发现 `pyproject.toml` 中的 `html2text>=2024.2.26`（用于 `web_search.py` 的 `web_fetch` 把 HTML 转 Markdown）为 **GPL-3.0** 许可（Aaron Swartz 原作，PyPI 明确 "distributed under the GPLv3"）。
+
+GPL 是 copyleft 传染性许可，与 Apache-2.0 闭源分发目标冲突，违反合规规范 **R5 红线**（禁止引入 GPL/AGPL/SSPL 依赖）。
+
+### 处置
+- [修改] `pyproject.toml` — `html2text>=2024.2.26` → `markdownify>=1.0.0`（MIT 许可）
+- [修改] `src/qwenpaw/agents/tools/web_search.py` — `import html2text` → `from markdownify import markdownify as md`；`_html_to_text` 改用 `md(html, heading_style="ATX", strip=["img","script","style"])`
+- 删除 `_new_html2text()` 函数（原 html2text 转换器）
+
+### 教训
+上游 QwenPaw 虽然整体 Apache-2.0，但**依赖树里可能藏 GPL 库**（html2text 是 Aaron Swartz 的老牌 GPL 项目）。fork 项目必须做一次**全依赖 license 审计**，不能只看顶层许可证。
+
+---
+
+## I-021 · 依赖审计：4 个 LGPL 弱传染依赖
+
+**严重度**：🟠 中 &nbsp;|&nbsp; **状态**：🟡 处理中 &nbsp;|&nbsp; **必须处理时机**：上架前备案
+
+### 审计结论（2026-08-13，全依赖树扫描 200+ 包）
+1. ✅ **无 GPL/AGPL/SSPL 强传染依赖**（html2text 已换 markdownify，见 I-020）
+2. ⚠️ 发现 4 个 **LGPL 弱传染**依赖
+3. ✅ 82 个 license 元数据为空的包 = 知名 Apache/MIT/BSD 库（agentscope/cryptography/playwright/numpy/fastapi/pydantic 等），实际安全
+
+### LGPL 依赖清单
+| 依赖 | License | 性质 | 处置 |
+|---|---|---|---|
+| `python-telegram-bot` | LGPLv3 | **直接依赖**（Telegram 渠道） | 保留 + NOTICE 补声明 |
+| `rope` | LGPLv3+ | python-lsp-server 传递依赖（编码工具） | ✅ 已消除（2026-08-13 删 python-lsp-server） |
+| `pytoolconfig` | LGPL-3.0 | rope 依赖 | ✅ 已消除（同上） |
+| `docstring-to-markdown` | LGPLv2+ | pylint 传递依赖 | 随 pylint 保留（开发依赖） |
+
+### 关键判断：LGPL ≠ GPL
+- **GPL/AGPL/SSPL**（强传染）＝ 链接即强制整个分发物开源 → 禁止
+- **LGPL**（弱传染）＝ 动态链接（Python import）可闭源，仅需附 license 文本 + 不修改库本身
+
+### 已处置
+- [x] `NOTICE` 补 LGPL 声明（4 个 LGPL 依赖 + license 文本链接）—— ✅ 2026-08-13
+- [x] 删编码工具 + `python-lsp-server`/`ast-grep-cli` 依赖 → rope/pytoolconfig 两个 LGPL 传递依赖随之消除 —— ✅ 2026-08-13
+
+---
+
+## I-022 · web_search 用 Tavily keyless（免费限速），重度使用会撞限速
+
+**严重度**：🟡 低 &nbsp;|&nbsp; **状态**：🔴 待处理 &nbsp;|&nbsp; **必须处理时机**：上架后可优化（非阻塞）
+
+### 现象
+`web_search` 工具用 Tavily **keyless** 模式（`X-Tavily-Access-Mode: keyless`），免费、无密钥、开箱即用，但 **Tavily 官方定位是"探索/轻量使用"**，明确说"生产环境换 API key"。keyless 有严格速率限制。
+
+### 风险（非侵权，是服务条款/体验层面）
+- 函包上架后用户多了 → 集体触发 Tavily keyless 限流
+- Tavily 可能视函包为"第三方产品滥用免费额度"，甚至封禁
+- 重度用户（天天让 Agent 联网搜）体验差
+
+### 现状
+- `web_search` 工具：默认用 keyless，无需任何配置
+- `config.py` 已预留 `tavily_search` MCP 配置（`enabled=False` + `TAVILY_API_KEY=""`），填了 key 才启用
+
+### 待办（上架后优化）
+1. [ ] 设置页加"搜索 API key"可选入口，支持用户填 Tavily key（免费 1000 credits/月），keyless 作为 fallback
+2. [ ] 或评估换免费无 key 的搜索源（DuckDuckGo / SearXNG 自建）
+
+### 备注
+`web_fetch`（HTTP GET + markdownify MIT）基本合规，抓取公开网页属信息访问；仅缺 robots.txt 检查（礼貌问题，非侵权），可后续补。
+
+---
+
+<a id="i-023"></a>
+## I-023 · 本地基线标签 `upstream/v2.0.1` 与官方 v2.0.1 不一致（缺 `_normalize_media_ref`）
+
+**严重度**：🟡 低 &nbsp;|&nbsp; **状态**：🔴 待处理 &nbsp;|&nbsp; **必须处理时机**：下次合并上游前必须核对
+
+### 现象（2026-08-14，移植 #6676 时发现）
+- 本地基线 `upstream/v2.0.1`（commit `9b86a97`）的 `src/qwenpaw/app/channels/onebot/channel.py` **不含** `OneBotChannel._normalize_media_ref` 方法。
+- 但上游官方 v2.0.1 release tarball / 仓库的同一文件**含**该方法。
+- 即：本仓库基线标签与上游官方 v2.0.1 并非逐字节一致，**基线偏离了官方**。
+
+### 影响
+- 从上游 patch（v2.0.1→v2.1.0）移植时，凡涉及 `_normalize_media_ref` 的 hunk 会因上下文不匹配而 `git apply` 失败，需手工 3-way merge（见 `upstream-v2.1.0-adoption.md` §9）。
+- 若后续误信"`upstream/v2.0.1` = 官方 v2.0.1"，会漏掉官方在基线里已含、而本地基线缺的修复/改动，导致**基于错误基线做决策**。
+
+### 根因猜测（待查）
+- 建仓时（`git init` 自 tarball）可能误用了非官方来源，或 tarball 与 tag 取错版本；或本地 `E:\浏览器下载\QwenPaw-2.0.1\` 本身就不是官方 v2.0.1。
+- 也有可能是官方在打 tag 后、发 tarball 前又有一次未打 tag 的提交。需比对官方 tag 与 tarball 确认。
+
+### 处理方案（下次合并上游前）
+1. 比对官方 `git tag v2.0.1` 内容与本地 `9b86a97`：`git diff 9b86a97 <官方v2.0.1> -- src/qwenpaw/app/channels/onebot/channel.py`，列出全部差异。
+2. 将缺的 `_normalize_media_ref` 及官方基线的其他差异，作为「基线补正」单独 commit（带 `[hanbao modification]` + 记入本文件）。
+3. **重新打基线 tag**（如 `upstream/v2.0.1-official` 或直接修正 `upstream/v2.0.1`），让后续 `git diff upstream/v2.0.1..HEAD` 的基线可信。
+4. 在 `upstream-v2.1.0-adoption.md` §9 的可行性结论里补注：本地基线 ≠ 官方基线，72 文件冲突评估需重做（原结论基于"本地基线 = 官方"假设）。
+
+### 当前缓解
+- #6676 移植时已在类定义前插入 helper（避开对 `_normalize_media_ref` 的依赖），编译通过，不阻塞当前工作。
+
+---
+
 ## 变更历史
 
 | 日期 | 变更 |
@@ -491,3 +688,14 @@ WSL2 后端的 Docker 数据盘路径由 `AppData\Local\Docker\wsl\disk\docker_d
 | 2026-08-10 | 创建，登记 I-001 ~ I-007；I-001 已解决 |
 | 2026-08-10 | I-005 实测解决（预拉规避 buildkit 并发鉴权）；新增 I-008 构建 OOM |
 | 2026-08-10 | I-009 结案（迁 F 盘 Junction）；新增 I-010（WSL 崩溃转储 18.58GB）、I-011（DataFolder 无效 / Junction 方案）；C 盘回收站仍压 8.19GB 本轮 vhdx 待用户手动清 |
+| 2026-08-12 | I-001 复现确认（git checkout 再次吞文件）；新增 I-012~I-016（品牌残留登记）；新增 I-017（sed JS 注释污染 Python）、I-018（git checkout 吞文件）；I-017 已解决 |
+| 2026-08-12 | .gitignore 进一步硬化：`dist/` → `/dist/`；`console/package-lock.json` 取消忽略。这些修改确认 I-001 不会再因相同原因复现 |
+| 2026-08-13 | 阶段 3 完成构建跑通（hanbao:0.0.10）；Security 设置页/语音转写删除、沙箱默认开启；新增经验：删功能用 stub 而非硬删（避免 5+ 次连锁报错），已在 CHANGES 记录 |
+| 2026-08-13 | 审批流程移除：governance 主路径 ASK→ALLOW、沙箱违规→DENY、runtime fallback ASK→ALLOW；灾难级命令拦截保留。前端审批 UI 变死代码暂不删（耦合 App/Sidebar/Channels）。定位修正：函包主要靠微信等渠道聊天，非 Web 为主 |
+| 2026-08-13 | 插件管理页、备份功能删除；内置技能砍 6 个（QA_source_index/guidance/browser_cdp/browser_visible/dingtalk_channel/himalaya）。工具清单评估：编码工具（LSP/AST）+ 浏览器/桌面工具（browser_control/snapshot/desktop_screenshot）有依赖链（_app.py/proactive/scroll），并入 I-004 阶段4 随 Chromium 瘦身统一处理 |
+| 2026-08-13 | 新增 I-019（P0 侵权红线）：docx/pdf/pptx/xlsx 4 个技能为 Anthropic 专有，禁止分发。决策：放弃文档改/创建能力，用 markitdown（MIT）补「读文档」；删除 4 个侵权技能待办 |
+| 2026-08-13 | 新增 I-020（R5 红线）：html2text 为 GPL-3.0 传染性依赖，已换 markdownify（MIT）。教训：fork 项目必须做全依赖 license 审计，不能只看顶层 Apache-2.0 |
+| 2026-08-13 | 新增 I-021：全依赖树 license 审计完成（200+ 包）。无 GPL/AGPL/SSPL；4 个 LGPL 弱传染依赖（python-telegram-bot 直接依赖保留，rope/pytoolconfig/docstring-to-markdown 随阶段4 砍编码工具消除）。NOTICE 已补 LGPL 声明 |
+| 2026-08-13 | 编码工具删除（LSP×3 + ast_tool + python-lsp-server/ast-grep-cli 依赖），连带消除 rope/pytoolconfig 两个 LGPL。新增 I-022：web_search 用 Tavily keyless 免费限速，上架后需支持可选 API key |
+| 2026-08-14 | I-006 解决：遥测上报彻底移除（telemetry.py 上传禁用 + 删上报地址、_app.py/init_cmd.py 调用移除）。前端确认无遥测。工具侵权审计补全：make-skill 借鉴的 skill-creator 是 Apache-2.0（非专有），合规 |
+| 2026-08-14 | 上游 v2.1.0 安全修复 #6676 落地（P0-2）：OneBot 反向 WS 绑定改 loopback 默认 + 非 loopback 强制 access_token（常量时间比较、拒 query-param token）。改 3 文件，py_compile 通过，CHANGES 已记。新增 I-023：本地基线 `upstream/v2.0.1` 与官方 v2.0.1 不一致（channel.py 缺 `_normalize_media_ref`），下次合并上游前必须核对重打基线 |

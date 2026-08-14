@@ -113,7 +113,7 @@
     "tokenUsage": "Token Usage",
     "agentStats": "Agent Statistics",
     "voiceTranscription": "Voice Transcription",
-    "debug": "Debug",
+    "debug": "Logs",
     "plugins": "Plugins",
     "backups": "Backups",
     "pluginManager": "Plugin Manager"
@@ -160,7 +160,7 @@
     "fullMode": "Full Mode"
   },
   "debug": {
-    "title": "Debug",
+    "title": "Logs",
     "desc": "View the backend daemon log file to help diagnose issues. Logs refresh automatically while this page is open.",
     "level": {
       "all": "All"
