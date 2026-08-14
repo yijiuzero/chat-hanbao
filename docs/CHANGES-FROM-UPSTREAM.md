@@ -322,6 +322,31 @@ hanbao 定位「渠道聊天为主」（微信/QQ/Telegram 等），OneBot v11 �
 
 > 关联：完整 v2.1.0 采纳规划见 [`upstream-v2.1.0-adoption.md`](./upstream-v2.1.0-adoption.md)；本项为其中 P0-2 的首个落地。
 
+### 上游 v2.1.0 P0 修复移植：日志隐私/配置健壮性/微信语音/中文路径（2026-08-14，P0-4/8/9/11）
+
+按 `upstream-v2.1.0-adoption.md` 最终敲定清单，从上游 patch 手工移植 4 个 P0 修复（均为小改动，核心文件未被子包改动，测试文件因函包已改/非运行时必需而跳过）：
+
+- [修改] `src/qwenpaw/agents/command_handler.py` — P0-4 / #6692：`logger.info(f"...args: {args}")` → `logger.info("Processing command: %s", command)`，命令参数可能含凭据（如 /compact 提示里的 API key），不再落日志
+- [修改] `src/qwenpaw/config/config.py` — P0-8 / #6615：`load_agent_config` 的 `json.load` 包 try/except，`UnicodeDecodeError`/`json.JSONDecodeError` 转可恢复 `ConfigurationException`（损坏配置不再崩启动）
+- [修改] `src/qwenpaw/agents/utils/message_processing.py` + `src/qwenpaw/runtime/message_convert.py` — P0-9 / #6573：新增 `_audio_text_block`（dict/Pydantic 两种表示兼容）与 `_process_local_data_block`，修复渠道音频（微信语音）在 Pydantic DataBlock 路径下不被转写的问题；`message_convert` 补 audio `data` 字段为 URL 候选
+- [修改] `src/qwenpaw/_compat/message.py` + `src/qwenpaw/runtime/message_convert.py` — P0-11 / #6873：`_ensure_url_scheme` 从 message_convert 移到 _compat（去重 + 增强 UNC/百分号编码路径），修复 legacy 会话本地路径媒体（中文文件名）无法重新加载
+
+**移植方式**：从 `qwenpaw_v201_v210.patch` 提取各提交纯 diff，`git apply --include` 只应用核心文件（跳过测试文件，函包测试已改且非运行时必需）；已应用文件均补 `[hanbao modification]` 标注。
+
+**验证**：`hanbao:0.0.15` 构建成功，容器跑通（`/api/version` 正常，无 import 错误）。
+
+**跳过项（已判定不适用）**：P0-3 备份（函包已砍备份 UI）、P0-5 沙箱 PYTHONHOME（Windows 沙箱专属，函包 Linux）、P0-7 导入安全（编码模式已砍，`coding_project.py` 已删）、P0-6 沙箱降级（依赖 Windows 非提权沙箱的 `detect_platform_mode`，价值边际）。
+
+### 上游 v2.1.0 P1 重点修复移植：MCP 会话恢复 / token 统计后端（2026-08-14，P1-28 / P1-26）
+
+- [修改] `src/qwenpaw/drivers/handlers/mcp_stateful_client.py` — P1-28 / #6894：`_is_transport_error` 识别 `McpError`（"session terminated"/"connection closed"）与嵌套异常；`list_tools` 在会话失败时返回缓存 tool schema 并等待重连重试；`_handle_transport_error` 返回 bool
+- [修改] `src/qwenpaw/drivers/manager.py` — P1-28 / #6894：`list_capabilities` 的 handler 循环加 try/except（单个 Driver 失败不影响整体）；注：上游 hunk 含 `scope_id` 参数（函包 v2.0.1 无），故手工移植核心逻辑而非 git apply
+- [修改] `src/qwenpaw/agent_stats/models.py` + `service.py` — P1-26 / #6503：新增 `agent_prompt_tokens`/`agent_completion_tokens`/`agent_llm_calls` 字段；`_extract_turn_usage_tokens` 从 per-turn metadata 提取当前 Agent token 用量（独立于全局 overlay）
+
+**验证**：`hanbao:0.0.16` 构建成功，容器跑通无 import 错误。
+
+**待续（复杂项，单独处理）**：P1-9 中文召回（665 行 FTS CJK 支持，上下文不匹配需手工）、P1-26 前端（AgentStats 页面 + 中英 locale，跳过 id/ja/ru 等多语言）、P0-1 渠道完整性（混合提交）、P0-10 视频转发（多 provider）。
+
 ## 阶段 4 · 容器化
 
 _（待执行；须同批修复 I-002 `COPY LICENSE NOTICE` 与 I-003 `.dockerignore` 白名单）_

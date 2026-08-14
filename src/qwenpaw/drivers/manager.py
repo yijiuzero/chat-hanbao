@@ -265,9 +265,22 @@ class DriverManager:
         handlers = self._iter_handlers(protocol)
         capabilities: list[DriverCapability] = []
         for handler in handlers:
-            for capability in await handler.list_capabilities(
-                request_context=request_context,
-            ):
+            # [hanbao modification] Ported upstream #6894: keep healthy
+            # Drivers available during partial failures (one broken handler
+            # should not take down the whole capability list).
+            try:
+                handler_capabilities = await handler.list_capabilities(
+                    request_context=request_context,
+                )
+            except Exception as exc:
+                logger.warning(
+                    "Failed to list capabilities for Driver '%s': %s",
+                    handler.name,
+                    exc,
+                    exc_info=True,
+                )
+                continue
+            for capability in handler_capabilities:
                 if kind is None or capability.kind == kind:
                     capabilities.append(capability)
         return sorted(capabilities, key=lambda item: item.capability_id)

@@ -1196,7 +1196,10 @@ class CommandHandler(ConversationCommandHandlerMixin):
         parts = query.strip().lstrip("/").split(" ", maxsplit=1)
         command = parts[0]
         args = parts[1] if len(parts) > 1 else ""
-        logger.info(f"Processing command: {command}, args: {args}")
+        # [hanbao modification] Ported upstream #6692: command arguments are
+        # user-controlled and may contain credentials (e.g. a /compact hint
+        # with an API key). Do not log them.
+        logger.info("Processing command: %s", command)
 
         handler = getattr(self, f"_process_{command}", None)
         if handler is None:
