@@ -60,3 +60,11 @@ sessions_mount_dir
 *.log
 logs
 cookbook
+
+# [hanbao modification] keep license compliance artifacts in build context (I-003)
+# The `*.md` rule above would otherwise exclude these required files, causing
+# the COPY in deploy/Dockerfile (I-002) to fail with "file not found".
+!LICENSE
+!NOTICE
+!docs/CHANGES-FROM-UPSTREAM.md
+!docs/license-compliance.md

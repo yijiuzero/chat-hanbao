@@ -10,8 +10,8 @@
 | 编号 | 问题 | 严重度 | 必须处理时机 | 状态 |
 |---|---|---|---|---|
 | [I-001](#i-001) | 上游 `.gitignore` 静默吞掉运行时必需文件 | 🔥 高 | 阶段 0（已完成） | 🟢 已解决 |
-| [I-002](#i-002) | Dockerfile 缺 `COPY LICENSE NOTICE`（合规缺口） | 🔥 高（法务） | 阶段 3 容器化 | 🔴 待处理 |
-| [I-003](#i-003) | `.dockerignore` 的 `*.md` 会排除合规文档 | 🔥 高（法务） | 阶段 3 容器化 | 🔴 待处理 |
+| [I-002](#i-002) | Dockerfile 缺 `COPY LICENSE NOTICE`（合规缺口） | 🔥 高（法务） | 阶段 4 容器化 | 🟢 已解决（2026-08-17） |
+| [I-003](#i-003) | `.dockerignore` 的 `*.md` 会排除合规文档 | 🔥 高（法务） | 阶段 4 容器化 | 🟢 已解决（2026-08-17） |
 | [I-004](#i-004) | 镜像含完整 XFCE4 桌面 + Chromium，体积巨大 | 🟠 中 | 阶段 2 删减定制 | 🔴 待处理 |
 | [I-005](#i-005) | 基础镜像拉取失败（buildkit 并发鉴权 EOF） | 🟠 中 | 阶段 1 构建时 | 🟢 已解决（预拉规避） |
 | [I-006](#i-006) | 上游自带遥测上报 | 🟠 中 | 阶段 2 删减定制 | 🟢 已解决（上报禁用+调用移除） |
@@ -76,7 +76,7 @@ git status --ignored --porcelain | grep "^!!"   # 被忽略的具体文件
 <a id="i-002"></a>
 ## I-002 · Dockerfile 缺 `COPY LICENSE NOTICE`（合规缺口）
 
-**严重度**：🔥 高（法务风险） &nbsp;|&nbsp; **状态**：🔴 待处理 &nbsp;|&nbsp; **必须处理时机**：阶段 3 容器化
+**严重度**：🔥 高（法务风险） &nbsp;|&nbsp; **状态**：🟢 已解决（2026-08-17） &nbsp;|&nbsp; **必须处理时机**：阶段 4 容器化
 
 ### 现象
 上游 `deploy/Dockerfile` 中**没有任何拷贝 LICENSE / NOTICE 到镜像的指令**。
@@ -115,7 +115,7 @@ docker run --rm hanbao:<tag> sh -c "ls -l /app/LICENSE /app/NOTICE"
 <a id="i-003"></a>
 ## I-003 · `.dockerignore` 的 `*.md` 会排除合规文档
 
-**严重度**：🔥 高（法务风险） &nbsp;|&nbsp; **状态**：🔴 待处理 &nbsp;|&nbsp; **必须处理时机**：阶段 3 容器化（与 I-002 同批）
+**严重度**：🔥 高（法务风险） &nbsp;|&nbsp; **状态**：🟢 已解决（2026-08-17） &nbsp;|&nbsp; **必须处理时机**：阶段 4 容器化（与 I-002 同批）
 
 ### 现象
 上游 `.dockerignore` 含 `*.md` 规则，会把 `docs/` 下所有 Markdown 排除出构建上下文。
@@ -733,3 +733,4 @@ GPL 是 copyleft 传染性许可，与 Apache-2.0 闭源分发目标冲突，违
 | 2026-08-14 | 上游 v2.1.0 安全修复 #6676 落地（P0-2）：OneBot 反向 WS 绑定改 loopback 默认 + 非 loopback 强制 access_token（常量时间比较、拒 query-param token）。改 3 文件，py_compile 通过，CHANGES 已记。新增 I-023：本地基线 `upstream/v2.0.1` 与官方 v2.0.1 不一致（channel.py 缺 `_normalize_media_ref`），下次合并上游前必须核对重打基线 |
 | 2026-08-14 | v2.1.0 P0/P1 移植第一批（P0-4/8/9/11 + P1-26 后端 + P1-28 + P0-1#6382 + P1-12/15/20）全部落地，commit `315294d` + 后续 #6382/#6907/#6709/#6639。新增 I-024：Monaco 编辑器残留（Coding Mode 砍不干净，阶段3 收尾清理） |
 | 2026-08-14 | v2.1.0 移植第二批（P1-14 #6543/#6769 + P1-26 前端 UI + P0-10 #6495）落地，commit `5154f61`/`cad5be0`/`70db5c5`。**I-023 更正**：曾误判「本地基线≠官方 v2.0.1」，经 clone 官方 v2.0.1 逐文件 diff 确认基线完全一致，真实原因是 patch 累积 diff 的提交依赖（#6237 依赖 PATCH 066、#6676 依赖 PATCH 072） |
+| 2026-08-17 | I-002/I-003 解决：deploy/Dockerfile 追加 COPY LICENSE NOTICE + docs/CHANGES-FROM-UPSTREAM.md 进镜像 + 3 个 OCI labels（licenses/source/description）；.dockerignore 加 !LICENSE/!NOTICE/!docs/CHANGES-FROM-UPSTREAM.md/!docs/license-compliance.md 白名单例外，使合规文件进入构建上下文（连体问题，同批改） |

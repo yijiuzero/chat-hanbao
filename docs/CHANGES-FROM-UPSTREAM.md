@@ -465,7 +465,29 @@ P1-14 两个提交全部落地（均手工移植，因 onebot/channel.py 已被 
 
 ## 阶段 4 · 容器化
 
-_（待执行；须同批修复 I-002 `COPY LICENSE NOTICE` 与 I-003 `.dockerignore` 白名单）_
+### 容器镜像合规：随附 LICENSE / NOTICE / 修改记录（2026-08-17，I-002 / I-003）
+
+hanbao 是 QwenPaw 的派生作品（再分发者），即便只分发镜像（不含源码），Apache-2.0 §4(a)(b)(d) 仍强制随附许可文件。上游 `deploy/Dockerfile` 原样不含任何 LICENSE/NOTICE 拷贝，故本轮修复：
+
+- [修改] `deploy/Dockerfile`（runtime 阶段，带 `[hanbao modification]` 标注）— 追加：
+  ```dockerfile
+  COPY LICENSE NOTICE /app/
+  COPY docs/CHANGES-FROM-UPSTREAM.md /app/docs/
+  LABEL org.opencontainers.image.licenses="Apache-2.0"
+  LABEL org.opencontainers.image.source="https://github.com/agentscope-ai/QwenPaw"
+  LABEL org.opencontainers.image.description="hanbao (函包), derived from QwenPaw v2.0.1"
+  ```
+  镜像内 `/app/LICENSE`、`/app/NOTICE`、`/app/docs/CHANGES-FROM-UPSTREAM.md` 随分发物提供，履行 §4 义务。
+- [修改] `.dockerignore`（带 `[hanbao modification]` 标注）— 末尾追加白名单例外：
+  ```
+  !LICENSE
+  !NOTICE
+  !docs/CHANGES-FROM-UPSTREAM.md
+  !docs/license-compliance.md
+  ```
+  原因：`.dockerignore` 第 6 行 `*.md` 会排除 `docs/*.md`，若不放开白名单，上方 `COPY docs/CHANGES-FROM-UPSTREAM.md` 会报 file not found。I-002 与 I-003 为连体问题，必须同批改（仅改一个会撞墙）。
+- [验证方式] 构建后执行 `docker run --rm hanbao:<tag> sh -c "ls -l /app/LICENSE /app/NOTICE /app/docs/CHANGES-FROM-UPSTREAM.md"`，三者均存在且非空。
+- [合规] 本改动仅触及分发物合规层，未触碰 R2 红线文件（LICENSE/NOTICE/合规文档本身未被批量替换修改）。
 
 ## 阶段 5 · FPK 打包
 

@@ -122,6 +122,15 @@ COPY website/public/docs/ ./src/qwenpaw/docs/
 COPY --from=console-builder /app/console/dist/ ./src/qwenpaw/console/
 RUN uv pip install --no-cache-dir --no-deps . && rm -rf ./build
 
+# [hanbao modification] Apache-2.0 compliance: ship license & attribution files
+# inside the image. As a redistributor (derivative work) we MUST include these
+# even when only the image (not the source) is distributed. See known-issues I-002 / I-003.
+COPY LICENSE NOTICE /app/
+COPY docs/CHANGES-FROM-UPSTREAM.md /app/docs/
+
+LABEL org.opencontainers.image.licenses="Apache-2.0"
+LABEL org.opencontainers.image.source="https://github.com/agentscope-ai/QwenPaw"
+LABEL org.opencontainers.image.description="hanbao (函包), derived from QwenPaw v2.0.1"
 
 # [hanbao modification] Brand display name in comment
 # hanbao app port (default 8088). Override at runtime with -e QWENPAW_PORT=3000.
