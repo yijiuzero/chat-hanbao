@@ -15,7 +15,7 @@
 | [I-004](#i-004) | 镜像含完整 XFCE4 桌面 + Chromium，体积巨大 | 🟠 中 | 阶段 2 删减定制 | 🔴 待处理 |
 | [I-005](#i-005) | 基础镜像拉取失败（buildkit 并发鉴权 EOF） | 🟠 中 | 阶段 1 构建时 | 🟢 已解决（预拉规避） |
 | [I-006](#i-006) | 上游自带遥测上报 | 🟠 中 | 阶段 2 删减定制 | 🟢 已解决（上报禁用+调用移除） |
-| [I-007](#i-007) | Web Console 默认无认证 | 🟠 中 | 阶段 2 / FPK 向导 | 🔴 待处理 |
+| [I-007](#i-007) | Web Console 默认无认证（上游认证系统完整，仅默认关闭） | 🟠 中 | 阶段 5 FPK 打包 | 🟡 方案已明确 |
 | [I-008](#i-008) | console 前端构建 OOM，4GB WSL 内存不足 | 🔥 高（曾阻塞） | 阶段 1 构建时 | 🟢 已解决 |
 | [I-009](#i-009) | 构建机 C 盘 0GB 可用，Docker 无法写入 | 🔥 高（阻塞） | 阶段 1 构建时 | 🟢 已解决（迁 F 盘 Junction） |
 | [I-010](#i-010) | WSL 崩溃转储吞噬 18.58GB 磁盘 | 🔥 高 | 阶段 1 构建前 | 🟢 已解决（crashDumpCount=0） |
@@ -259,7 +259,7 @@ hanbao 将**分发给第三方用户**（飞牛应用中心下载）。让用户
 <a id="i-007"></a>
 ## I-007 · Web Console 默认无认证
 
-**严重度**：🟠 中 &nbsp;|&nbsp; **状态**：🔴 待处理 &nbsp;|&nbsp; **必须处理时机**：阶段 2 / FPK 向导设计
+**严重度**：🟠 中 &nbsp;|&nbsp; **状态**：🟡 方案已明确（上游认证系统完整，仅默认关闭，FPK 阶段默认开启） &nbsp;|&nbsp; **必须处理时机**：阶段 5 FPK 打包
 
 ### 现象
 QwenPaw Web Console（8088）默认不开启认证，设计假设是"个人本地使用"。
@@ -270,6 +270,22 @@ QwenPaw Web Console（8088）默认不开启认证，设计假设是"个人本�
 ### 处理方案
 - 阶段 2：确认上游是否已有认证开关，能开则默认开启
 - FPK 向导：强制要求用户设置访问密码，或明确警告"仅限内网访问"
+
+### 调研结论（2026-08-17）：认证系统已完整存在，I-007 实为「默认关闭」而非「缺失」
+
+经代码核查，上游 QwenPaw **已内置完整 Web 登录认证**，hanbao 原样继承、未破坏：
+
+- **后端**：`src/qwenpaw/app/auth.py` — 盐化 SHA-256 口令哈希 + HMAC-SHA256 自签 token（无额外依赖）；`AuthMiddleware`（`BaseHTTPMiddleware`）在 `_app.py:603` 挂载；启动时 `_app.py:111` 调用 `auto_register_from_env()` 从环境变量建管理员。
+- **开关**：`is_auth_enabled()` 读 `QWENPAW_AUTH_ENABLED`（true/1/yes 即开）。关时中间件放行（当前默认行为）。
+- **前端**：`console/src/pages/Login/index.tsx` 真实登录/注册页；`api/request.ts` 收到 401 自动跳 `/login`；token 存 `localStorage["hanbao_auth_token"]`（即 I-013 改名后的 key）。后端 + 前端双重拦截。
+- **单用户**：仅允许注册一个账号，契合「单用户私人豆包」定位；忘密码删 `SECRET_DIR/auth.json` 重启即可重注册。
+- **渠道不受影响**：中间件仅对 `/api/` 路径鉴权（`not path.startswith("/api/")` 即跳过），微信/OneBot 等渠道走独立连接，登录认证不干预。
+
+**结论 / 处理方向**：I-007 不是「造认证」，而是「FPK 打包时默认开启 + 向导注入凭据」：
+1. FPK 阶段（`阶段 5`）在默认 env / docker-compose 设 `QWENPAW_AUTH_ENABLED=true`；
+2. FPK 安装向导收集管理员账号密码 → 以 `QWENPAW_AUTH_USERNAME`/`QWENPAW_AUTH_PASSWORD` 注入，首次启动 `auto_register_from_env()` 自动建账号（上游专为 Docker/面板自动化部署设计）；
+3. 保留 entrypoint.sh 的 SECURITY NOTICE 警告（auth 关闭时提示），并保留 `security.allow_no_auth_hosts` 回环免登（NAS 本机访问便利）。
+4. ⚠️ 阶段 5 实施前需确认 `security.allow_no_auth_hosts` 默认值不误放行 LAN 访问（应为仅 loopback）。
 
 ### 关联改动（2026-08-14，非本项解决）
 - **OneBot 反向 WS 服务端**获独立加固（上游 v2.1.0 #6676，P0-2）：`ws_host` 默认改 loopback，非 loopback 绑定强制 `access_token`（常量时间比较，拒绝 query-param token）。见 `CHANGES-FROM-UPSTREAM.md` 阶段 3 对应条目。
