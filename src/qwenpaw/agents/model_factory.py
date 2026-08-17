@@ -1377,7 +1377,7 @@ def create_model_and_formatter(
             raise ProviderError(
                 message=(
                     "No active model configured. "
-                    "Please configure a model using 'qwenpaw models config' "
+                    "Please configure a model using 'hanbao models config' "
                     "or set an agent-specific model."
                 ),
             )

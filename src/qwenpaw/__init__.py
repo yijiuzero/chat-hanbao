@@ -24,7 +24,7 @@ setup_logger(os.environ.get(LOG_LEVEL_ENV, "info"))
 
 if _bootstrap_err is not None:
     logging.getLogger(__name__).warning(
-        "qwenpaw: failed to load persisted envs on init: %s",
+        "hanbao: failed to load persisted envs on init: %s",
         _bootstrap_err,
     )
 logging.getLogger(__name__).debug(

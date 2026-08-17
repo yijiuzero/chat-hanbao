@@ -1032,8 +1032,8 @@ PROVIDER_ZHIPU_INTL_CODINGPLAN = OpenAIProvider(
 )
 
 PROVIDER_QWENPAW = OpenAIProvider(
-    id="qwenpaw-local",
-    name="QwenPaw Local",
+    id="hanbao-local",
+    name="hanbao Local",
     is_local=True,
     require_api_key=False,
 )
@@ -1438,10 +1438,10 @@ class ProviderManager:  # pylint: disable=too-many-public-methods
     def _normalize_provider_id(provider_id: str) -> str:
         """Normalize provider ID for backward compatibility.
 
-        Maps legacy 'copaw-local' to 'qwenpaw-local'.
+        Maps legacy 'copaw-local' to 'hanbao-local'.
         """
         if provider_id == "copaw-local":
-            return "qwenpaw-local"
+            return "hanbao-local"
         return provider_id
 
     def get_provider(self, provider_id: str) -> Provider | None:
@@ -1502,7 +1502,7 @@ class ProviderManager:  # pylint: disable=too-many-public-methods
         """Schedule background restore of the active local model server."""
         task = asyncio.create_task(
             self._resume_local_model(local_manager),
-            name="qwenpaw-local-model-resume",
+            name="hanbao-local-model-resume",
         )
         task.add_done_callback(self._on_local_model_resume_done)
 
@@ -2074,17 +2074,17 @@ class ProviderManager:  # pylint: disable=too-many-public-methods
             return None
 
     def _migrate_copaw_config(self) -> None:
-        """Migrate copaw-local provider config to qwenpaw-local."""
+        """Migrate copaw-local provider config to hanbao-local."""
         # 1. Migrate active model configuration (only provider_id)
         if (
             self.active_model
             and self.active_model.provider_id == "copaw-local"
         ):
-            self.active_model.provider_id = "qwenpaw-local"
+            self.active_model.provider_id = "hanbao-local"
             self.save_active_model(self.active_model)
             logger.info(
                 "Migrated active model provider from "
-                "'copaw-local' to 'qwenpaw-local'",
+                "'copaw-local' to 'hanbao-local'",
             )
 
         # 2. Migrate stored provider config file
@@ -2098,7 +2098,7 @@ class ProviderManager:  # pylint: disable=too-many-public-methods
                 old_config = json.load(f)
 
             # Get the new built-in provider instance
-            provider = self.builtin_providers.get("qwenpaw-local")
+            provider = self.builtin_providers.get("hanbao-local")
             if not provider:
                 return
 
@@ -2120,7 +2120,7 @@ class ProviderManager:  # pylint: disable=too-many-public-methods
             copaw_config_path.unlink()
             logger.info(
                 "Migrated provider config from "
-                "'copaw-local.json' to 'qwenpaw-local.json'",
+                "'copaw-local.json' to 'hanbao-local.json'",
             )
         except Exception as exc:
             logger.warning("Failed to migrate copaw-local config: %s", exc)
@@ -2178,7 +2178,7 @@ class ProviderManager:  # pylint: disable=too-many-public-methods
                 try:
                     # Convert legacy copaw-local provider_id
                     if active_model.get("provider_id") == "copaw-local":
-                        active_model["provider_id"] = "qwenpaw-local"
+                        active_model["provider_id"] = "hanbao-local"
                     self.active_model = ModelSlotConfig.model_validate(
                         active_model,
                     )
@@ -2301,7 +2301,7 @@ class ProviderManager:  # pylint: disable=too-many-public-methods
         if active_model:
             self.active_model = active_model
 
-        # Migrate copaw-local to qwenpaw-local for backwards compatibility
+        # Migrate copaw-local to hanbao-local for backwards compatibility
         self._migrate_copaw_config()
 
     def _apply_default_annotations(self):
@@ -2346,14 +2346,14 @@ class ProviderManager:  # pylint: disable=too-many-public-methods
 
         def _clear_local_provider():
             self.update_provider(
-                "qwenpaw-local",
+                "hanbao-local",
                 {
                     "base_url": "",
                     "extra_models": [],
                 },
             )
 
-        local_models = self.get_provider("qwenpaw-local").extra_models
+        local_models = self.get_provider("hanbao-local").extra_models
         model_id = local_models[0].id if local_models else None
         if model_id is None:
             return
@@ -2388,7 +2388,7 @@ class ProviderManager:  # pylint: disable=too-many-public-methods
             return
 
         self.update_provider(
-            "qwenpaw-local",
+            "hanbao-local",
             {
                 "base_url": f"http://127.0.0.1:{setup_result.port}/v1",
                 "extra_models": [setup_result.model_info],

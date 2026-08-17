@@ -64,7 +64,7 @@ APP_LOG_BASENAME = LOG_FILE_BASENAME
 
 # Built-in local llama.cpp provider id; legacy configs may still use
 # copaw-local.
-_QWENPAW_LOCAL_PROVIDER_IDS = frozenset({"qwenpaw-local", "copaw-local"})
+_QWENPAW_LOCAL_PROVIDER_IDS = frozenset({"hanbao-local", "copaw-local"})
 
 
 def _resolve_existing_path_anchor(path: Path) -> Path | None:

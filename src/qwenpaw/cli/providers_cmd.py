@@ -786,7 +786,7 @@ def download_cmd(
     click.echo(f"  Name: {repo_id}")
     click.echo(
         "\nTo use this model, run:\n"
-        "  qwenpaw models set-llm  (select 'qwenpaw-local' provider)",
+        "  qwenpaw models set-llm  (select 'hanbao-local' provider)",
     )
 
 
