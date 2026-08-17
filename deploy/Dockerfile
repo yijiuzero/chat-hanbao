@@ -26,9 +26,13 @@ RUN cd /app/console && npm run build
 FROM ${UV_IMAGE} AS uv-src
 
 # -----------------------------------------------------------------------------
-# Stage 2: runtime image with Python, Chromium, and app.
+# Stage 2: runtime image with Python (no Node, no desktop, no Chromium).
 # -----------------------------------------------------------------------------
-FROM ${NODE_IMAGE}
+# [hanbao modification] I-004: runtime base is now the Python+uv image
+# (agentscope/uv) instead of node:slim, dropping the Node runtime (~200MB+)
+# from the final image. The console is pre-built static assets served by
+# FastAPI, so Node is not needed at runtime.
+FROM ${UV_IMAGE}
 
 # ENV variables
 ENV NODE_ENV=production
@@ -46,55 +50,26 @@ ENV QWENPAW_ENABLED_CHANNELS=${QWENPAW_ENABLED_CHANNELS}
 
 ARG DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update && apt-get install -y --fix-missing \
-    curl  \
-    python3  \
-    python3-pip  \
-    python3-venv \
-    build-essential  \
-    libssl-dev  \
-    git  \
-    supervisor  \
-    vim  \
+# [hanbao modification] I-004: Drop the desktop stack (XFCE4 / Xvfb / dbus)
+# and Chromium (~1-2GB). hanbao is a headless chat server: the Web Console
+# is static files served by FastAPI, and browser automation (browser_use /
+# desktop_screenshot) was removed. build-essential is installed only to
+# compile any source wheels during `uv pip install` and purged afterwards.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    git \
+    supervisor \
     gettext-base \
-    xfce4 \
-    xfce4-terminal \
-    xvfb \
-    dbus-x11 \
+    libssl-dev \
+    build-essential \
+    python3 \
+    python3-venv \
     fonts-wqy-zenhei \
     fonts-wqy-microhei \
   && rm -rf /var/lib/apt/lists/* \
   && apt-get clean
 
-
-RUN apt-get update && apt-get install -y --fix-missing \
-    chromium \
-    chromium-sandbox \
-    libx11-xcb1 \
-    libxcomposite1 \
-    libxdamage1 \
-    libxext6 \
-    libxfixes3 \
-    libxi6 \
-    libxtst6 \
-    libnss3 \
-    libglib2.0-0 \
-    libdrm2 \
-    libgbm1 \
-    libasound2 \
-    fonts-liberation \
-    libu2f-udev \
-  && rm -rf /var/lib/apt/lists/* \
-  && apt-get clean
-
-
-RUN sed -i 's/^CHROMIUM_FLAGS=""/CHROMIUM_FLAGS="--no-sandbox"/' /usr/bin/chromium
-
-# Playwright: use system Chromium (already installed above).
-ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium
-# Avoid Playwright downloading its own browser when executable_path is used.
-ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
-# Indicate running in container (used e.g. for Chromium --no-sandbox).
+# Indicate running in container (used by telemetry/secret-store guards).
 ENV QWENPAW_RUNNING_IN_CONTAINER=1
 
 WORKDIR ${WORKSPACE_DIR}
@@ -135,6 +110,10 @@ LABEL org.opencontainers.image.description="hanbao (函包), derived from QwenPa
 # [hanbao modification] Brand display name in comment
 # hanbao app port (default 8088). Override at runtime with -e QWENPAW_PORT=3000.
 ENV QWENPAW_PORT=8088
+
+# [hanbao modification] I-004: remove the build toolchain from the final image.
+RUN apt-get purge -y build-essential gcc g++ make && \
+    rm -rf /var/lib/apt/lists/* && apt-get clean
 
 COPY deploy/config/supervisord.conf.template /etc/supervisor/conf.d/supervisord.conf.template
 COPY --chmod=755 deploy/entrypoint.sh /entrypoint.sh

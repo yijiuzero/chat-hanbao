@@ -15,10 +15,8 @@ from agentscope.tool import FunctionTool, Toolkit
 
 from ....config.config import load_agent_config
 from ...tools import (
-    browser_use,
     execute_shell_command,
     read_file,
-    desktop_screenshot,
 )
 from .proactive_prompts import (
     PROACTIVE_TASK_EXTRACTION_PROMPT,
@@ -115,15 +113,9 @@ async def _initialize_single_proactive_agent(
     model, formatter = create_model_and_formatter(agent_id=agent_config.id)
 
     tools = [
-        FunctionTool(browser_use),
         FunctionTool(read_file),
         FunctionTool(execute_shell_command),
     ]
-
-    from ...prompt import get_active_model_supports_multimodal
-
-    if get_active_model_supports_multimodal():
-        tools.append(FunctionTool(desktop_screenshot))
 
     toolkit = Toolkit(tools=tools)
 

@@ -489,6 +489,21 @@ hanbao 是 QwenPaw 的派生作品（再分发者），即便只分发镜像（�
 - [验证方式] 构建后执行 `docker run --rm hanbao:<tag> sh -c "ls -l /app/LICENSE /app/NOTICE /app/docs/CHANGES-FROM-UPSTREAM.md"`，三者均存在且非空。
 - [合规] 本改动仅触及分发物合规层，未触碰 R2 红线文件（LICENSE/NOTICE/合规文档本身未被批量替换修改）。
 
+### 容器镜像瘦身：砍桌面栈 + Chromium，基础镜像换 Python+uv（2026-08-17，I-004）
+
+浏览器工具 `browser_use` 已确认砍掉（渠道聊天为主，浏览器自动化用不上），本次完成镜像瘦身：
+
+- [修改] `src/qwenpaw/agents/tools/__init__.py` — 移除 `browser_use`、`desktop_screenshot` 两个内置工具注册
+- [修改] `src/qwenpaw/agents/react_agent.py` — 移除两工具的 hook 超时注册
+- [修改] `src/qwenpaw/agents/memory/proactive/proactive_responder.py` — 移除 `browser_use`/`desktop_screenshot` 的 import 与工具装配
+- [修改] `src/qwenpaw/agents/memory/proactive/proactive_utils.py` — 移除 proactive 记忆的"屏幕活动分析"调用块
+- [修改] `pyproject.toml` — 移除 `playwright`/`mss`/`pywebview` 三个依赖（browser_use / desktop_screenshot / 桌面 GUI 专属；pywebview 仅在 `desktop_cmd.py` 惰性 import，缺失优雅降级）
+- [修改] `deploy/Dockerfile` — runtime 基础镜像 `node:slim` → `agentscope/uv`（Python+uv，去 Node 运行时）；删除 XFCE4/Xvfb/dbus-x11/Chromium+依赖库/fonts-liberation/vim；`build-essential` 改为临时安装后 `apt-get purge` 不进最终镜像；精简 supervisord 的 `app` 程序环境变量
+- [修改] `deploy/config/supervisord.conf.template` — 移除 `dbus`/`xvfb`/`xfce4` 三个程序（仅服务浏览器 GUI），`app` 程序去掉 `DISPLAY`/`PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH`
+- [保留] LICENSE/NOTICE/CHANGES + OCI labels（见 I-002，合规层不动）
+- [保留] 孤儿文件 `browser_control.py`/`browser_snapshot.py`/`desktop_screenshot.py` 暂不 git rm（按环境安全规则留 orphan，物理删除待用户手动）
+- [目标] 镜像体积从 ~4GB 降至 ≤800MB（待构建验证）
+
 ## 阶段 5 · FPK 打包
 
 _（待执行）_

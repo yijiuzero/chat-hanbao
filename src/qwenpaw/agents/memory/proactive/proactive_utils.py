@@ -44,19 +44,7 @@ async def build_proactive_memory_context(
 ) -> str:
     """Build a combined memory context for proactive agent."""
 
-    from ...prompt import get_active_model_supports_multimodal
-
     combined_context = ""
-
-    # Capture screen if supported
-    if agent and get_active_model_supports_multimodal():
-        try:
-            screen_analysis = await _analyze_screen_activity(agent)
-            if screen_analysis:
-                combined_context += "[SCREEN CONTEXT]\n"
-                combined_context += screen_analysis
-        except Exception as e:
-            logger.warning("Failed to analyze screen activity: %s", e)
 
     combined_context += "[SESSION CONTEXT]\n"
 

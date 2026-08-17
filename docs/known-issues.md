@@ -12,7 +12,7 @@
 | [I-001](#i-001) | 上游 `.gitignore` 静默吞掉运行时必需文件 | 🔥 高 | 阶段 0（已完成） | 🟢 已解决 |
 | [I-002](#i-002) | Dockerfile 缺 `COPY LICENSE NOTICE`（合规缺口） | 🔥 高（法务） | 阶段 4 容器化 | 🟢 已解决（2026-08-17） |
 | [I-003](#i-003) | `.dockerignore` 的 `*.md` 会排除合规文档 | 🔥 高（法务） | 阶段 4 容器化 | 🟢 已解决（2026-08-17） |
-| [I-004](#i-004) | 镜像含完整 XFCE4 桌面 + Chromium，体积巨大 | 🟠 中 | 阶段 2 删减定制 | 🔴 待处理 |
+| [I-004](#i-004) | 镜像含完整 XFCE4 桌面 + Chromium，体积巨大 | 🟠 中 | 阶段 4 容器化 | 🟡 已实施（待构建验证） |
 | [I-005](#i-005) | 基础镜像拉取失败（buildkit 并发鉴权 EOF） | 🟠 中 | 阶段 1 构建时 | 🟢 已解决（预拉规避） |
 | [I-006](#i-006) | 上游自带遥测上报 | 🟠 中 | 阶段 2 删减定制 | 🟢 已解决（上报禁用+调用移除） |
 | [I-007](#i-007) | Web Console 默认无认证（上游认证系统完整，仅默认关闭） | 🟠 中 | 阶段 5 FPK 打包 | 🟡 方案已明确 |
@@ -141,7 +141,7 @@ docker run --rm hanbao:<tag> sh -c "ls -l /app/LICENSE /app/NOTICE"
 <a id="i-004"></a>
 ## I-004 · 镜像含完整 XFCE4 桌面 + Chromium，体积巨大
 
-**严重度**：🟠 中 &nbsp;|&nbsp; **状态**：🔴 待处理 &nbsp;|&nbsp; **必须处理时机**：阶段 2 删减定制
+**严重度**：🟠 中 &nbsp;|&nbsp; **状态**：🟡 已实施（待构建验证） &nbsp;|&nbsp; **必须处理时机**：阶段 4 容器化
 
 ### 现象
 `deploy/Dockerfile` 的 runtime 阶段安装了：
@@ -151,22 +151,43 @@ docker run --rm hanbao:<tag> sh -c "ls -l /app/LICENSE /app/NOTICE"
 
 预估镜像 **2–4GB**。飞牛 NAS 通常内存 4–8GB、存储也不宽裕，这是实打实的负担。
 
-### 当前决策
-按用户策略 **先完整移植跑通，不提前裁剪**。本阶段原样构建，仅记录不处理。
+### 历史：2026-08-14 依赖摸底结论
+- Chromium 依赖链：`browser_control.py`（`browser_use` 工具）→ Playwright → Chromium（`PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium`）
+- 桌面环境（XFCE4/Xvfb/dbus）无其他代码依赖，可安全删
+- 中文字体（fonts-wqy-zenhei/microhei）渲染中文仍需要，保留
+- **瘦身核心决策点**：浏览器工具 `browser_use` 去留 → 决定 Chromium（约 1-2GB）能否删
+- 这是**全项目瘦身收益最大的一块**，预计可省 50%+ 体积
 
-### 处理方案（阶段 4 执行，2026-08-14 已摸清依赖）
-确认 hanbao 定位为「渠道聊天为主」后，评估砍掉：
-- XFCE4 + Xvfb + dbus-x11（纯 Web 聊天不需要 GUI 桌面，可删）
-- Chromium（**不能直接删**：`agents/tools/browser_control.py`（`browser_use` 浏览器自动化工具，用 Playwright）在 `tools/__init__.py:32` 被注册，依赖 Chromium。删 Chromium 前需先决策「浏览器工具去留」）
-- build-essential（改为多阶段构建，只在 builder 阶段保留）
+### 处理方案（2026-08-17 执行）
+用户拍板「砍掉 browser_use + 桌面截图」后，本次一并完成代码摘除与镜像瘦身：
 
-> **2026-08-14 依赖摸底结论**：
-> - Chromium 依赖链：`browser_control.py`（browser_use 工具）→ Playwright → Chromium（`PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium`）
-> - 桌面环境（XFCE4/Xvfb/dbus）无其他代码依赖，可安全删
-> - 中文字体（fonts-wqy-zenhei/microhei）渲染中文仍需要，保留
-> - **瘦身核心决策点**：浏览器工具 `browser_use` 去留 → 决定 Chromium（约 1-2GB）能否删
-> - 这是**全项目瘦身收益最大的一块**，预计可省 50%+ 体积。
-> ⚠️ 砍之前必须先确认哪些 Skill / Plugin 依赖它们，否则会静默失去能力。
+**1. 后端工具摘除（[hanbao modification]）**
+- `src/qwenpaw/agents/tools/__init__.py` — 移除 `browser_use`、`desktop_screenshot` 两个内置工具注册
+- `src/qwenpaw/agents/react_agent.py` — 移除两工具的 hook 超时注册
+- `src/qwenpaw/agents/memory/proactive/proactive_responder.py` — 移除 `browser_use`/`desktop_screenshot` 的 import 与工具装配（FunctionTool 列表 + 多模态追加分支）
+- `src/qwenpaw/agents/memory/proactive/proactive_utils.py` — 移除 `build_proactive_memory_context` 中"屏幕活动分析"调用块
+
+**2. 依赖摘除（pyproject.toml）**
+- 移除 `playwright>=1.49.0`（browser_use 专属）、`mss>=9.0.0`（desktop_screenshot 专属）、`pywebview>=4.0`（桌面 GUI，仅 `desktop_cmd.py` 惰性 import，缺失优雅降级）
+
+**3. 镜像瘦身（deploy/Dockerfile + supervisord）**
+- runtime 基础镜像 `node:slim` → **`agentscope/uv`（Python+uv）**，去掉 Node 运行时（约 200MB+）
+- 删除 apt 安装的 XFCE4 / xfce4-terminal / Xvfb / dbus-x11 / Chromium + 15 个依赖库 / fonts-liberation / vim
+- `build-essential` 改为「安装 → `uv pip install` → 末尾 `apt-get purge`」临时使用，不进最终镜像
+- 移除 supervisord 的 `dbus`/`xvfb`/`xfce4` 三个程序，`app` 程序去掉 `DISPLAY`/`PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` 环境变量
+- 保留 `QWENPAW_RUNNING_IN_CONTAINER=1`（config 有 `/.dockerenv`+cgroup 兜底，保险仍设）
+- 合规层 LICENSE/NOTICE/CHANGES + OCI labels（I-002）原样保留
+
+**4. 待用户手动清理的孤儿文件（不 git rm，按环境安全规则留 orphan）**
+- `src/qwenpaw/agents/tools/browser_control.py`、`browser_snapshot.py`、`desktop_screenshot.py` — 已无引用但仍被 `COPY src ./src` 带进镜像（约数十 KB，无害）
+- `proactive_utils.py` 中 `_analyze_screen_activity` 函数已成死代码（调用方已删，内部 lazy import 不触发）
+
+### 验收（待构建，按铁律先 commit 不立即 build）
+```bash
+docker build -f deploy/Dockerfile -t hanbao:0.0.1-slim .
+docker images hanbao:0.0.1-slim   # 目标 ≤ 800MB
+docker run --rm hanbao:0.0.1-slim sh -c "which chromium xvfb-run startxfce4 2>/dev/null; echo desktop-tools-removed"
+```
 
 ---
 

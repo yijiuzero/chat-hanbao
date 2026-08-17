@@ -694,14 +694,6 @@ class QwenPawAgent(Agent):
         mgr.hooks.register("check_agent_task", default_timeout_secs=30.0)
         mgr.hooks.register("grep_search", default_timeout_secs=30.0)
         mgr.hooks.register("glob_search", default_timeout_secs=15.0)
-        mgr.hooks.register(
-            "desktop_screenshot",
-            default_timeout_secs=30.0,
-        )
-        mgr.hooks.register(
-            "browser_use",
-            max_internal_timeout_secs=3600.0,
-        )
 
         agent_id = (self._request_context or {}).get(
             "agent_id",
