@@ -317,6 +317,38 @@ Coding Mode 移除时 Monaco 编辑器未一并清理，本次收尾：
 
 > ⚠️ 环境教训：本机 `git rm` 删除文件曾触发整个 `console/` 目录 553 文件从磁盘消失（文件系统异常，类似 I-018），故未用 git rm，改用「清空占位 + 留孤儿文件」，物理删除交用户手动。
 
+### 品牌残留清理：window.QwenPaw / localStorage / CSS 前缀（2026-08-17，I-012/013/014）
+
+函包 v0.0.1 未上架、无存量用户，品牌残留可直接改名（无需迁移/兼容）：
+
+- [修改] `console/src/App.tsx` — `prefix`/`prefixCls` `qwenpaw` → `hanbao`
+- [修改] `console/src/**/*.less` — CSS 前缀 `qwenpaw-` → `hanbao-`（151 处）
+- [修改] `console/src/**/*.ts/.tsx` — localStorage key `qwenpaw_` → `hanbao_`（14 个 key）、`window.QwenPaw` → `window.hanbao`、UI 文案/console 日志中的 QwenPaw → hanbao
+- [保留] `constants.ts` 安装命令、`Header.tsx` 文档正则、`GITHUB_URL` 测试（指向上游）、接口名 `QwenPawXxxNamespace`、文件名 `qwenpaw.d.ts`（归包名改名子阶段）
+
+### 本地模型 provider 品牌残留（2026-08-17）
+
+- [修改] `src/qwenpaw/providers/provider_manager.py` — `qwenpaw-local` → `hanbao-local`、`name="QwenPaw Local"` → `"hanbao Local"`
+- [修改] `console/src/pages/Settings/Models/components/providerIcon.ts` — `hanbao-local` 图标从上游 CDN 换成函包自有 logo `/hanbao-logo.jpg`（新增 `console/public/hanbao-logo.jpg`）
+- [修改] `src/qwenpaw/app/auth.py` — 删遗留白名单 `/qwenpaw-symbol.svg`（console 已改用 logo-dark/light）
+
+### 本地 LLM 模型删除（2026-08-17）
+
+函包定位渠道聊天 + 仅云 API，本地 LLM 模型（hanbao-local/QwenPaw Local + ollama/lmstudio + llama.cpp 子系统）整体删除：
+
+- [删除] `src/qwenpaw/providers/provider_manager.py` — `PROVIDER_QWENPAW`/`PROVIDER_OLLAMA`/`PROVIDER_LMSTUDIO` 定义 + `_add_builtin` 注册 + `model_validate` ollama 分支 + `_normalize_provider_id`/`_migrate_copaw_config`/`_resume_local_model`/`start_local_model_resume` legacy 迁移与恢复逻辑
+- [删除] `src/qwenpaw/local_models/` — `manager`/`model_manager`/`download_manager`/`llamacpp` 清空占位；`__init__.py` 清空
+- [保留] `src/qwenpaw/local_models/tag_parser.py` — 通用 `<tool_call>` 标签解析，被 `openai_chat_model_compat.py` 使用，非本地模型专属
+- [删除] `src/qwenpaw/app/routers/local_models.py` 清空 + `routers/__init__.py` 注册移除
+- [删除] `src/qwenpaw/app/_app.py` — `LocalModelManager` 初始化 + `start_local_model_resume` + shutdown 逻辑
+- [删除] `src/qwenpaw/agents/utils/audio_transcription.py` — ollama provider 判断分支
+- [删除] `src/qwenpaw/cli/doctor_checks.py`/`doctor_cmd.py`/`providers_cmd.py` — 本地模型诊断、llama.cpp 检查、本地模型 CLI 命令（download/list/remove）
+- [删除] `src/qwenpaw/constant.py` — `DEFAULT_LOCAL_PROVIDER_DIR`
+- [删除] `src/qwenpaw/agents/routing_chat_model.py` 清空（孤儿，本地/云路由已无意义）
+- [删除] 前端 — `localModel` API + 类型、`LocalModelManageModal`/`LocalModelRow`/`LocalRuntimePanel`/`LocalProviderCard`/`shared` 清空、`providerIcon`/`providerLetterIcon`/`ProviderCard`/`ModelManageModal`/`utils` 的本地模型分支
+- [保留] ReMe 记忆的 ollama embedding（走 AgentScope 层，独立）、Local Whisper 语音转写（openai-whisper，独立）
+- [保留] `config.py` 的 `llm_routing` 配置结构（无存量用户，local slot 不会被使用）
+
 ### 构建修复记录
 
 - 修复 2 处 Python 文件中误用的 `// [hanbao]` 注释（JS 语法，Python 解析报错）→ 改为 `# [hanbao]`

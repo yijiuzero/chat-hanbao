@@ -20,11 +20,11 @@
 | [I-009](#i-009) | 构建机 C 盘 0GB 可用，Docker 无法写入 | 🔥 高（阻塞） | 阶段 1 构建时 | 🟢 已解决（迁 F 盘 Junction） |
 | [I-010](#i-010) | WSL 崩溃转储吞噬 18.58GB 磁盘 | 🔥 高 | 阶段 1 构建前 | 🟢 已解决（crashDumpCount=0） |
 | [I-011](#i-011) | Docker DataFolder 键对 WSL2 后端无效 | 🟠 中 | 阶段 1 构建前 | 🟢 已解决（Junction 重定向） |
-| [I-012](#i-012) | 品牌名残留：JS 命名空间 `window.QwenPaw` | 🟡 低 | 阶段 3 删减定制 | 🔴 待处理 |
-| [I-013](#i-013) | 品牌名残留：localStorage keys (`qwenpaw_*`) | 🟡 低 | 阶段 3 删减定制 | 🔴 待处理 |
-| [I-014](#i-014) | 品牌名残留：CSS 前缀 `qwenpaw` (Ant Design) | 🟡 低 | 阶段 3 删减定制 | 🔴 待处理 |
-| [I-015](#i-015) | 品牌名残留：测试/e2e/website 中的 QwenPaw | 🟢 极低 | 无阻塞 | 🔴 待处理 |
-| [I-016](#i-016) | 品牌名残留：插件 plugin.json author 字段 | 🟢 极低 | 无阻塞 | 🔴 待处理 |
+| [I-012](#i-012) | 品牌名残留：JS 命名空间 `window.QwenPaw` | 🟡 低 | 阶段 3 删减定制 | 🟢 已解决（2026-08-17 `window.hanbao`） |
+| [I-013](#i-013) | 品牌名残留：localStorage keys (`qwenpaw_*`) | 🟡 低 | 阶段 3 删减定制 | 🟢 已解决（2026-08-17 `hanbao_*`） |
+| [I-014](#i-014) | 品牌名残留：CSS 前缀 `qwenpaw` (Ant Design) | 🟡 低 | 阶段 3 删减定制 | 🟢 已解决（2026-08-17 `hanbao`） |
+| [I-015](#i-015) | 品牌名残留：测试/e2e/website 中的 QwenPaw | 🟢 极低 | 无阻塞 | 🟡 归入包名改名子阶段 |
+| [I-016](#i-016) | 品牌名残留：插件 plugin.json author 字段 | 🟢 极低 | 无阻塞 | 🟢 保留上游署名（合规） |
 | [I-017](#i-017) | sed 产生 JS 注释 `//` 污染 Python 文件 | 🔥 高 | 阶段 3 删减定制 | 🟢 已解决 |
 | [I-018](#i-018) | git checkout 导致 gitignored 文件从磁盘消失 | 🔥 高 | 阶段 3 删减定制 | 🟡 处理中 |
 | [I-019](#i-019) | 文档处理能力降级：Anthropic 技能侵权，只能读不能改/创建 | 🔥 高 | 上架前必须解决 | 🟡 处理中（已定方案 A + markitdown） |
