@@ -57,7 +57,12 @@ describe("providerIcon", () => {
     ];
     for (const p of known) {
       const url = providerIcon(p);
-      expect(url.startsWith("https://")).toBe(true);
+      if (p === "hanbao-local") {
+        // hanbao-local uses a local bundled asset, not a CDN URL.
+        expect(url).toBe("/hanbao-logo.jpg");
+      } else {
+        expect(url.startsWith("https://")).toBe(true);
+      }
       expect(url.length).toBeGreaterThan(0);
       expect(url).not.toBe(FALLBACK);
     }
