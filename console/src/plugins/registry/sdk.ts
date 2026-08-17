@@ -2,7 +2,7 @@
  * registry/sdk.ts — public plugin API factory.
  *
  * `buildPluginSdk()` returns an object suitable for attaching to
- * `window.QwenPaw.{menu, route, slot, audit}`. All plugin-facing methods take
+ * `window.hanbao.{menu, route, slot, audit}`. All plugin-facing methods take
  * `pluginId` as their first argument (mirrors existing
  * `registerRoutes("cloudpaw", …)` style — no async "currentPlugin" magic).
  *

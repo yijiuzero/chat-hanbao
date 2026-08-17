@@ -157,7 +157,7 @@ describe("messageQueueStore", () => {
 
   it("enqueue captures agentId from sessionStorage when available", () => {
     sessionStorage.setItem(
-      "qwenpaw-agent-storage",
+      "hanbao-agent-storage",
       JSON.stringify({ state: { selectedAgent: "agent-x" } }),
     );
 

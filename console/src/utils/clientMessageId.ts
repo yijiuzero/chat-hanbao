@@ -1,4 +1,4 @@
-export const QWENPAW_CLIENT_MESSAGE_ID_KEY = "qwenpaw_client_message_id";
+export const QWENPAW_CLIENT_MESSAGE_ID_KEY = "hanbao_client_message_id";
 
 function randomBase36(length: number): string {
   const bytes = new Uint8Array(length);

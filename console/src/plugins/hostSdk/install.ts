@@ -1,6 +1,6 @@
 /**
- * hostSdk/install.ts — attach `window.QwenPaw.chat`, `window.QwenPaw.host.*`
- * (hooks + fetch), and `window.QwenPaw.audit` to the global namespace.
+ * hostSdk/install.ts — attach `window.hanbao.chat`, `window.hanbao.host.*`
+ * (hooks + fetch), and `window.hanbao.audit` to the global namespace.
  *
  * Call AFTER `installHostExternals()` from main.tsx.
  *
@@ -369,7 +369,7 @@ function makeChatNamespace(): QwenPawChatNamespace {
 export function installHostSdk(): void {
   if (typeof window === "undefined") return;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const ns = (window.QwenPaw as any) ?? ((window as any).QwenPaw = {});
+  const ns = (window.hanbao as any) ?? ((window as any).hanbao = {});
 
   if (!ns.chat) {
     ns.chat = makeChatNamespace();
@@ -382,7 +382,7 @@ export function installHostSdk(): void {
     ns.audit = auditNamespace;
   }
 
-  // Extend window.QwenPaw.host with hooks + fetch.
+  // Extend window.hanbao.host with hooks + fetch.
   // hostExternals.ts attaches host first; we add new fields without
   // overwriting React / antd / antdIcons / getApiUrl / getApiToken.
   const host = ns.host ?? (ns.host = {});

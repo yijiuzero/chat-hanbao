@@ -193,8 +193,8 @@ function AppInner() {
       <GlobalStyle />
       <ConfigProvider
         {...selectedTheme}
-        prefix="qwenpaw"
-        prefixCls="qwenpaw"
+        prefix="hanbao"
+        prefixCls="hanbao"
         locale={antdLocale}
         theme={{
           ...(selectedTheme as any)?.theme,

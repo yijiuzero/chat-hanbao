@@ -293,9 +293,9 @@ export function ChannelDrawer({
             <Form.Item
               name="device_name"
               label="Device Name"
-              tooltip="A stable device identity for the Matrix client. Defaults to 'qwenpaw-worker' if left empty."
+              tooltip="A stable device identity for the Matrix client. Defaults to 'hanbao-worker' if left empty."
             >
-              <Input placeholder="qwenpaw-worker" />
+              <Input placeholder="hanbao-worker" />
             </Form.Item>
             <Form.Item
               name="dm_disabled"

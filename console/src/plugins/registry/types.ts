@@ -35,7 +35,7 @@ export function combineDisposables(...d: Disposable[]): Disposable {
         try {
           it.dispose();
         } catch (err) {
-          console.warn("[QwenPaw] Disposable threw on dispose:", err);
+          console.warn("[hanbao] Disposable threw on dispose:", err);
         }
       }
     },

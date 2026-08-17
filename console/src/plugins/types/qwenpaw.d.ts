@@ -1,8 +1,8 @@
 /**
  * plugins/types/qwenpaw.d.ts — stable public contract for plugin authors.
  *
- * Plugin TS projects (cloudpaw, qwenpaw-pet, …) should COPY this file into
- * their own `qwenpaw-host.d.ts` and uncomment the `declare global` block at
+ * Plugin TS projects (cloudpaw, hanbao-pet, …) should COPY this file into
+ * their own `hanbao-host.d.ts` and uncomment the `declare global` block at
  * the bottom. We intentionally do NOT re-export `IAgentScopeRuntimeWebUIOptions`
  * so the public surface stays stable across vendor upgrades.
  *
@@ -282,8 +282,8 @@ export interface QwenPawWindowNamespace {
   ): void;
 }
 
-// Plugin projects: uncomment this in your own qwenpaw-host.d.ts to type
-// `window.QwenPaw.*` accesses in plugin code.
+// Plugin projects: uncomment this in your own hanbao-host.d.ts to type
+// `window.hanbao.*` accesses in plugin code.
 //
 // declare global {
 //   interface Window {

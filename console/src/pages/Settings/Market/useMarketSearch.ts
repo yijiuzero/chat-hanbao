@@ -11,7 +11,7 @@ import type {
 
 const DEBOUNCE_MS = 350;
 const PER_PROVIDER_LIMIT = 10;
-const PROVIDERS_STORAGE_KEY = "qwenpaw-market-providers";
+const PROVIDERS_STORAGE_KEY = "hanbao-market-providers";
 
 /** Restore the persisted provider selection */
 const resolveInitialProviders = (): Set<string> => {

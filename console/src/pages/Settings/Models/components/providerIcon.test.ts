@@ -42,7 +42,7 @@ describe("providerIcon", () => {
       "lmstudio",
       "siliconflow-cn",
       "siliconflow-intl",
-      "qwenpaw-local",
+      "hanbao-local",
       "zhipu-cn",
       "zhipu-intl",
       "zhipu-cn-codingplan",

@@ -356,8 +356,8 @@ export const useMessageQueueStore = create<MessageQueueStore>((set, get) => ({
     let agentId: string | undefined;
     try {
       const agentStorage =
-        sessionStorage.getItem("qwenpaw-agent-storage") ||
-        localStorage.getItem("qwenpaw-agent-storage");
+        sessionStorage.getItem("hanbao-agent-storage") ||
+        localStorage.getItem("hanbao-agent-storage");
       if (agentStorage) {
         const parsed = JSON.parse(agentStorage);
         agentId = parsed?.state?.selectedAgent || undefined;

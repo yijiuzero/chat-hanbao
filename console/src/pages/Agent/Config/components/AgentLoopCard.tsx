@@ -1096,7 +1096,7 @@ function GateParamsEditor({
           )}
           tooltip={t(
             "agentConfig.loopMode.completionSignalHelp",
-            "QwenPaw injects this signal into the check prompt and instructs the agent to output only it. Matching is exact after trimming whitespace and ignoring case.",
+            "hanbao injects this signal into the check prompt and instructs the agent to output only it. Matching is exact after trimming whitespace and ignoring case.",
           )}
         >
           <Input maxLength={64} />
@@ -1283,7 +1283,7 @@ function CustomModeEditor({
           <p>
             {t(
               "agentConfig.loopMode.customDescription",
-              "Build a saved pipeline from QwenPaw-owned gates.",
+              "Build a saved pipeline from hanbao-owned gates.",
             )}
           </p>
         </div>
