@@ -1,6 +1,5 @@
 import React from "react";
 import type { ProviderInfo, ActiveModelsInfo } from "../../../../../api/types";
-import { LocalProviderCard } from "./LocalProviderCard";
 import { RemoteProviderCard } from "./RemoteProviderCard";
 
 interface ProviderCardProps {
@@ -17,12 +16,6 @@ export const ProviderCard = React.memo(function ProviderCard({
   onOpenConfig,
   onOpenModels,
 }: ProviderCardProps) {
-  if (provider.id === "hanbao-local") {
-    return (
-      <LocalProviderCard provider={provider} onOpenModels={onOpenModels} />
-    );
-  }
-
   return (
     <RemoteProviderCard
       provider={provider}

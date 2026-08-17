@@ -27,8 +27,6 @@ from .anthropic_provider import AnthropicProvider
 from .context_windows import DEFAULT_CONTEXT_WINDOW
 from .dashscope_provider import DashScopeProvider
 from .gemini_provider import GeminiProvider
-from .lmstudio_provider import LMStudioProvider
-from .ollama_provider import OllamaProvider
 from .openai_provider import (
     GitHubModelsProvider,
     KiloProvider,
@@ -1031,13 +1029,6 @@ PROVIDER_ZHIPU_INTL_CODINGPLAN = OpenAIProvider(
     provider_variant="coding_plan_intl",
 )
 
-PROVIDER_QWENPAW = OpenAIProvider(
-    id="hanbao-local",
-    name="hanbao Local",
-    is_local=True,
-    require_api_key=False,
-)
-
 PROVIDER_OPENAI = OpenAIProvider(
     id="openai",
     name="OpenAI",
@@ -1197,15 +1188,6 @@ PROVIDER_GEMINI = GeminiProvider(
     },
 )
 
-PROVIDER_OLLAMA = OllamaProvider(
-    id="ollama",
-    name="Ollama",
-    is_local=True,
-    require_api_key=False,
-    support_model_discovery=True,
-    generate_kwargs={"max_tokens": None},
-)
-
 PROVIDER_OPENROUTER = OpenRouterProvider(
     id="openrouter",
     name="OpenRouter",
@@ -1251,17 +1233,6 @@ PROVIDER_GITHUB_MODELS = GitHubModelsProvider(
     },
 )
 
-
-PROVIDER_LMSTUDIO = LMStudioProvider(
-    id="lmstudio",
-    name="LM Studio",
-    is_local=True,
-    base_url="http://localhost:1234/v1",
-    require_api_key=False,
-    api_key_prefix="",
-    support_model_discovery=True,
-    generate_kwargs={"max_tokens": None},
-)
 
 PROVIDER_SILICONFLOW_CN = OpenAIProvider(
     id="siliconflow-cn",
@@ -1373,9 +1344,6 @@ class ProviderManager:  # pylint: disable=too-many-public-methods
                 pass
 
     def _init_builtins(self):
-        self._add_builtin(PROVIDER_QWENPAW)
-        self._add_builtin(PROVIDER_OLLAMA)
-        self._add_builtin(PROVIDER_LMSTUDIO)
         self._add_builtin(PROVIDER_OPENROUTER)
         self._add_builtin(PROVIDER_GITHUB_MODELS)
         self._add_builtin(PROVIDER_MODELSCOPE)
@@ -1434,21 +1402,10 @@ class ProviderManager:  # pylint: disable=too-many-public-methods
         """Helper to return plugin provider info as async task."""
         return provider_info
 
-    @staticmethod
-    def _normalize_provider_id(provider_id: str) -> str:
-        """Normalize provider ID for backward compatibility.
-
-        Maps legacy 'copaw-local' to 'hanbao-local'.
-        """
-        if provider_id == "copaw-local":
-            return "hanbao-local"
-        return provider_id
-
     def get_provider(self, provider_id: str) -> Provider | None:
         # Return a provider instance by its ID. This will be used to create
         # chat model instances for the agent.
         # Normalize provider ID for backward compatibility
-        provider_id = self._normalize_provider_id(provider_id)
         # Check plugin providers first
         if provider_id in self.plugin_providers:
             plugin_provider = self.plugin_providers[provider_id]
@@ -1476,7 +1433,6 @@ class ProviderManager:  # pylint: disable=too-many-public-methods
         # UI. It should update the in-memory provider instance and persist the
         # changes to providers.json.
         # Normalize provider ID for backward compatibility
-        provider_id = self._normalize_provider_id(provider_id)
         provider = self.get_provider(provider_id)
         if not provider:
             return False
@@ -1498,29 +1454,6 @@ class ProviderManager:  # pylint: disable=too-many-public-methods
 
         return True
 
-    def start_local_model_resume(self, local_manager) -> None:
-        """Schedule background restore of the active local model server."""
-        task = asyncio.create_task(
-            self._resume_local_model(local_manager),
-            name="hanbao-local-model-resume",
-        )
-        task.add_done_callback(self._on_local_model_resume_done)
-
-    @staticmethod
-    def _on_local_model_resume_done(task: asyncio.Task[None]) -> None:
-        """Log unexpected failures from background local model restore."""
-        if task.cancelled():
-            return
-
-        exc = task.exception()
-        if exc is not None:
-            logger.warning(
-                "Background local model restore failed: %s",
-                exc,
-                exc_info=exc,
-            )
-        logger.info("Background local model restore completed")
-
     async def fetch_provider_models(
         self,
         provider_id: str,
@@ -1536,7 +1469,6 @@ class ProviderManager:  # pylint: disable=too-many-public-methods
         Returns:
             List of ModelInfo objects representing available models.
         """
-        provider_id = self._normalize_provider_id(provider_id)
         provider = self.get_provider(provider_id)
         if not provider:
             return []
@@ -1627,7 +1559,6 @@ class ProviderManager:  # pylint: disable=too-many-public-methods
         # providers.json and determine which provider/model is used when the
         # agent creates chat model instances.
         # Normalize provider ID for backward compatibility
-        provider_id = self._normalize_provider_id(provider_id)
         provider = self.get_provider(provider_id)
         if not provider:
             raise ProviderError(
@@ -1694,7 +1625,6 @@ class ProviderManager:  # pylint: disable=too-many-public-methods
         provider_id: str,
         model_info: ModelInfo,
     ) -> ProviderInfo:
-        provider_id = self._normalize_provider_id(provider_id)
         provider = self.get_provider(provider_id)
         if not provider:
             raise ProviderError(
@@ -1730,7 +1660,6 @@ class ProviderManager:  # pylint: disable=too-many-public-methods
         config: Dict,
     ) -> ProviderInfo:
         """Update per-model configuration and persist to disk."""
-        provider_id = self._normalize_provider_id(provider_id)
         provider = self.get_provider(provider_id)
         if not provider:
             raise ProviderError(
@@ -1760,7 +1689,6 @@ class ProviderManager:  # pylint: disable=too-many-public-methods
         provider_id: str,
         model_id: str,
     ) -> ProviderInfo:
-        provider_id = self._normalize_provider_id(provider_id)
         provider = self.get_provider(provider_id)
         if not provider:
             raise ProviderError(
@@ -1796,7 +1724,6 @@ class ProviderManager:  # pylint: disable=too-many-public-methods
                 Only ``supports_image`` will be accurate; ``supports_video``
                 will remain at its previous value (not updated).
         """
-        provider_id = self._normalize_provider_id(provider_id)
         provider = self.get_provider(provider_id)
         if not provider:
             return {"error": f"Provider '{provider_id}' not found"}
@@ -2015,8 +1942,6 @@ class ProviderManager:  # pylint: disable=too-many-public-methods
             return GeminiProvider.model_validate(data)
         if provider_id == "dashscope" or chat_model == "DashScopeChatModel":
             return DashScopeProvider.model_validate(data)
-        if provider_id == "ollama":
-            return OllamaProvider.model_validate(data)
         if chat_model == "OpenAIResponseModel":
             return OpenAIResponseProvider.model_validate(data)
         return OpenAIProvider.model_validate(data)
@@ -2046,7 +1971,6 @@ class ProviderManager:  # pylint: disable=too-many-public-methods
             return False
         # Normalize provider ID for backward compatibility
         if provider_id is not None:
-            provider_id = self._normalize_provider_id(provider_id)
         if (
             provider_id is not None
             and self.active_model.provider_id != provider_id
@@ -2072,58 +1996,6 @@ class ProviderManager:  # pylint: disable=too-many-public-methods
                 return ModelSlotConfig.model_validate(data)
         except Exception:
             return None
-
-    def _migrate_copaw_config(self) -> None:
-        """Migrate copaw-local provider config to hanbao-local."""
-        # 1. Migrate active model configuration (only provider_id)
-        if (
-            self.active_model
-            and self.active_model.provider_id == "copaw-local"
-        ):
-            self.active_model.provider_id = "hanbao-local"
-            self.save_active_model(self.active_model)
-            logger.info(
-                "Migrated active model provider from "
-                "'copaw-local' to 'hanbao-local'",
-            )
-
-        # 2. Migrate stored provider config file
-        copaw_config_path = self.builtin_path / "copaw-local.json"
-        if not copaw_config_path.exists():
-            return
-
-        try:
-            # Load old config and apply to new provider instance
-            with open(copaw_config_path, "r", encoding="utf-8") as f:
-                old_config = json.load(f)
-
-            # Get the new built-in provider instance
-            provider = self.builtin_providers.get("hanbao-local")
-            if not provider:
-                return
-
-            # Apply migrated configuration (preserve extra_models as-is)
-            if "extra_models" in old_config:
-                provider.extra_models = [
-                    ModelInfo.model_validate(model)
-                    for model in old_config["extra_models"]
-                ]
-            if "base_url" in old_config:
-                provider.base_url = old_config["base_url"]
-            if "generate_kwargs" in old_config:
-                provider.generate_kwargs = old_config["generate_kwargs"]
-
-            # Save using standard persistence logic (with encryption)
-            self._save_provider(provider, is_builtin=True)
-
-            # Remove old config file
-            copaw_config_path.unlink()
-            logger.info(
-                "Migrated provider config from "
-                "'copaw-local.json' to 'hanbao-local.json'",
-            )
-        except Exception as exc:
-            logger.warning("Failed to migrate copaw-local config: %s", exc)
 
     # pylint: disable=too-many-branches
     def _migrate_legacy_providers(self):
@@ -2176,9 +2048,6 @@ class ProviderManager:  # pylint: disable=too-many-public-methods
             # Migrate active model (only provider_id, not model)
             if active_model:
                 try:
-                    # Convert legacy copaw-local provider_id
-                    if active_model.get("provider_id") == "copaw-local":
-                        active_model["provider_id"] = "hanbao-local"
                     self.active_model = ModelSlotConfig.model_validate(
                         active_model,
                     )
@@ -2301,9 +2170,6 @@ class ProviderManager:  # pylint: disable=too-many-public-methods
         if active_model:
             self.active_model = active_model
 
-        # Migrate copaw-local to hanbao-local for backwards compatibility
-        self._migrate_copaw_config()
-
     def _apply_default_annotations(self):
         """Apply doc-based default annotations for unprobed models.
 
@@ -2340,60 +2206,6 @@ class ProviderManager:  # pylint: disable=too-many-public-methods
                         expected.expected_image or expected.expected_video,
                     )
                     model.probe_source = "documentation"
-
-    async def _resume_local_model(self, local_manager) -> None:
-        """Resume the active local model server from the previous run."""
-
-        def _clear_local_provider():
-            self.update_provider(
-                "hanbao-local",
-                {
-                    "base_url": "",
-                    "extra_models": [],
-                },
-            )
-
-        local_models = self.get_provider("hanbao-local").extra_models
-        model_id = local_models[0].id if local_models else None
-        if model_id is None:
-            return
-
-        installed, _ = local_manager.check_llamacpp_installation()
-        if not installed:
-            logger.info(
-                "Skipping local model restore because"
-                " llama.cpp is not installed.",
-            )
-            _clear_local_provider()
-            return
-
-        if not local_manager.is_model_downloaded(model_id):
-            logger.warning(
-                "Skipping local model restore because"
-                " model is not downloaded: %s",
-                model_id,
-            )
-            _clear_local_provider()
-            return
-
-        try:
-            setup_result = await local_manager.setup_server(model_id)
-        except (FileNotFoundError, RuntimeError, ValueError) as exc:
-            logger.warning(
-                "Failed to restore local model server for %s: %s",
-                model_id,
-                exc,
-            )
-            _clear_local_provider()
-            return
-
-        self.update_provider(
-            "hanbao-local",
-            {
-                "base_url": f"http://127.0.0.1:{setup_result.port}/v1",
-                "extra_models": [setup_result.model_info],
-            },
-        )
 
     def register_plugin_provider(
         self,

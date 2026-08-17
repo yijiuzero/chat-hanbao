@@ -62,10 +62,6 @@ from ..providers.provider import Provider
 # Log file opened on app startup (see ``qwenpaw.app._app`` lifespan).
 APP_LOG_BASENAME = LOG_FILE_BASENAME
 
-# Built-in local llama.cpp provider id; legacy configs may still use
-# copaw-local.
-_QWENPAW_LOCAL_PROVIDER_IDS = frozenset({"hanbao-local", "copaw-local"})
-
 
 def _resolve_existing_path_anchor(path: Path) -> Path | None:
     """First existing ancestor of *path* (for ``stat`` / ``disk_usage``)."""
@@ -1095,32 +1091,6 @@ def provider_overview_notes() -> list[str]:
 
 def active_llm_local_failure_hint(provider: Provider, provider_id: str) -> str:
     """Hint when ``check_model_connection`` failed (local provider)."""
-    if provider_id == "ollama":
-        base = (getattr(provider, "base_url", None) or "").strip()
-        if not base:
-            base = (
-                os.environ.get("OLLAMA_HOST") or "http://127.0.0.1:11434"
-            ).strip()
-        return (
-            "Hint: start Ollama (e.g. `ollama serve`) and ensure the model "
-            "is available (`ollama pull …`). OpenAI-compatible API is "
-            f"usually {base.rstrip('/')}/v1 ."
-        )
-    if provider_id == "lmstudio":
-        base = (
-            getattr(provider, "base_url", None) or ""
-        ).strip() or "http://127.0.0.1:1234/v1"
-        return (
-            "Hint: open LM Studio, load a model, and enable the local server. "
-            f"Typical base URL: {base.rstrip('/')}"
-        )
-    if provider_id in _QWENPAW_LOCAL_PROVIDER_IDS:
-        return (
-            f"Hint: {PROJECT_NAME} Local uses llama.cpp. Start the local "
-            f"server from the {PROJECT_NAME} console or install the llama.cpp "
-            "binary from there. Run `qwenpaw doctor --deep` to see llama.cpp "
-            "install and server status."
-        )
     if getattr(provider, "is_local", False):
         base = (
             getattr(provider, "base_url", None) or ""
@@ -1130,48 +1100,6 @@ def active_llm_local_failure_hint(provider: Provider, provider_id: str) -> str:
             f"server is running and matches {base}."
         )
     return ""
-
-
-def qwenpaw_local_llm_deep_notes() -> list[str]:
-    """Read-only llama.cpp install + server snapshot (``--deep`` / local)."""
-    try:
-        from ..local_models.manager import LocalModelManager
-    except Exception as exc:  # pylint: disable=broad-exception-caught
-        return [f"LocalModelManager unavailable: {exc}"]
-    try:
-        lm = LocalModelManager.get_instance()
-    except Exception as exc:  # pylint: disable=broad-exception-caught
-        return [f"LocalModelManager: {exc}"]
-    notes: list[str] = []
-    try:
-        ok, msg = lm.check_llamacpp_installation()
-        line = (
-            "llama.cpp binary: OK"
-            if ok
-            else "llama.cpp binary: missing or not installed"
-        )
-        if msg:
-            line += f" — {msg}"
-        notes.append(line)
-    except Exception as exc:  # pylint: disable=broad-exception-caught
-        notes.append(f"llama.cpp install check failed: {exc}")
-    try:
-        st = lm.get_llamacpp_server_status()
-        notes.append(
-            "llama.cpp server: "
-            f"running={st.get('running')}, port={st.get('port')}, "
-            f"model={st.get('model_name')!r}, pid={st.get('pid')}",
-        )
-    except Exception as exc:  # pylint: disable=broad-exception-caught
-        notes.append(f"llama.cpp server status failed: {exc}")
-    try:
-        if lm.is_llamacpp_server_transitioning():
-            notes.append(
-                "llama.cpp server is transitioning (start/stop in progress).",
-            )
-    except Exception:  # pylint: disable=broad-exception-caught
-        pass
-    return notes
 
 
 def _slot_is_set(slot: Any) -> bool:
@@ -1198,10 +1126,6 @@ def _resolve_agent_effective_model_slot(
             if active_slot is not None and _slot_is_set(active_slot):
                 return active_slot, "providers.active_llm (cloud fallback)"
             return None, "routing enabled but no cloud slot and no active LLM"
-        # local_first
-        if routing.local is not None and _slot_is_set(routing.local):
-            return routing.local, "agent.llm_routing.local"
-        return None, "routing enabled but local slot is not set"
 
     if active_slot is not None and _slot_is_set(active_slot):
         return active_slot, "providers.active_llm"
@@ -1271,11 +1195,6 @@ async def check_enabled_agents_model_connections(
             )
             continue
 
-        if deep and pid in _QWENPAW_LOCAL_PROVIDER_IDS:
-            # Only add once (same underlying llama.cpp runtime).
-            if not any("llama.cpp" in n for n in notes):
-                notes.extend(qwenpaw_local_llm_deep_notes())
-
         if not getattr(provider, "support_connection_check", True):
             lines.append(
                 f"{agent_id}: OK — {pid} / {model} "
@@ -1297,11 +1216,7 @@ async def check_enabled_agents_model_connections(
         all_ok = False
         detail = f": {msg}" if msg else ""
         body = f"{pid} / {model} unreachable{detail}"
-        if getattr(provider, "is_local", False) or pid in (
-            "ollama",
-            "lmstudio",
-            *_QWENPAW_LOCAL_PROVIDER_IDS,
-        ):
+        if getattr(provider, "is_local", False):
             hint = active_llm_local_failure_hint(provider, pid)
             if hint:
                 body = f"{body}\n{hint}"

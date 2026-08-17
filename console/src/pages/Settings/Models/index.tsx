@@ -131,15 +131,11 @@ function ModelsPage() {
       return getIsConfigured(p);
     };
 
-    // QwenPaw Local is always "configured" (embedded)
-    const isEmbedded = (p: ProviderInfo) =>
-      p.id === "hanbao-local" || p.id === "copaw-local";
-
     // Separate local vs cloud first
     const allCloud: ProviderInfo[] = [];
     for (const p of providers) {
       if (p.is_local || p.is_custom) {
-        if (isEmbedded(p) || isReady(p)) localConf.push(p);
+        if (isReady(p)) localConf.push(p);
         else localAvail.push(p);
       } else {
         allCloud.push(p);

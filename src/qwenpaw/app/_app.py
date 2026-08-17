@@ -28,7 +28,6 @@ from ..constant import (
     WORKING_DIR,
 )
 from ..envs import load_envs_into_environ
-from ..local_models.manager import LocalModelManager
 from ..providers.provider_manager import ProviderManager
 from ..utils.io_utils import run_sync_io
 from ..utils.logging import (
@@ -135,7 +134,6 @@ async def lifespan(  # pylint: disable=too-many-statements,too-many-branches
 
     # Create core managers (instant — no I/O)
     provider_manager = ProviderManager.get_instance()
-    local_model_manager = LocalModelManager.get_instance()
 
     # --- AppServiceManager + WorkspaceRegistry ---
     app_services = None
@@ -260,7 +258,6 @@ async def lifespan(  # pylint: disable=too-many-statements,too-many-branches
     # routers / agent_context that read app.state.multi_agent_manager.
     app.state.multi_agent_manager = workspace_registry
     app.state.provider_manager = provider_manager
-    app.state.local_model_manager = local_model_manager
     app.state.plugin_loader = None
     app.state.plugin_registry = None
 
@@ -346,8 +343,6 @@ async def lifespan(  # pylint: disable=too-many-statements,too-many-branches
                 )
             elif app.state.startup_ready.is_set():
                 startup_display.mark_finalizing()
-
-            provider_manager.start_local_model_resume(local_model_manager)
 
             # Phase 2: load remaining plugins (channel plugins already
             # loaded — load_plugin skips them automatically)
@@ -525,19 +520,6 @@ async def lifespan(  # pylint: disable=too-many-statements,too-many-branches
                         f"from plugin '{hook.plugin_id}': {e}",
                         exc_info=True,
                     )
-
-        local_model_mgr = getattr(app.state, "local_model_manager", None)
-        if local_model_mgr is not None:
-            logger.info("Stopping local model server...")
-            try:
-                await local_model_mgr.shutdown_server()
-            except Exception as exc:
-                logger.error(
-                    "Error shutting down local model server gracefully: %s",
-                    exc,
-                )
-                with suppress(OSError, RuntimeError, ValueError):
-                    local_model_mgr.shutdown_server_sync()
 
         # Stop AppServiceManager (ToolCoordinator shutdown, etc.)
         _app_svc = getattr(app.state, "app_services", None)

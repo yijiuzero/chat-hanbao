@@ -407,12 +407,6 @@ export function ProviderConfigModal({
     if (provider.id === "opencode") {
       return t("models.openAICompatibleEndpoint");
     }
-    if (provider.id === "ollama") {
-      return t("models.ollamaEndpointHint");
-    }
-    if (provider.id === "lmstudio") {
-      return t("models.lmstudioEndpointHint");
-    }
     if (provider.is_custom) {
       return effectiveChatModel === "AnthropicChatModel"
         ? t("models.anthropicEndpointHint")
@@ -443,12 +437,6 @@ export function ProviderConfigModal({
     }
     if (provider.id === "opencode") {
       return "https://opencode.ai/zen/v1";
-    }
-    if (provider.id === "ollama") {
-      return "http://localhost:11434";
-    }
-    if (provider.id === "lmstudio") {
-      return "http://localhost:1234/v1";
     }
     if (provider.is_custom && effectiveChatModel === "AnthropicChatModel") {
       return "https://api.anthropic.com";

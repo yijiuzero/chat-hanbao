@@ -49,7 +49,6 @@ def _url_for_provider(provider) -> Optional[Tuple[str, str]]:
     Supports providers that do not require an API key (e.g. local Ollama).
     """
     from ...providers.openai_provider import OpenAIProvider
-    from ...providers.ollama_provider import OllamaProvider
 
     if isinstance(provider, OpenAIProvider):
         requires_key = getattr(provider, "require_api_key", True)
@@ -60,11 +59,6 @@ def _url_for_provider(provider) -> Optional[Tuple[str, str]]:
         if not base.endswith("/v1"):
             base += "/v1"
         return (base, key or "")
-    if isinstance(provider, OllamaProvider):
-        base = provider.base_url.rstrip("/")
-        if not base.endswith("/v1"):
-            base += "/v1"
-        return (base, provider.api_key or "")
     return None
 
 

@@ -1,5 +1,4 @@
 import type { ProviderInfo } from "../../../../../api/types";
-import { LocalModelManageModal } from "./LocalModelManageModal";
 import { RemoteModelManageModal } from "./RemoteModelManageModal";
 
 interface ModelManageModalProps {
@@ -17,18 +16,6 @@ export function ModelManageModal({
   onSaved,
   onProviderUpdated,
 }: ModelManageModalProps) {
-  // Route to the appropriate specialized modal based on provider type
-  if (provider.id === "hanbao-local") {
-    return (
-      <LocalModelManageModal
-        provider={provider}
-        open={open}
-        onClose={onClose}
-        onSaved={onSaved}
-      />
-    );
-  }
-
   return (
     <RemoteModelManageModal
       provider={provider}

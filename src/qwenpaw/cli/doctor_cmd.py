@@ -50,7 +50,6 @@ from .doctor_checks import (
     scan_unknown_config_keys,
     security_baseline_notes,
     skill_layout_notes,
-    qwenpaw_local_llm_deep_notes,
     startup_extra_volume_disk_notes,
     workspace_hygiene_notes,
     windows_environment_lines,
@@ -342,8 +341,6 @@ async def _check_active_llm(
 
     deep_notes: list[str] = []
     pid = (slot.provider_id or "").strip()
-    if deep and pid in ("hanbao-local", "copaw-local"):
-        deep_notes = qwenpaw_local_llm_deep_notes()
 
     if not getattr(provider, "support_connection_check", True):
         return (
@@ -359,12 +356,7 @@ async def _check_active_llm(
     if not ping_ok:
         detail = f": {ping_msg}" if ping_msg else ""
         body = f"{slot.provider_id} / {slot.model} unreachable{detail}"
-        if getattr(provider, "is_local", False) or slot.provider_id in (
-            "ollama",
-            "lmstudio",
-            "hanbao-local",
-            "copaw-local",
-        ):
+        if getattr(provider, "is_local", False):
             hint = active_llm_local_failure_hint(provider, slot.provider_id)
             if hint:
                 body = f"{body}\n{hint}"
@@ -1010,8 +1002,7 @@ def run_doctor_checks(
     is_flag=True,
     help=(
         "Run extra checks: enabled-channel reachability (non-fatal notes; "
-        "uses --timeout) and, when the active model is hanbao-local, "
-        "llama.cpp install/server status notes."
+        "uses --timeout)."
     ),
 )
 @click.pass_context

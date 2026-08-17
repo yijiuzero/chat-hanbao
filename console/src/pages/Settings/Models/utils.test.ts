@@ -59,12 +59,6 @@ describe("countConfiguredProviders", () => {
 });
 
 describe("getIsConfigured", () => {
-  it("treats hanbao-local as always configured", () => {
-    expect(
-      getIsConfigured(provider({ id: "hanbao-local", require_api_key: true })),
-    ).toBe(true);
-  });
-
   it("treats a custom provider with base_url as configured (no api_key needed)", () => {
     expect(
       getIsConfigured(

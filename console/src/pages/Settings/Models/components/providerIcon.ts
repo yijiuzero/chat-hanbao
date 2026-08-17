@@ -17,8 +17,6 @@ export const providerIcon = (provider: string) => {
       return "https://gw.alicdn.com/imgextra/i1/O1CN01xCKAr81Yz8Q9pXh1u_!!6000000003129-2-tps-400-400.png";
     case "anthropic":
       return "https://gw.alicdn.com/imgextra/i2/O1CN014LwvBJ1tNDYvc3FfA_!!6000000005889-2-tps-400-400.png";
-    case "ollama":
-      return "https://gw.alicdn.com/imgextra/i3/O1CN01xZeNJ01R0Ufb3nqqb_!!6000000002049-2-tps-400-400.png";
     case "minimax-cn":
     case "minimax":
       return "https://gw.alicdn.com/imgextra/i1/O1CN01B0FaVn1VzBcO4nF1C_!!6000000002723-2-tps-400-400.png";
@@ -27,13 +25,9 @@ export const providerIcon = (provider: string) => {
       return "https://gw.alicdn.com/imgextra/i3/O1CN01rQSexq1D7S4AYstKh_!!6000000000169-2-tps-400-400.png";
     case "dashscope":
       return "https://gw.alicdn.com/imgextra/i4/O1CN01aDHDeq1mgj7gbRkhi_!!6000000004984-2-tps-400-400.png";
-    case "lmstudio":
-      return "https://gw.alicdn.com/imgextra/i4/O1CN01Abv67y1jHaXLqikIJ_!!6000000004523-2-tps-200-200.png";
     case "siliconflow-cn":
     case "siliconflow-intl":
       return "https://img.alicdn.com/imgextra/i1/O1CN01TUkzVC1clAoPa2ix8_!!6000000003640-2-tps-520-520.png";
-    case "hanbao-local":
-      return "/hanbao-logo.jpg";
     case "zhipu-cn":
     case "zhipu-intl":
     case "zhipu-cn-codingplan":

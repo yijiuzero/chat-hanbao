@@ -15,7 +15,6 @@ import { skillApi } from "./modules/skill";
 import { agentApi } from "./modules/agent";
 import { agentsApi } from "./modules/agents";
 import { workspaceApi } from "./modules/workspace";
-import { localModelApi } from "./modules/localModel";
 import { mcpApi } from "./modules/mcp";
 import { tokenUsageApi } from "./modules/tokenUsage";
 import { agentStatsApi } from "./modules/agentStats";
@@ -60,9 +59,6 @@ export const api = {
 
   // Workspace
   ...workspaceApi,
-
-  // Local Models
-  ...localModelApi,
 
   // MCP Clients
   ...mcpApi,
