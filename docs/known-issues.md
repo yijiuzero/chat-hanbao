@@ -12,7 +12,7 @@
 | [I-001](#i-001) | 上游 `.gitignore` 静默吞掉运行时必需文件 | 🔥 高 | 阶段 0（已完成） | 🟢 已解决 |
 | [I-002](#i-002) | Dockerfile 缺 `COPY LICENSE NOTICE`（合规缺口） | 🔥 高（法务） | 阶段 4 容器化 | 🟢 已解决（2026-08-17） |
 | [I-003](#i-003) | `.dockerignore` 的 `*.md` 会排除合规文档 | 🔥 高（法务） | 阶段 4 容器化 | 🟢 已解决（2026-08-17） |
-| [I-004](#i-004) | 镜像含完整 XFCE4 桌面 + Chromium，体积巨大 | 🟠 中 | 阶段 4 容器化 | 🟡 已实施（构建通过 1.91GB，800MB 待 venv 瘦身） |
+| [I-004](#i-004) | 镜像含完整 XFCE4 桌面 + Chromium，体积巨大 | 🟠 中 | 阶段 4 容器化 | 🟡 已实施并验收（干净容器通过，1.93GB；800MB 待 venv 瘦身） |
 | [I-005](#i-005) | 基础镜像拉取失败（buildkit 并发鉴权 EOF） | 🟠 中 | 阶段 1 构建时 | 🟢 已解决（预拉规避） |
 | [I-006](#i-006) | 上游自带遥测上报 | 🟠 中 | 阶段 2 删减定制 | 🟢 已解决（上报禁用+调用移除） |
 | [I-007](#i-007) | Web Console 默认无认证（上游认证系统完整，仅默认关闭） | 🟠 中 | 阶段 5 FPK 打包 | 🟡 方案已明确 |
@@ -141,7 +141,7 @@ docker run --rm hanbao:<tag> sh -c "ls -l /app/LICENSE /app/NOTICE"
 <a id="i-004"></a>
 ## I-004 · 镜像含完整 XFCE4 桌面 + Chromium，体积巨大
 
-**严重度**：🟠 中 &nbsp;|&nbsp; **状态**：🟡 已实施（构建通过 1.91GB，800MB 待 venv 依赖树瘦身） &nbsp;|&nbsp; **必须处理时机**：阶段 4 容器化
+**严重度**：🟠 中 &nbsp;|&nbsp; **状态**：🟡 已实施并干净容器验收通过（1.93GB；800MB 目标待 venv 依赖树瘦身，独立子阶段） &nbsp;|&nbsp; **必须处理时机**：阶段 4 容器化
 
 ### 现象
 `deploy/Dockerfile` 的 runtime 阶段安装了：
@@ -197,6 +197,30 @@ docker run --rm hanbao:0.0.1-slim sh -c "which chromium xvfb-run startxfce4 2>/d
 2. `COPY --chmod=755 ...` → `COPY ...` + `RUN chmod +x`：旧版构建器不支持 `--chmod` 语法。
 
 **结果**：镜像 **1.91GB**（原 ~4GB，砍掉 Chromium+XFCE4 桌面+Node 运行时后砍半）。Chromium/Xvfb/xfce4 已确认不在镜像内。
+
+### 最终重建 + 干净容器验收（2026-08-18 二次构建）
+删除孤儿文件（`browser_control` / `browser_snapshot` / `desktop_screenshot`）与工作区草稿后重建，固化 P0 语法修复（`b95b02c`）。
+
+**构建**：47/47 步全过，`BUILD_EXIT=0`，耗时 6m41s。镜像 **1.93GB**。
+> 体积从 1.91GB → 1.93GB 的 +20MB 属**正常构建波动**（apt/pypi 上游包版本浮动，1.9GB 基数上约 1%）；删掉的 3 个 Python 文件仅数十 KB，对体积无实质影响。瘦身结论不变。
+
+**干净容器验收**（`docker run -d --name hanbao_clean -p 18088:8088`，**不挂任何宿主目录**，避免上次"宿主 src 覆盖镜像内前端产物"的误判）：
+| 验收项 | 结果 |
+|---|---|
+| 桌面栈剥离 | `chromium` / `chromium-browser` / `google-chrome` / `Xvfb` / `xvfb-run` / `xfce4-session` / `dbus-daemon` / `node` / `npm` 全部 `which` 无输出 ✅ |
+| Python / uv | `Python 3.12.14`、`uv` 就位 ✅ |
+| 前端产物在镜像内 | `/app/src/qwenpaw/console/`（`assets/` + `hanbao-logo.jpg` 243KB）✅ |
+| 服务启动 | supervisord 仅 `app` 一个进程（桌面栈进程已从 template 移除），10s 后 `entered RUNNING` ✅ |
+| 根路径真实性 | HTTP 200 且 body 为真实 React 页（`<title>hanbao Console</title>` + `<div id="root">` + `/assets/index-*.js`），**非** `console is not available` 错误 JSON ✅ |
+| API | `auth/status` → `{"enabled":false,"has_users":false}`（I-007 设计，默认不启用认证）✅ |
+| 静态资源 | `/hanbao-logo.jpg` → HTTP 200 ✅ |
+| 日志异常扫描 | `traceback` / `IndentationError` / `ImportError` / `ModuleNotFound` / `browser_use` / `playwright` / `desktop_screenshot` **零命中** ✅ |
+
+**P0 修复固化确认**：`provider_manager.py` 的孤立 `if` 曾使整条 import 链 `IndentationError`、服务完全起不来；本次干净容器中 app 稳定 RUNNING、日志零 `IndentationError`，即修复已固化进镜像。
+
+**验证方法学备忘**（两个已踩过的坑，勿重犯）：
+1. 验证容器**不要**挂宿主 `src`（`-v 宿主src:/app/src`）——会盖掉镜像内 `console/` 构建产物，导致假报"前端未构建"。
+2. 只查 HTTP 状态码不够——`console is not available` 错误 JSON 也返回 200，**必须查 body**。
 
 **体积构成（docker history + 容器 du）**：
 - `/app/venv` **746MB**（Python 依赖）—— 绝对大头
@@ -795,3 +819,5 @@ GPL 是 copyleft 传染性许可，与 Apache-2.0 闭源分发目标冲突，违
 | 2026-08-14 | v2.1.0 移植第二批（P1-14 #6543/#6769 + P1-26 前端 UI + P0-10 #6495）落地，commit `5154f61`/`cad5be0`/`70db5c5`。**I-023 更正**：曾误判「本地基线≠官方 v2.0.1」，经 clone 官方 v2.0.1 逐文件 diff 确认基线完全一致，真实原因是 patch 累积 diff 的提交依赖（#6237 依赖 PATCH 066、#6676 依赖 PATCH 072） |
 | 2026-08-17 | I-002/I-003 解决：deploy/Dockerfile 追加 COPY LICENSE NOTICE + docs/CHANGES-FROM-UPSTREAM.md 进镜像 + 3 个 OCI labels（licenses/source/description）；.dockerignore 加 !LICENSE/!NOTICE/!docs/CHANGES-FROM-UPSTREAM.md/!docs/license-compliance.md 白名单例外，使合规文件进入构建上下文（连体问题，同批改） |
 | 2026-08-18 | I-004 构建验证通过：镜像 1.91GB（原 ~4GB），Chromium/XFCE4/Node 已剥离；中途修复 runtime 基础镜像 agentscope/uv→python:3.12-slim（无 shell 导致 apt 崩）+ COPY --chmod→RUN chmod（旧构建器不支持）。剩余 800MB 目标需 venv 依赖树瘦身（钉钉/飞书/Twilio/本地模型 SDK 死重 ~300MB+，dingtalk 为顶层 import 有风险），列为独立子阶段 |
+| 2026-08-18 | 发现并修复 **P0**：`provider_manager.py` 残留孤立 `if provider_id is not None:`（v2.1.0 移植 d4eb42a 遗留）致 `IndentationError`、整条 import 链崩、服务完全无法启动，commit `b95b02c`。清理 browser_use/desktop_screenshot 残留引用（`750e15b`）并删除 3 个孤儿文件 `browser_control.py`/`browser_snapshot.py`/`desktop_screenshot.py`（`2e54cab`）；工作区 15 个 `.diff`/`.patch` 草稿 + `.tmp_console_dist/` 已清理 |
+| 2026-08-18 | I-004 **最终重建 + 干净容器验收通过**：47/47 步、`BUILD_EXIT=0`、镜像 1.93GB（+20MB 属上游包版本波动）。干净容器（不挂宿主目录）实测：桌面栈全剥离、supervisord 仅 app 进程、真实 React 页 `hanbao Console` 返回 200、`auth/status` 正常、日志零异常。固化两条验证方法学：①验证容器勿挂宿主 src（会盖掉镜像内前端产物）②勿只看 HTTP 状态码（错误 JSON 也返 200，必须查 body） |

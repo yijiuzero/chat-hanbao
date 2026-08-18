@@ -501,9 +501,16 @@ hanbao 是 QwenPaw 的派生作品（再分发者），即便只分发镜像（�
 - [修改] `deploy/Dockerfile` — runtime 基础镜像 `node:slim` → `agentscope/uv`（Python+uv，去 Node 运行时）；删除 XFCE4/Xvfb/dbus-x11/Chromium+依赖库/fonts-liberation/vim；`build-essential` 改为临时安装后 `apt-get purge` 不进最终镜像；精简 supervisord 的 `app` 程序环境变量
 - [修改] `deploy/config/supervisord.conf.template` — 移除 `dbus`/`xvfb`/`xfce4` 三个程序（仅服务浏览器 GUI），`app` 程序去掉 `DISPLAY`/`PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH`
 - [保留] LICENSE/NOTICE/CHANGES + OCI labels（见 I-002，合规层不动）
-- [保留] 孤儿文件 `browser_control.py`/`browser_snapshot.py`/`desktop_screenshot.py` 暂不 git rm（按环境安全规则留 orphan，物理删除待用户手动）
+- [删除] 孤儿文件 `browser_control.py`/`browser_snapshot.py`/`desktop_screenshot.py` 已于 2026-08-18 经用户授权删除（commit `2e54cab`）。删除方式：`rm` + `git add -u`，**未使用 `git rm`**（本环境 `git rm` 曾因陈旧 `.git/index.lock` 误暂存删除整个 `src/qwenpaw/agents/` 子树 92 文件，已 `git reset --hard` 全量救回，零损失）
 - [目标] 镜像体积从 ~4GB 降至 ≤800MB
 - [构建验证 2026-08-18] `DOCKER_BUILDKIT=0` 直连构建成功，镜像 **1.91GB**（~4GB 砍半）。中途两处修复（[hanbao modification]）：① runtime 基础镜像 `agentscope/uv` → `python:3.12-slim`（`agentscope/uv` 为纯 uv 执行器、无 `/bin/sh`、无 apt，导致 `RUN apt-get` 崩）；② `COPY --chmod=755` → `COPY` + `RUN chmod +x`（旧版构建器不支持 `--chmod`）。体积构成：venv 746MB（Python 依赖绝对大头）+ apt 系统库/字体层 ~1GB；Chromium/Xvfb/xfce4 已确认剥离。剩余 800MB 目标需 venv 依赖树瘦身（钉钉/飞书/Twilio/本地模型 SDK 死重 ~300MB+，dingtalk 为顶层 import 有风险），列为独立子阶段，按铁律不在此会话闷头执行（详见 known-issues I-004）。
+- [最终验收 2026-08-18] 删死代码 + 固化 P0 修复后重建：47/47 步、`BUILD_EXIT=0`、镜像 **1.93GB**（相较 1.91GB 的 +20MB 属上游 apt/pypi 包版本波动，非回退）。**干净容器验收全绿**（`docker run` 不挂任何宿主目录）：桌面栈（chromium/Xvfb/xfce4/dbus/node/npm）`which` 全无输出；`Python 3.12.14` + uv 就位；镜像内前端产物 `/app/src/qwenpaw/console/`（assets + hanbao-logo.jpg）完好；supervisord 仅 `app` 单进程（桌面栈进程已从 template 移除）10s 后 RUNNING；根路径返回真实 React 页（`<title>hanbao Console</title>`、`<div id="root">`）而非 `console is not available` 错误 JSON；`auth/status` → `{"enabled":false,"has_users":false}`；容器日志 `traceback`/`IndentationError`/`ImportError`/`browser_use`/`playwright`/`desktop_screenshot` 零命中。
+
+### P0 修复 · provider_manager 语法错误致服务无法启动（2026-08-18）
+- **文件**：`src/qwenpaw/providers/provider_manager.py`
+- **问题**：v2.1.0 移植（`d4eb42a`）遗留一处孤立的 `if provider_id is not None:`（无 body），触发 `IndentationError`，导致整条 import 链崩溃、服务完全无法启动（属 P0 阻断级）。
+- **修复**：删除该孤立 `if`，保留下方语义完整的 `if (provider_id is not None and self.active_model.provider_id != provider_id): return False`。commit `b95b02c`。
+- **验证**：干净容器中 app 稳定 RUNNING、8088 返回 200、日志零 `IndentationError`。
 
 ## 阶段 5 · FPK 打包
 
