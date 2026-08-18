@@ -538,9 +538,10 @@ async def lifespan(  # pylint: disable=too-many-statements,too-many-branches
             except Exception as e:
                 logger.error(f"Error stopping MultiAgentManager: {e}")
 
-        # These three cleanup tasks are independent; run in parallel.
+        # These two cleanup tasks are independent; run in parallel.
+        # [hanbao modification] browser_use / Chromium 已移除，不再需要
+        # 在关闭时停止浏览器（stop_all_browsers 来自已删除的 browser_control）。
         from ..agents.skill_system.hub import aclose_hub_client
-        from ..agents.tools.browser_control import stop_all_browsers
 
         async def _stop_token_usage():
             logger.info("Stopping TokenUsageManager...")
@@ -549,14 +550,6 @@ async def lifespan(  # pylint: disable=too-many-statements,too-many-branches
             except Exception as e:
                 logger.error(
                     f"Error stopping TokenUsageManager: {e}",
-                )
-
-        async def _stop_browsers():
-            try:
-                await stop_all_browsers()
-            except Exception as e:
-                logger.error(
-                    f"Error stopping browsers: {e}",
                 )
 
         async def _close_hub():
@@ -569,7 +562,6 @@ async def lifespan(  # pylint: disable=too-many-statements,too-many-branches
 
         await asyncio.gather(
             _stop_token_usage(),
-            _stop_browsers(),
             _close_hub(),
         )
 
