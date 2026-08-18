@@ -11,9 +11,11 @@ volumes:
 services:
   qwenpaw:
     # [hanbao modification] 上架飞牛采用「预构建镜像 + 不构建」模式：
-    # 镜像由开发者本地构建为 hanbao:latest 后随 FPK 分发，飞牛上只 docker run，
+    # 镜像由开发者本地构建后推到自有仓库 / 或打包随 FPK 分发，飞牛上只 docker run，
     # 不在 NAS 执行 docker build（故无需从上游 agentscope 仓库拉取构建镜像）。
-    image: hanbao:latest
+    # 镜像地址通过环境变量注入：FPK 安装脚本设 HANBAO_IMAGE=你的仓库/hanbao:latest 实现仓库拉取；
+    # 若随 FPK 打包 tar 并用 docker load 载入，保持默认本地 hanbao:latest 即可。
+    image: ${HANBAO_IMAGE:-hanbao:latest}
     init: true
     container_name: qwenpaw
     restart: always
