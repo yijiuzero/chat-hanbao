@@ -12,7 +12,7 @@
 | [I-001](#i-001) | 上游 `.gitignore` 静默吞掉运行时必需文件 | 🔥 高 | 阶段 0（已完成） | 🟢 已解决 |
 | [I-002](#i-002) | Dockerfile 缺 `COPY LICENSE NOTICE`（合规缺口） | 🔥 高（法务） | 阶段 4 容器化 | 🟢 已解决（2026-08-17） |
 | [I-003](#i-003) | `.dockerignore` 的 `*.md` 会排除合规文档 | 🔥 高（法务） | 阶段 4 容器化 | 🟢 已解决（2026-08-17） |
-| [I-004](#i-004) | 镜像含完整 XFCE4 桌面 + Chromium，体积巨大 | 🟠 中 | 阶段 4 容器化 | 🟡 已实施（待构建验证） |
+| [I-004](#i-004) | 镜像含完整 XFCE4 桌面 + Chromium，体积巨大 | 🟠 中 | 阶段 4 容器化 | 🟡 已实施（构建通过 1.91GB，800MB 待 venv 瘦身） |
 | [I-005](#i-005) | 基础镜像拉取失败（buildkit 并发鉴权 EOF） | 🟠 中 | 阶段 1 构建时 | 🟢 已解决（预拉规避） |
 | [I-006](#i-006) | 上游自带遥测上报 | 🟠 中 | 阶段 2 删减定制 | 🟢 已解决（上报禁用+调用移除） |
 | [I-007](#i-007) | Web Console 默认无认证（上游认证系统完整，仅默认关闭） | 🟠 中 | 阶段 5 FPK 打包 | 🟡 方案已明确 |
@@ -141,7 +141,7 @@ docker run --rm hanbao:<tag> sh -c "ls -l /app/LICENSE /app/NOTICE"
 <a id="i-004"></a>
 ## I-004 · 镜像含完整 XFCE4 桌面 + Chromium，体积巨大
 
-**严重度**：🟠 中 &nbsp;|&nbsp; **状态**：🟡 已实施（待构建验证） &nbsp;|&nbsp; **必须处理时机**：阶段 4 容器化
+**严重度**：🟠 中 &nbsp;|&nbsp; **状态**：🟡 已实施（构建通过 1.91GB，800MB 待 venv 依赖树瘦身） &nbsp;|&nbsp; **必须处理时机**：阶段 4 容器化
 
 ### 现象
 `deploy/Dockerfile` 的 runtime 阶段安装了：
@@ -188,6 +188,29 @@ docker build -f deploy/Dockerfile -t hanbao:0.0.1-slim .
 docker images hanbao:0.0.1-slim   # 目标 ≤ 800MB
 docker run --rm hanbao:0.0.1-slim sh -c "which chromium xvfb-run startxfce4 2>/dev/null; echo desktop-tools-removed"
 ```
+
+### 构建验证（2026-08-18）
+**构建方式**：`DOCKER_BUILDKIT=0` 直连（绕开 buildx 拉 `moby/buildkit` 构建器镜像时卡死的死代理）。前端 `npm run build`、Python `uv pip install` 直连 npmjs/pypi 均 200 可达，全链路通过。
+
+**中途两处修复（[hanbao modification]）**：
+1. runtime 基础镜像 `agentscope/uv:latest` → `python:3.12-slim`：`agentscope/uv` 是纯 uv 执行器（`Entrypoint=/uv`、无 `/bin/sh`、无 apt），导致 `RUN apt-get` 直接崩；换成有 shell+apt 的官方 Python slim 镜像（满足 `requires-python >=3.11,<3.14`）。
+2. `COPY --chmod=755 ...` → `COPY ...` + `RUN chmod +x`：旧版构建器不支持 `--chmod` 语法。
+
+**结果**：镜像 **1.91GB**（原 ~4GB，砍掉 Chromium+XFCE4 桌面+Node 运行时后砍半）。Chromium/Xvfb/xfce4 已确认不在镜像内。
+
+**体积构成（docker history + 容器 du）**：
+- `/app/venv` **746MB**（Python 依赖）—— 绝对大头
+- apt 运行时系统库 + 中文字体层 ~1GB（python:3.12-slim 基础 ~150MB + 运行时依赖）
+- `/app/src` 39MB、`/usr/share/fonts` 25MB
+
+**第二阶段：冲 800MB（待做，独立子阶段）**
+剩余大头是 `venv` 里"已关闭功能"对应的 SDK 死重（容器 `du` + `grep src` 确认）：
+- `alibabacloud_dingtalk` 36M + `lark_oapi` 48M → 钉钉/飞书（已关闭渠道）；⚠️ `dingtalk/channel.py` 为**顶层 import**，砍依赖前须确认不被启动急切加载，否则 import 崩溃；`feishu/channel.py` 为函数内**惰性 import**，删之安全
+- `twilio` 24M → 短信渠道（hanbao 不需要）
+- `transformers` 53M + `modelscope` 30M + `onnxruntime` 49M → 本地模型相关（本地 LLM 已砍，纯云 API）；`src` 中**无直接 import**，纯依赖残留
+- `pandas` 42M / `sympy` 30M → 部分工具链
+
+以上可砍约 **300MB+**，但砍完后总镜像仍预计 >1GB（venv 仍 ~400MB+，叠加系统层）。**结论：800MB 在当前单层依赖结构下极难达成**，需评估是否接受"≤1.5GB 务实线"或进一步拆分（多阶段剥离 venv 编译残留 / 换 `python:3.12-alpine`）。此子阶段须先做完整依赖影响分析（尤其 dingtalk 顶层 import），按铁律"删功能高危先分析"，**不在此会话闷头执行**。
 
 ---
 
@@ -771,3 +794,4 @@ GPL 是 copyleft 传染性许可，与 Apache-2.0 闭源分发目标冲突，违
 | 2026-08-14 | v2.1.0 P0/P1 移植第一批（P0-4/8/9/11 + P1-26 后端 + P1-28 + P0-1#6382 + P1-12/15/20）全部落地，commit `315294d` + 后续 #6382/#6907/#6709/#6639。新增 I-024：Monaco 编辑器残留（Coding Mode 砍不干净，阶段3 收尾清理） |
 | 2026-08-14 | v2.1.0 移植第二批（P1-14 #6543/#6769 + P1-26 前端 UI + P0-10 #6495）落地，commit `5154f61`/`cad5be0`/`70db5c5`。**I-023 更正**：曾误判「本地基线≠官方 v2.0.1」，经 clone 官方 v2.0.1 逐文件 diff 确认基线完全一致，真实原因是 patch 累积 diff 的提交依赖（#6237 依赖 PATCH 066、#6676 依赖 PATCH 072） |
 | 2026-08-17 | I-002/I-003 解决：deploy/Dockerfile 追加 COPY LICENSE NOTICE + docs/CHANGES-FROM-UPSTREAM.md 进镜像 + 3 个 OCI labels（licenses/source/description）；.dockerignore 加 !LICENSE/!NOTICE/!docs/CHANGES-FROM-UPSTREAM.md/!docs/license-compliance.md 白名单例外，使合规文件进入构建上下文（连体问题，同批改） |
+| 2026-08-18 | I-004 构建验证通过：镜像 1.91GB（原 ~4GB），Chromium/XFCE4/Node 已剥离；中途修复 runtime 基础镜像 agentscope/uv→python:3.12-slim（无 shell 导致 apt 崩）+ COPY --chmod→RUN chmod（旧构建器不支持）。剩余 800MB 目标需 venv 依赖树瘦身（钉钉/飞书/Twilio/本地模型 SDK 死重 ~300MB+，dingtalk 为顶层 import 有风险），列为独立子阶段 |

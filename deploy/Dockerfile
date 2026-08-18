@@ -28,11 +28,12 @@ FROM ${UV_IMAGE} AS uv-src
 # -----------------------------------------------------------------------------
 # Stage 2: runtime image with Python (no Node, no desktop, no Chromium).
 # -----------------------------------------------------------------------------
-# [hanbao modification] I-004: runtime base is now the Python+uv image
-# (agentscope/uv) instead of node:slim, dropping the Node runtime (~200MB+)
-# from the final image. The console is pre-built static assets served by
-# FastAPI, so Node is not needed at runtime.
-FROM ${UV_IMAGE}
+# [hanbao modification] I-004: runtime base is now python:3.12-slim
+# (Debian slim, has /bin/sh + apt + python3) instead of node:slim, dropping
+# the Node runtime (~200MB+) from the final image. The console is pre-built
+# static assets served by FastAPI, so Node is not needed at runtime. The uv
+# binary is still sourced from the agentscope/uv image via the uv-src stage.
+FROM python:3.12-slim
 
 # ENV variables
 ENV NODE_ENV=production
@@ -116,7 +117,9 @@ RUN apt-get purge -y build-essential gcc g++ make && \
     rm -rf /var/lib/apt/lists/* && apt-get clean
 
 COPY deploy/config/supervisord.conf.template /etc/supervisor/conf.d/supervisord.conf.template
-COPY --chmod=755 deploy/entrypoint.sh /entrypoint.sh
+# [hanbao modification] I-004: DOCKER_BUILDKIT=0 (legacy builder, no --chmod) compatibility
+COPY deploy/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 EXPOSE 8088
 
