@@ -7,7 +7,7 @@ is_auth_enabled() {
   if [ "${QWENPAW_AUTH_ENABLED+x}" ]; then
     flag="${QWENPAW_AUTH_ENABLED}"
   else
-    flag="${COPAW_AUTH_ENABLED:-}"
+    flag="${QWENPAW_AUTH_ENABLED:-}"
   fi
   flag="$(printf '%s' "$flag" | tr '[:upper:]' '[:lower:]')"
   [ "$flag" = "true" ] || [ "$flag" = "1" ] || [ "$flag" = "yes" ]

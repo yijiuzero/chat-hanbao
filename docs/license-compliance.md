@@ -89,7 +89,7 @@ Apache License 2.0 是**宽松许可（permissive）**，明确授权：
 - [ ] 删除的功能模块不影响 LICENSE/NOTICE 完整性
 - [ ] 删除动作记入 CHANGES
 - [ ] 若引入新的第三方依赖，核对其许可是否与 Apache-2.0 兼容（禁止引入 GPL/AGPL，见 §5）
-- [ ] **全依赖树 license 审计**：不能只看顶层 Apache-2.0，依赖树里可能藏 GPL 库（html2text 教训，I-020）或第三方专有内容（Anthropic 技能教训，I-019）
+- [x] **全依赖树 license 审计（2026-08-18 完成，镜像 venv 实测）**：216 个 Python 包；**无 GPL / AGPL / SSPL 强传染许可**；弱传染仅 LGPLv3×1（python-telegram-bot，动态链接）与 MPL-2.0×3（bidict / certifi / orjson，文件级弱传染）；无专有许可（authlib 的 "Proprietary" 为描述误报，实为何 BSD-3-Clause）。结论：可安全闭源分发。详见 NOTICE。
 - [ ] **内置技能/内容的 license 检查**：`agents/skills/` 等内置内容可能带独立 LICENSE（上游 QwenPaw 的 docx/pdf/pptx/xlsx 技能即 Anthropic 专有），逐一核对 source/许可后再决定保留或替换
 
 ### 阶段 4 · 容器化

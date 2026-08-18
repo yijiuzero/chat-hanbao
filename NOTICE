@@ -50,7 +50,17 @@ LGPL components (weak copyleft — dynamically linked via Python import,
 source unmodified, closed-source redistribution permitted under LGPL):
 
     python-telegram-bot (LGPLv3)      — Telegram channel
-    docstring-to-markdown (LGPLv2+)   — pylint dependency
+
+MPL-2.0 components (weak copyleft — file-level; unmodified, redistribution
+permitted under MPL-2.0, no obligation to open the surrounding work):
+
+    bidict (MPL-2.0)                  — bidirectional dictionary
+    certifi (MPL-2.0)                 — CA trust-store bundle
+    orjson (MPL-2.0)                  — fast JSON (de)serialization
+
+NOTE: docstring-to-markdown (LGPLv2+) is a transitive dependency of pylint
+and is NOT present in the runtime image; it is excluded from distribution.
 
 LGPL license texts: https://www.gnu.org/licenses/lgpl-3.0.txt and
 https://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt
+MPL-2.0 license text: https://www.mozilla.org/en-US/MPL/2.0/
