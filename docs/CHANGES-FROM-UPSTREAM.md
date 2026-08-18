@@ -202,6 +202,20 @@ hanbao 仅做 Web 聊天，桌面打包（Tauri + Rust）需求不存在。
 - `console/src/utils/downloadFileFromUrl.ts` — 移除 Tauri invoke/save import
 - `console/src/pages/Agent/ACP/index.tsx` — 移除 Tauri 文件选择器
 
+### QwenPaw Pet 桌面宠物插件移除（2026-08-18）
+
+hanbao 仅做 Web 聊天且容器已砍桌面栈（I-004），桌面宠物（依赖 PySide6 + 独立桌面进程 `qwenpaw_pet_desktop`）既不在部署镜像内（`Dockerfile` 仅 `COPY src ./src`，根目录 `plugins/` 从未 COPY），也失去运行环境，故整目录移除。
+
+**文件删除：**
+- `plugins/bundle/qwenpaw-pet/`（完整目录：backend `plugin.py`/`emitter.py`/`patch_approval.py`/`patch_runner.py`/`pet_paths.py`/`router.py`、桌面端 `qwenpaw_pet_desktop/`（PySide6 GUI）、前端 `frontend/`、`plugin.json`/`README.md`/`requirements.txt` 等共 34 文件）
+
+**依赖分析结论（删前已核查，按铁律不做无依据删除）：**
+- 主程序零引用（`grep qwenpaw[_-]?pet` 除自身外无命中）；无集中注册清单；运行时 `PluginLoader` 不自动拷贝 `plugins/bundle/` 进 `WORKING_DIR/plugins`；无测试引用。删除无悬空引用、无运行时崩溃风险。
+- `website/public/blog/play-with-qwenpaw-pet.*.md` 与 `website/public/release-notes/` 仍含 QwenPaw Pet 叙述（营销站，不进镜像），作为上游历史记录保留，未随删。
+
+**文档同步：**
+- `docs/known-issues.md` `dist/` 误吞表项：`{cloudpaw/ui,qwenpaw-pet}` → `cloudpaw/ui`（qwenpaw-pet 已删）。
+
 ### 品牌资源替换（2026-08-12）
 
 - [修改] `console/public/online.svg` — favicon 替换为 hanbao 图标（墨风角色肖像）

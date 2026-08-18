@@ -49,7 +49,7 @@
 |---|---|---|---|
 | `src/qwenpaw/agents/md_files/**/AGENTS.md` | 7 | `.gitignore:109` 裸 `AGENTS.md` | Agent 提示词缺失，智能体行为异常 |
 | `console/package-lock.json` | 1 | `.gitignore:82` | `npm ci` 失败，无法复现构建 |
-| `plugins/bundle/{cloudpaw/ui,qwenpaw-pet}/dist/index.js` | 2 | `.gitignore:33` `dist/` | 插件加载失败 |
+| `plugins/bundle/cloudpaw/ui/dist/index.js` | 1 | `.gitignore:33` `dist/` | 插件加载失败 |
 
 ### 根因
 上游仓库里这些文件是**已追踪状态**，Git 对已追踪文件不再应用 `.gitignore`，所以上游自己毫无感知。
