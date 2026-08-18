@@ -10,12 +10,17 @@ volumes:
 
 services:
   qwenpaw:
-    image: agentscope/qwenpaw:latest
+    # [hanbao modification] 上架飞牛采用「预构建镜像 + 不构建」模式：
+    # 镜像由开发者本地构建为 hanbao:latest 后随 FPK 分发，飞牛上只 docker run，
+    # 不在 NAS 执行 docker build（故无需从上游 agentscope 仓库拉取构建镜像）。
+    image: hanbao:latest
     init: true
     container_name: qwenpaw
     restart: always
+    # 监听所有网卡，使同一局域网内的手机/笔记本可访问（Web Console 认证已默认开启，LAN 暴露安全）。
+    # 若飞牛应用中心通过自身网关代理访问，可改回 127.0.0.1。
     ports:
-      - "127.0.0.1:8088:8088"
+      - "0.0.0.0:8088:8088"
     # environment:
     #   - QWENPAW_AUTH_ENABLED=true
     #   - QWENPAW_AUTH_USERNAME=admin
