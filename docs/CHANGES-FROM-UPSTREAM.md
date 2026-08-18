@@ -514,7 +514,14 @@ hanbao 是 QwenPaw 的派生作品（再分发者），即便只分发镜像（�
 
 ## 阶段 5 · FPK 打包
 
-_（待执行）_
+### I-007 镜像层落地（2026-08-18）：默认开启 Web Console 认证
+- **前置确认**：`config.py:2361` `allow_no_auth_hosts` 默认 `["127.0.0.1","::1"]`（仅 loopback），`trusted_proxies` 默认空，开认证后 LAN 不会被误免登，安全无需改。
+- **deploy/entrypoint.sh** [hanbao modification]：新增 `export QWENPAW_AUTH_ENABLED="${QWENPAW_AUTH_ENABLED:-true}"`（默认开，用户 `-e ...=false` 可关）+ `print_auth_banner()` 开启引导；原 `warn_if_auth_off_container_bind` 仅显式关闭时触发。
+- **deploy/Dockerfile** [hanbao modification]：新增 `ENV QWENPAW_AUTH_ENABLED=true` 双保险。
+- **未做（待阶段 5 向导）**：FPK 安装向导收集管理员账号密码 → 注入 `QWENPAW_AUTH_USERNAME`/`QWENPAW_AUTH_PASSWORD` → `auto_register_from_env()` 首启自动建账号。依赖飞牛 FPK 打包规范（本环境暂无）。
+- 改完按铁律未立即构建，待用户说"测一下"再重建验证。
+
+_（其余 FPK 打包待执行）_
 
 ---
 

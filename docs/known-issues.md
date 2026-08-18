@@ -15,7 +15,7 @@
 | [I-004](#i-004) | 镜像含完整 XFCE4 桌面 + Chromium，体积巨大 | 🟠 中 | 阶段 4 容器化 | 🟡 已实施并验收（干净容器通过，1.93GB；800MB 待 venv 瘦身） |
 | [I-005](#i-005) | 基础镜像拉取失败（buildkit 并发鉴权 EOF） | 🟠 中 | 阶段 1 构建时 | 🟢 已解决（预拉规避） |
 | [I-006](#i-006) | 上游自带遥测上报 | 🟠 中 | 阶段 2 删减定制 | 🟢 已解决（上报禁用+调用移除） |
-| [I-007](#i-007) | Web Console 默认无认证（上游认证系统完整，仅默认关闭） | 🟠 中 | 阶段 5 FPK 打包 | 🟡 方案已明确 |
+| [I-007](#i-007) | Web Console 默认无认证（上游认证系统完整，仅默认关闭） | 🟠 中 | 阶段 5 FPK 打包 | 🟢 已解决（镜像层默认开认证） |
 | [I-008](#i-008) | console 前端构建 OOM，4GB WSL 内存不足 | 🔥 高（曾阻塞） | 阶段 1 构建时 | 🟢 已解决 |
 | [I-009](#i-009) | 构建机 C 盘 0GB 可用，Docker 无法写入 | 🔥 高（阻塞） | 阶段 1 构建时 | 🟢 已解决（迁 F 盘 Junction） |
 | [I-010](#i-010) | WSL 崩溃转储吞噬 18.58GB 磁盘 | 🔥 高 | 阶段 1 构建前 | 🟢 已解决（crashDumpCount=0） |
@@ -327,7 +327,7 @@ hanbao 将**分发给第三方用户**（飞牛应用中心下载）。让用户
 <a id="i-007"></a>
 ## I-007 · Web Console 默认无认证
 
-**严重度**：🟠 中 &nbsp;|&nbsp; **状态**：🟡 方案已明确（上游认证系统完整，仅默认关闭，FPK 阶段默认开启） &nbsp;|&nbsp; **必须处理时机**：阶段 5 FPK 打包
+**严重度**：🟠 中 &nbsp;|&nbsp; **状态**：🟢 已解决（deploy/entrypoint.sh + Dockerfile 默认 `QWENPAW_AUTH_ENABLED=true`，用户可 `-e QWENPAW_AUTH_ENABLED=false` 关闭） &nbsp;|&nbsp; **必须处理时机**：阶段 5 FPK 打包（镜像层已落地）
 
 ### 现象
 QwenPaw Web Console（8088）默认不开启认证，设计假设是"个人本地使用"。
@@ -355,9 +355,17 @@ QwenPaw Web Console（8088）默认不开启认证，设计假设是"个人本�
 3. 保留 entrypoint.sh 的 SECURITY NOTICE 警告（auth 关闭时提示），并保留 `security.allow_no_auth_hosts` 回环免登（NAS 本机访问便利）。
 4. ⚠️ 阶段 5 实施前需确认 `security.allow_no_auth_hosts` 默认值不误放行 LAN 访问（应为仅 loopback）。
 
+### 实施记录（2026-08-18）：镜像层落地，默认开启认证
+- **默认值确认（安全前置）**：`src/qwenpaw/config/config.py:2361` `SecurityConfig.allow_no_auth_hosts` 默认 `["127.0.0.1","::1"]`，**仅 loopback、不开 LAN**；`trusted_proxies` 默认空，配合 `_should_skip_auth` 的"direct peer 须同为 loopback"防御纵深——开认证后不会被误免登，无需改动。
+- **deploy/entrypoint.sh**：新增 `export QWENPAW_AUTH_ENABLED="${QWENPAW_AUTH_ENABLED:-true}"`（默认开，用户 `-e ...=false` 可关）+ `print_auth_banner()`：开启且无凭据 env 时提示"首次打开页面设管理员密码"，有凭据 env 时提示"自动建账号"。原 `warn_if_auth_off_container_bind` 仅当用户显式关闭时触发。
+- **deploy/Dockerfile**：新增 `ENV QWENPAW_AUTH_ENABLED=true` 双保险（即便绕过 entrypoint 直接 exec app，仍默认开）。
+- **行为说明（上游设计）**：`auth.py:_should_skip_auth` 首行 `if not is_auth_enabled() or not has_registered_users(): return True`——**未注册账号前跳过认证**（首次注册模式）。故默认开认证但无凭据 env 时，安装后第一个打开页面的人可设密码（单用户家庭场景可接受；FPK 阶段应由向导注入凭据消除此窗口）。
+- **未做（留阶段 5 FPK）**：FPK 安装向导收集管理员账号密码 → 注入 `QWENPAW_AUTH_USERNAME`/`QWENPAW_AUTH_PASSWORD` → `auto_register_from_env()` 首启自动建账号。此环节依赖飞牛 FPK 打包规范（本环境暂无）。
+- 改完按铁律未立即构建，待用户说"测一下"再重建镜像验证。
+
 ### 关联改动（2026-08-14，非本项解决）
 - **OneBot 反向 WS 服务端**获独立加固（上游 v2.1.0 #6676，P0-2）：`ws_host` 默认改 loopback，非 loopback 绑定强制 `access_token`（常量时间比较，拒绝 query-param token）。见 `CHANGES-FROM-UPSTREAM.md` 阶段 3 对应条目。
-- ⚠️ 上述加固**只覆盖 OneBot 渠道的 WS 服务端**，本 I-007 专指 **Web Console 8088 本身无认证**，二者是不同攻击面。Console 8088 认证**仍待处理**，未因 #6676 而解决。
+- ⚠️ 上述加固**只覆盖 OneBot 渠道的 WS 服务端**，本 I-007 专指 **Web Console 8088 本身无认证**，二者是不同攻击面。Console 8088 认证已于本 I-007 镜像层落地（默认开启）；#6676 仅加固 OneBot WS，不替代本项。
 
 ---
 

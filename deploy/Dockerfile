@@ -111,6 +111,8 @@ LABEL org.opencontainers.image.description="hanbao (函包), derived from QwenPa
 # [hanbao modification] Brand display name in comment
 # hanbao app port (default 8088). Override at runtime with -e QWENPAW_PORT=3000.
 ENV QWENPAW_PORT=8088
+# [hanbao modification] I-007: 上架飞牛默认开启 Web Console 认证（可被 -e QWENPAW_AUTH_ENABLED=false 覆盖）
+ENV QWENPAW_AUTH_ENABLED=true
 
 # [hanbao modification] I-004: remove the build toolchain from the final image.
 RUN apt-get purge -y build-essential gcc g++ make && \
