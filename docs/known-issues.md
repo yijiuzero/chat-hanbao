@@ -228,13 +228,21 @@ docker run --rm hanbao:0.0.1-slim sh -c "which chromium xvfb-run startxfce4 2>/d
 - `/app/src` 39MB、`/usr/share/fonts` 25MB
 
 **第二阶段：冲 800MB（待做，独立子阶段）**
-剩余大头是 `venv` 里"已关闭功能"对应的 SDK 死重（容器 `du` + `grep src` 确认）：
-- `alibabacloud_dingtalk` 36M + `lark_oapi` 48M → 钉钉/飞书（已关闭渠道）；⚠️ `dingtalk/channel.py` 为**顶层 import**，砍依赖前须确认不被启动急切加载，否则 import 崩溃；`feishu/channel.py` 为函数内**惰性 import**，删之安全
-- `twilio` 24M → 短信渠道（hanbao 不需要）
-- `transformers` 53M + `modelscope` 30M + `onnxruntime` 49M → 本地模型相关（本地 LLM 已砍，纯云 API）；`src` 中**无直接 import**，纯依赖残留
-- `pandas` 42M / `sympy` 30M → 部分工具链
 
-以上可砍约 **300MB+**，但砍完后总镜像仍预计 >1GB（venv 仍 ~400MB+，叠加系统层）。**结论：800MB 在当前单层依赖结构下极难达成**，需评估是否接受"≤1.5GB 务实线"或进一步拆分（多阶段剥离 venv 编译残留 / 换 `python:3.12-alpine`）。此子阶段须先做完整依赖影响分析（尤其 dingtalk 顶层 import），按铁律"删功能高危先分析"，**不在此会话闷头执行**。
+> ✅ **前置影响分析已完成（2026-08-18，源码+镜像 venv 实测）**，以下为实测结论，替代早前推测。
+
+**渠道 SDK 死重（已关闭渠道，hanbao 仅用微信+OneBot）**：
+- `lark_oapi` 50M（飞书）+ `alibabacloud_dingtalk` 42M + `dingtalk_stream`/`tea-openapi`/`credentials`/`tea-util`（钉钉全家桶）→ 实测 `get_channel_registry()`（`channels/registry.py`）对每个内置渠道**独立 `importlib.import_module()` + try/except**，除 `console`（必加载）外失败仅 `continue` 静默跳过 → **SDK 缺失不会导致启动崩溃**，渠道不可用时自动缺席。且 `channels/__init__.py` 已对 `ChannelManager` 惰性加载（注释明示"avoid pulling feishu/lark_oapi on CLI"）。⚠️ 移除后该渠道在镜像内不可用，如需启用须重装依赖并重建镜像——功能取舍，须用户拍板
+- `twilio` 25M（短信渠道，hanbao 不需要）
+- `discord-py`/`python-telegram-bot`/`slack-bolt`/`paho-mqtt`/`matrix-nio`/`wecom-aibot-python-sdk`（各 ~1-5M，已关闭渠道；registry 容错同上）
+
+**本地模型残留（本地 LLM 已砍，纯云 API；src 零 import，纯依赖残留）**：
+- `transformers` 54M + `modelscope` 33M + `huggingface_hub` → pyproject 主依赖声明，但 `src` 无任何直接/动态 import（`market/providers/modelscope.py` 仅 HTTP provider 名字撞包名，非包引用）；`google_genai` 依赖 transformers 仅 `extra == "local-tokenizer"`（未启用）
+- ⚠️ **`onnxruntime` 50M 不能删**：`markitdown`→`magika`（`magika/magika.py:31` 顶层 `import onnxruntime as rt`）→ 文档读取技能 `document_reader`（I-019 保留功能）硬依赖链
+- `sympy` 31M 被 `onnxruntime` 硬依赖（无 extra 条件）→ 连带保留
+- `pandas` 42M：`openai` 依赖仅 `extra == "datalib"`、`agentscope` 仅 `extra == "rag"`、`markitdown` 仅 `extra == "all"`（均未启用），但 `fsspec`/`modelscope` 链路牵连，需结合上项删除后再复核
+
+**可砍约 200MB+（渠道 SDK 全砍 + transformers/modelscope/hf_hub）**，砍后 venv 预计 ~500MB，总镜像预计 ~1.6GB。**结论：800MB 在当前单层依赖结构下仍极难达成**（venv 至少 ~500MB + 系统层 ~700MB+），需评估接受"≤1.5GB 务实线"或换 `python:3.12-alpine`（省 ~100MB 但 glibc→musl 可能破坏 onnxruntime/magika 等预编译 wheel）。此子阶段实施前须：① 用户拍板渠道 SDK 去留（功能取舍）；② 确认 document_reader 技能保留则 onnxruntime/sympy 必留；③ 实施时改 pyproject 主依赖（勿留 extra 声明）。
 
 ---
 
@@ -827,5 +835,6 @@ GPL 是 copyleft 传染性许可，与 Apache-2.0 闭源分发目标冲突，违
 | 2026-08-14 | v2.1.0 移植第二批（P1-14 #6543/#6769 + P1-26 前端 UI + P0-10 #6495）落地，commit `5154f61`/`cad5be0`/`70db5c5`。**I-023 更正**：曾误判「本地基线≠官方 v2.0.1」，经 clone 官方 v2.0.1 逐文件 diff 确认基线完全一致，真实原因是 patch 累积 diff 的提交依赖（#6237 依赖 PATCH 066、#6676 依赖 PATCH 072） |
 | 2026-08-17 | I-002/I-003 解决：deploy/Dockerfile 追加 COPY LICENSE NOTICE + docs/CHANGES-FROM-UPSTREAM.md 进镜像 + 3 个 OCI labels（licenses/source/description）；.dockerignore 加 !LICENSE/!NOTICE/!docs/CHANGES-FROM-UPSTREAM.md/!docs/license-compliance.md 白名单例外，使合规文件进入构建上下文（连体问题，同批改） |
 | 2026-08-18 | I-004 构建验证通过：镜像 1.91GB（原 ~4GB），Chromium/XFCE4/Node 已剥离；中途修复 runtime 基础镜像 agentscope/uv→python:3.12-slim（无 shell 导致 apt 崩）+ COPY --chmod→RUN chmod（旧构建器不支持）。剩余 800MB 目标需 venv 依赖树瘦身（钉钉/飞书/Twilio/本地模型 SDK 死重 ~300MB+，dingtalk 为顶层 import 有风险），列为独立子阶段 |
+| 2026-08-18 | I-004 venv 瘦身**前置影响分析完成**（源码+镜像 venv 实测）：① 渠道注册 `get_channel_registry()` 逐渠道独立 import + try/except 容错（仅 console 必加载）→ 移除钉钉/飞书等 SDK 不会致启动崩溃，渠道自动缺席；② `transformers`54M/`modelscope`33M/hf_hub 为本地 LLM 残留（src 零引用，可砍）；③ ⚠️ `onnxruntime`50M 经 markitdown→magika 硬依赖链被 document_reader 技能使用，**不能删**，sympy 连带保留；④ 可砍 ~200MB+，venv 预计降至 ~500MB、总镜像 ~1.6GB，800MB 仍极难达成（需评估 ≤1.5GB 务实线）。实施前需用户拍板渠道 SDK 去留 |
 | 2026-08-18 | 发现并修复 **P0**：`provider_manager.py` 残留孤立 `if provider_id is not None:`（v2.1.0 移植 d4eb42a 遗留）致 `IndentationError`、整条 import 链崩、服务完全无法启动，commit `b95b02c`。清理 browser_use/desktop_screenshot 残留引用（`750e15b`）并删除 3 个孤儿文件 `browser_control.py`/`browser_snapshot.py`/`desktop_screenshot.py`（`2e54cab`）；工作区 15 个 `.diff`/`.patch` 草稿 + `.tmp_console_dist/` 已清理 |
 | 2026-08-18 | I-004 **最终重建 + 干净容器验收通过**：47/47 步、`BUILD_EXIT=0`、镜像 1.93GB（+20MB 属上游包版本波动）。干净容器（不挂宿主目录）实测：桌面栈全剥离、supervisord 仅 app 进程、真实 React 页 `hanbao Console` 返回 200、`auth/status` 正常、日志零异常。固化两条验证方法学：①验证容器勿挂宿主 src（会盖掉镜像内前端产物）②勿只看 HTTP 状态码（错误 JSON 也返 200，必须查 body） |
