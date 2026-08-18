@@ -533,8 +533,16 @@ hanbao 是 QwenPaw 的派生作品（再分发者），即便只分发镜像（�
 - **前置确认**：`config.py:2361` `allow_no_auth_hosts` 默认 `["127.0.0.1","::1"]`（仅 loopback），`trusted_proxies` 默认空，开认证后 LAN 不会被误免登，安全无需改。
 - **deploy/entrypoint.sh** [hanbao modification]：新增 `export QWENPAW_AUTH_ENABLED="${QWENPAW_AUTH_ENABLED:-true}"`（默认开，用户 `-e ...=false` 可关）+ `print_auth_banner()` 开启引导；原 `warn_if_auth_off_container_bind` 仅显式关闭时触发。
 - **deploy/Dockerfile** [hanbao modification]：新增 `ENV QWENPAW_AUTH_ENABLED=true` 双保险。
+- **已验收（2026-08-18 重建后干净容器实测）**：`auth/status` → `{"enabled":true,"has_users":false}`，entrypoint 打印中文引导「Web Console 认证已启用：首次打开页面将进入注册页，请设置管理员密码」。详见阶段 4 venv 瘦身第一刀验收记录。
 - **未做（待阶段 5 向导）**：FPK 安装向导收集管理员账号密码 → 注入 `QWENPAW_AUTH_USERNAME`/`QWENPAW_AUTH_PASSWORD` → `auto_register_from_env()` 首启自动建账号。依赖飞牛 FPK 打包规范（本环境暂无）。
-- 改完按铁律未立即构建，待用户说"测一下"再重建验证。
+
+### FPK 部署模式确定（2026-08-18）：预构建镜像随 FPK 分发，飞牛不执行 docker build
+- **决策过程**：先后考虑「推 Docker Hub」→ 用户指出飞牛应用以 FPK 形式分发+更新，无需外部仓库 → 最终拍板**上架飞牛官方应用中心**、镜像随 FPK 自带（安装时 `docker load`，更新发新 FPK 覆盖）。
+- **deploy/save-image.sh** [hanbao modification，新增]：`docker save hanbao:latest -o <tar>` 导出镜像随 FPK 打包；支持 `BUILD=0` 跳过构建、自定义输出路径。
+- **deploy/fpk/info.md** [hanbao modification，新增]：应用信息清单草稿（应用 ID/展示名「函包 hanbao」/版本 0.1.0/协议 Apache-2.0/端口 8088/架构 linux/amd64/渠道微信+OneBot 等；[飞牛规范待定] 字段：manifest schema/图标/权限/镜像打包方式/安装向导凭据注入/数据持久卷）。
+- **docker-compose.yml** [hanbao modification]：`image: agentscope/qwenpaw:latest` → `${HANBAO_IMAGE:-hanbao:latest}`（FPK 内置镜像用默认值即可，无需注入外部地址）；端口 `127.0.0.1` → `0.0.0.0`（LAN 可达，Web Console 认证已默认开，安全）。
+- **保留**：`deploy/Dockerfile` 两个 agentscope 阿里云 ACR 构建镜像（node/uv）仅影响开发者本机构建（已缓存），与飞牛分发无关。
+- **卡点（诚实）**：真正的 `.fpk` 封装（manifest/图标/权限/安装向导）需飞牛官方 FPK 打包规范，本地无文档。需用户开代理供查询或提供示例。
 
 _（其余 FPK 打包待执行）_
 

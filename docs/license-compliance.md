@@ -93,11 +93,12 @@ Apache License 2.0 是**宽松许可（permissive）**，明确授权：
 - [ ] **内置技能/内容的 license 检查**：`agents/skills/` 等内置内容可能带独立 LICENSE（上游 QwenPaw 的 docx/pdf/pptx/xlsx 技能即 Anthropic 专有），逐一核对 source/许可后再决定保留或替换
 
 ### 阶段 4 · 容器化
-- [ ] Dockerfile 中 `COPY LICENSE NOTICE /app/` —— 详见 [known-issues.md I-002](./known-issues.md#i-002)
-- [ ] `.dockerignore` 的 `*.md` 已加白名单例外，否则上一项构建必然失败 —— 详见 [I-003](./known-issues.md#i-003)
-- [ ] 镜像 label 标注上游出处：
+- [x] Dockerfile 中 `COPY LICENSE NOTICE /app/` —— 详见 [known-issues.md I-002](./known-issues.md#i-002)
+- [x] `.dockerignore` 的 `*.md` 已加白名单例外，否则上一项构建必然失败 —— 详见 [I-003](./known-issues.md#i-003)
+- [x] 镜像 label 标注上游出处：
   `LABEL org.opencontainers.image.source` / `.licenses="Apache-2.0"`
-- [ ] 实测验收：`docker run --rm <image> sh -c "ls -l /app/LICENSE /app/NOTICE"` 两文件均存在且非空
+- [x] 实测验收：`docker run --rm <image> sh -c "ls -l /app/LICENSE /app/NOTICE"` 两文件均存在且非空
+- [x] **依赖树瘦身（2026-08-18）**：移除 `transformers`/`modelscope`/`huggingface_hub`（本地 LLM 残留，src 零引用）。删除依赖不引入新许可义务；`onnxruntime` 保留（markitdown→magika 链）。全依赖树审计结论（无 GPL/AGPL/SSPL）在瘦身后依然成立——移除的包不改变弱传染清单（LGPLv3×1 + MPL-2.0×3 均在保留的包中）
 
 > ⚠️ I-002 与 I-003 是**连体问题**，必须同批修复。只加 `COPY` 不改 `.dockerignore` 会直接构建失败。
 
