@@ -1970,7 +1970,6 @@ class ProviderManager:  # pylint: disable=too-many-public-methods
         if self.active_model is None:
             return False
         # Normalize provider ID for backward compatibility
-        if provider_id is not None:
         if (
             provider_id is not None
             and self.active_model.provider_id != provider_id
