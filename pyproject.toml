@@ -18,7 +18,10 @@ dependencies = [
     "apscheduler>=3.11.2,<4",
     "questionary>=2.1.1",
     "reme-ai==0.4.1.3",
-    "transformers>=4.30.0",
+    # [hanbao modification] removed local-LLM deps (transformers>=4.30.0,
+    # modelscope>=1.35.0, huggingface_hub>=0.20.0): local LLM was cut
+    # (08-17), src has zero imports of these; onnxruntime kept — it is
+    # required by magika (markitdown -> document_reader skill chain).
     "python-dotenv>=1.0.0",
     "python-socks>=2.5.3",
     "onnxruntime<1.24",
@@ -39,8 +42,6 @@ dependencies = [
     "wcmatch>=10.0",
     "json-repair>=0.30.0",
     "segno>=1.6.6",
-    "modelscope>=1.35.0",
-    "huggingface_hub>=0.20.0",
     "pillow>=10.0.0",
     "agent-client-protocol>=0.9.0,<0.11.0",
     # Streaming-markdown terminal UI for the bundled `qwenpaw` TUI
@@ -117,9 +118,10 @@ test = [
 dev = [
     "pre-commit>=4.2.0",
 ]
-local = [
-    "huggingface_hub>=0.20.0",
-]
+# [hanbao modification] local extra kept empty: local-LLM deps removed
+# (huggingface_hub etc.). Kept as an empty extra so that
+# "qwenpaw[local,whisper]" (full) still resolves without error.
+local = []
 whisper = [
     "openai-whisper>=20231117",
 ]
