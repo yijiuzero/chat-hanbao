@@ -17,7 +17,7 @@ import sessionApi from "./sessionApi";
 import {
   attachClientMessageId,
   createClientMessageId,
-  QWENPAW_CLIENT_MESSAGE_ID_KEY,
+  HANBAO_CLIENT_MESSAGE_ID_KEY,
 } from "../../utils/clientMessageId";
 import defaultConfig, { getDefaultConfig } from "./OptionsPanel/defaultConfig";
 import { chatApi } from "../../api/modules/chat";
@@ -320,7 +320,7 @@ async function startBackgroundQueue(
               {
                 role: "user",
                 metadata: {
-                  [QWENPAW_CLIENT_MESSAGE_ID_KEY]: clientMessageId,
+                  [HANBAO_CLIENT_MESSAGE_ID_KEY]: clientMessageId,
                 },
                 content: [
                   { type: "text", text: item.text },
@@ -1825,7 +1825,7 @@ export default function ChatPage() {
       // Clean up the queue and abort any in-flight background send for the
       // removed session so stale items don't linger in storage or get sent
       // after the conversation is deleted. Navigation to a fresh chat is
-      // owned by the delete handlers (via the "qwenpaw:sidebar-new-chat"
+      // owned by the delete handlers (via the "hanbao:sidebar-new-chat"
       // event), so this callback stays focused on resource cleanup and can
       // run regardless of which session is currently active.
       try {

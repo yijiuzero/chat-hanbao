@@ -107,11 +107,11 @@ export default function Header() {
   };
 
   // [hanbao modification] Web update check disabled.
-  // QwenPaw's PyPI releases are not hanbao releases. Re-enable when hanbao
+  // Hanbao's PyPI releases are not hanbao releases. Re-enable when hanbao
   // has its own release channel (e.g. FlyOS app store version check).
   useEffect(() => {
     // Web update check disabled — no hanbao release channel yet.
-    // Previously fetched PYPI_URL to compare QwenPaw versions.
+    // Previously fetched PYPI_URL to compare Hanbao versions.
   }, [onDesktop]);
 
   const hasUpdate = onDesktop ? desktop.hasUpdate : false;
@@ -179,8 +179,8 @@ export default function Header() {
     fetch(url, { cache: "no-cache" })
       .then((res) => (res.ok ? res.text() : Promise.reject()))
       .then((text) => {
-        const zhPattern = /###\s*QwenPaw如何更新[\s\S]*?(?=\n###|$)/;
-        const enPattern = /###\s*How to update QwenPaw[\s\S]*?(?=\n###|$)/;
+        const zhPattern = /###\s*Hanbao如何更新[\s\S]*?(?=\n###|$)/;
+        const enPattern = /###\s*How to update Hanbao[\s\S]*?(?=\n###|$)/;
         const match = text.match(faqLang === "zh" ? zhPattern : enPattern);
         setUpdateMarkdown(
           match && lang !== "ru"

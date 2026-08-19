@@ -2,13 +2,13 @@
 
 ## Overview
 
-QwenPaw's default context strategy is **scroll**: older turns are not summarized and discarded. They are written to a durable SQLite history store, evicted from the live model window when needed, and represented by a compact in-context index that can be expanded on demand.
+Hanbao's default context strategy is **scroll**: older turns are not summarized and discarded. They are written to a durable SQLite history store, evicted from the live model window when needed, and represented by a compact in-context index that can be expanded on demand.
 
 The old AgentScope-native compression path is still available with `strategy: "native"`, but new configurations default to `strategy: "scroll"`.
 
 ## The Three Memory Systems
 
-QwenPaw organizes memory into three complementary systems, loosely mirroring human memory, each owned by a different subsystem:
+Hanbao organizes memory into three complementary systems, loosely mirroring human memory, each owned by a different subsystem:
 
 | System              | What it is                                                                                                                               | Documented in                   |
 | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
@@ -44,7 +44,7 @@ Key properties:
 - **No summary bottleneck**: evicted content is represented by an `EvictionIndex`, not by a generated summary.
 - **Recallable raw history**: each index line carries a `seq` span. The agent can call `recall_history(op="expand", lo, hi)` to read the full original rows (or `ms.expand(lo, hi)` in the `recall_history_python` REPL).
 - **Cross-session memory**: history rows include `session_id` and `agent_id`, so recall can search this agent's past sessions and, when explicitly widened, other agents in the same workspace.
-- **Fallback-safe**: if scroll cannot be wired or its recall tools cannot run safely, QwenPaw falls back to native context management instead of evicting history that cannot be recalled.
+- **Fallback-safe**: if scroll cannot be wired or its recall tools cannot run safely, Hanbao falls back to native context management instead of evicting history that cannot be recalled.
 
 Index tiers roll up only when they reach their 10-block capacity; pressure does not compact the index early. After rebuilding the live context, Scroll folds completed tool results only while the context remains above `max(trigger, reserve)`.
 
@@ -68,7 +68,7 @@ Index tiers roll up only when they reach their 10-block capacity; pressure does 
 | `headline`                                      | Optional model-written milestone line used as an eviction-index leaf.       |
 | `blocks`, `metadata`, `created_at`, `dedup_key` | Full serialized blocks, metadata, timestamp, and idempotency key.           |
 
-If SQLite FTS5 is available, QwenPaw also keeps a `conversation_history_fts` index over `content`. Without FTS5, recall search degrades to a slower `LIKE` scan.
+If SQLite FTS5 is available, Hanbao also keeps a `conversation_history_fts` index over `content`. Without FTS5, recall search degrades to a slower `LIKE` scan.
 
 ## Working Memory
 
@@ -152,7 +152,7 @@ Each `⟦ … ⟧` leaf in the index is the model-written headline from the prev
 
 ### Recall API
 
-The recall API is the interface to episodic memory: it reads back the durable, verbatim history that working-memory eviction left behind. When scroll is active, QwenPaw injects two tools:
+The recall API is the interface to episodic memory: it reads back the durable, verbatim history that working-memory eviction left behind. When scroll is active, Hanbao injects two tools:
 
 - **`recall_history`** — the structured front door for the common reads. Each call is a bound, read-only query executed in-process, so it needs no sandbox and no approval on any platform:
 
@@ -194,7 +194,7 @@ Search (both `recall_history(op="search")` and `ms.search`) also never echoes th
 
 Security note: `recall_history_python` runs model-authored Python. It normally requires sandbox injection from the governance layer. (`recall_history` is unaffected: it never executes model-authored code, so it runs everywhere — including on platforms without a sandbox, such as Windows without WSL2.) If no sandbox is available, the REPL fails closed unless both are true:
 
-- environment variable `QWENPAW_ALLOW_UNSANDBOXED_RECALL` is truthy
+- environment variable `HANBAO_ALLOW_UNSANDBOXED_RECALL` is truthy
 - `running.light_context_config.scroll_config.allow_unsandboxed = true`
 
 Unsandboxed recall executes arbitrary host Python as the agent user and should only be used in trusted local development.
@@ -209,7 +209,7 @@ Tool results are handled by one mechanism:
 
 Scroll no longer has a separate token-based tool-result cap. All live previews use `pruning_recent_msg_max_bytes`. Only if the rebuilt context remains above the pressure target does Scroll replace selected completed results with exact `recall_history` pointers. `pruning_recent_n` and `pruning_old_msg_max_bytes` apply only to the Native strategy.
 
-When unified pruning is enabled, QwenPaw makes AgentScope's built-in token-based tool-result cap non-binding. This prevents a second truncation pass from replacing the byte-bounded preview and discarding its block-scoped recovery metadata. If unified pruning is disabled, AgentScope's default cap remains active as a safety net.
+When unified pruning is enabled, Hanbao makes AgentScope's built-in token-based tool-result cap non-binding. This prevents a second truncation pass from replacing the byte-bounded preview and discarding its block-scoped recovery metadata. If unified pruning is disabled, AgentScope's default cap remains active as a safety net.
 
 `scroll_config.tool_output_token_cap` is accepted only so existing configuration files continue to load. It is ignored and an explicitly configured value produces a migration warning; replace it with `tool_result_pruning_config.pruning_recent_msg_max_bytes`, whose unit is bytes rather than model-estimated tokens. Disabling `tool_result_pruning_config.enabled` also disables Scroll's execution-time per-result bound.
 

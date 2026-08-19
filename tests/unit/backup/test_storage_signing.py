@@ -6,15 +6,15 @@ import zipfile
 
 import pytest
 
-from qwenpaw.backup._ops import storage
-from qwenpaw.backup._utils import constants
-from qwenpaw.backup._utils.constants import META_FILE, PREFIX_CONFIG
-from qwenpaw.backup._utils.signing import key as signing_key
-from qwenpaw.backup._utils.signing.digest import verify_signature
-from qwenpaw.backup._utils.signing.resign import (
+from hanbao.backup._ops import storage
+from hanbao.backup._utils import constants
+from hanbao.backup._utils.constants import META_FILE, PREFIX_CONFIG
+from hanbao.backup._utils.signing import key as signing_key
+from hanbao.backup._utils.signing.digest import verify_signature
+from hanbao.backup._utils.signing.resign import (
     replace_meta_with_local_signature,
 )
-from qwenpaw.backup.models import (
+from hanbao.backup.models import (
     BackupConflictError,
     BackupMeta,
     BackupValidationError,

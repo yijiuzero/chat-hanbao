@@ -26,14 +26,14 @@ import { auditStore } from "./audit";
 // Plugin-facing namespaces
 // ─────────────────────────────────────────────────────────────────────────────
 
-export interface QwenPawMenuNamespace {
+export interface HanbaoMenuNamespace {
   add(pluginId: string, item: MenuItem | MenuItem[]): Disposable;
   replace(pluginId: string, targetId: string, item: MenuItem): Disposable;
   remove(targetId: string): void;
   snapshot(location?: Parameters<typeof menuRegistry.snapshot>[0]): MenuItem[];
 }
 
-export interface QwenPawRouteNamespace {
+export interface HanbaoRouteNamespace {
   add(pluginId: string, route: Route | Route[]): Disposable;
   replace(
     pluginId: string,
@@ -45,7 +45,7 @@ export interface QwenPawRouteNamespace {
   remove(targetId: string): void;
 }
 
-export interface QwenPawSlotNamespace {
+export interface HanbaoSlotNamespace {
   fill(
     pluginId: string,
     name: SlotName,
@@ -61,7 +61,7 @@ export interface QwenPawSlotNamespace {
   snapshot(): SlotInfo[];
 }
 
-export interface QwenPawAuditNamespace {
+export interface HanbaoAuditNamespace {
   overrides(): OverrideRecord[];
 }
 
@@ -79,7 +79,7 @@ function asArray<T>(x: T | T[]): T[] {
 // Factories
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function buildMenuNamespace(): QwenPawMenuNamespace {
+export function buildMenuNamespace(): HanbaoMenuNamespace {
   return {
     add: (pluginId, item) => {
       const items = asArray(item);
@@ -93,7 +93,7 @@ export function buildMenuNamespace(): QwenPawMenuNamespace {
   };
 }
 
-export function buildRouteNamespace(): QwenPawRouteNamespace {
+export function buildRouteNamespace(): HanbaoRouteNamespace {
   return {
     add: (pluginId, route) => {
       const routes = asArray(route);
@@ -108,7 +108,7 @@ export function buildRouteNamespace(): QwenPawRouteNamespace {
   };
 }
 
-export function buildSlotNamespace(): QwenPawSlotNamespace {
+export function buildSlotNamespace(): HanbaoSlotNamespace {
   return {
     fill: (pluginId, name, render, opts) =>
       slotRegistry.fill(pluginId, name, render, opts),
@@ -118,7 +118,7 @@ export function buildSlotNamespace(): QwenPawSlotNamespace {
   };
 }
 
-export function buildAuditNamespace(): QwenPawAuditNamespace {
+export function buildAuditNamespace(): HanbaoAuditNamespace {
   return {
     overrides: () => auditStore.overrides(),
   };

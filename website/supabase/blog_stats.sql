@@ -1,4 +1,4 @@
--- QwenPaw blog views + likes
+-- Hanbao blog views + likes
 -- Run once in Supabase Dashboard → SQL Editor → New query → Run
 
 create table if not exists public.blog_stats (

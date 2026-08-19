@@ -11,10 +11,10 @@ import pytest
 from agentscope.message import TextBlock, ToolResultBlock
 from agentscope.tool import ToolResponse
 
-from qwenpaw.tool_calls import ToolCoordinator, ToolCoordinatorMiddleware
-from qwenpaw.tool_calls._context import ToolCallContext
-from qwenpaw.tool_calls._entry import ToolCallEntry
-from qwenpaw.tool_calls._stream import ToolStream
+from hanbao.tool_calls import ToolCoordinator, ToolCoordinatorMiddleware
+from hanbao.tool_calls._context import ToolCallContext
+from hanbao.tool_calls._entry import ToolCallEntry
+from hanbao.tool_calls._stream import ToolStream
 
 
 @dataclass

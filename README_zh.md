@@ -1,7 +1,7 @@
 # hanbao（函包）
 
-> **hanbao 基于 [QwenPaw](https://github.com/agentscope-ai/QwenPaw) v2.0.1（Apache-2.0 许可）修改而来。**
-> 原始版权归 **The QwenPaw Authors** 所有。
+> **hanbao 基于 [Hanbao](https://github.com/agentscope-ai/QwenPaw) v2.0.1（Apache-2.0 许可）修改而来。**
+> 原始版权归 **The Hanbao Authors** 所有。
 > 修改内容详见 [CHANGES-FROM-UPSTREAM.md](docs/CHANGES-FROM-UPSTREAM.md)。
 
 一个轻量的个人 AI 聊天应用，专为**飞牛 NAS** 打造。
@@ -39,7 +39,7 @@ docker run -d \
 
 ## 项目状态
 
-处于早期开发阶段。当前已完成上游 QwenPaw v2.0.1 的品牌改造和基础定制，后续将逐步精简、优化镜像体积、打包 FPK。
+处于早期开发阶段。当前已完成上游 Hanbao v2.0.1 的品牌改造和基础定制，后续将逐步精简、优化镜像体积、打包 FPK。
 
 | 阶段 | 状态 |
 |---|---|
@@ -51,6 +51,6 @@ docker run -d \
 
 ## 许可
 
-hanbao 基于 QwenPaw v2.0.1，遵循 [Apache License 2.0](LICENSE)。
+hanbao 基于 Hanbao v2.0.1，遵循 [Apache License 2.0](LICENSE)。
 
 原始项目：[QwenPaw](https://github.com/agentscope-ai/QwenPaw) — Copyright 2025 The QwenPaw Authors

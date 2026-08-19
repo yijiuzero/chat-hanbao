@@ -7,9 +7,9 @@ from typing import Any, AsyncGenerator, cast
 
 import pytest
 
-from qwenpaw.providers.model_capability_cache import get_capability_cache
-from qwenpaw.providers.rate_limiter import _limiters
-from qwenpaw.providers.retry_chat_model import (
+from hanbao.providers.model_capability_cache import get_capability_cache
+from hanbao.providers.rate_limiter import _limiters
+from hanbao.providers.retry_chat_model import (
     RETRYABLE_STATUS_CODES,
     RetryChatModel,
     RetryConfig,

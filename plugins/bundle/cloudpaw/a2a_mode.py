@@ -13,13 +13,13 @@ from typing import TYPE_CHECKING, Optional
 
 from agentscope.message import Msg, TextBlock
 
-from qwenpaw.modes.base import AgentMode
-from qwenpaw.runtime.slash_command_registry import CommandSpec
+from hanbao.modes.base import AgentMode
+from hanbao.runtime.slash_command_registry import CommandSpec
 
 if TYPE_CHECKING:
-    from qwenpaw.runtime.hooks import HookContext
+    from hanbao.runtime.hooks import HookContext
 
-logger = logging.getLogger("qwenpaw").getChild(
+logger = logging.getLogger("hanbao").getChild(
     __name__.replace("plugin_cloudpaw.", ""),
 )
 

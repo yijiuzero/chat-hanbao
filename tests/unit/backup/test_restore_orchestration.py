@@ -6,8 +6,8 @@ import asyncio
 
 import pytest
 
-from qwenpaw.backup import orchestration
-from qwenpaw.backup.models import (
+from hanbao.backup import orchestration
+from hanbao.backup.models import (
     BackupDetail,
     BackupValidationError,
     RestoreBackupRequest,

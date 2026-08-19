@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Menu, X, BookOpen, Globe, Download, Ellipsis } from "lucide-react";
-import { QwenpawMascot } from "./QwenpawMascot";
+import { HanbaoMascot } from "./HanbaoMascot";
 import { useTranslation } from "react-i18next";
 import { useSiteLanguage } from "@/i18n/SiteLanguageContext";
 import { useSiteConfig } from "@/config-context";
@@ -190,7 +190,7 @@ export function Nav() {
           aria-label={projectName}
         >
           <span className="nav-brand-logo -mt-1 flex">
-            <QwenpawMascot size={120} />
+            <HanbaoMascot size={120} />
           </span>
         </Link>
         <div className="nav-links hidden min-[641px]:flex min-[641px]:min-w-0 min-[641px]:flex-1 min-[641px]:items-center min-[641px]:justify-end min-[641px]:gap-3 lg:gap-5 xl:gap-6">
@@ -207,7 +207,7 @@ export function Nav() {
             target="_blank"
             rel="noopener noreferrer"
             className={navLinkOrangeClass}
-            title="QwenPaw on GitHub"
+            title="Hanbao on GitHub"
           >
             <GitHubIcon />
             <span>{t("nav.github")}</span>
@@ -347,7 +347,7 @@ export function Nav() {
           rel="noopener noreferrer"
           className={navLinkOrangeClass}
           onClick={() => setOpen(false)}
-          title="QwenPaw on GitHub"
+          title="Hanbao on GitHub"
         >
           <GitHubIcon /> {t("nav.github")}
         </a>

@@ -1,13 +1,13 @@
 # chat-hanbao（hanbao）项目规划
 
 > 文档版本：v0.2 · 日期：2026-08-14 · 状态：进行中（阶段 2/3 主体完成 + v2.1.0 修复移植全清；阶段 3 收尾进行中，阶段 4 容器化待开始）
-> 上游基线：QwenPaw v2.0.1（Apache-2.0）
+> 上游基线：Hanbao v2.0.1（Apache-2.0）
 
 ---
 
 ## 1. 目标与定位
 
-**hanbao** = 基于 QwenPaw v2.0.1（Apache-2.0）fork 改造的个人 AI 聊天软件。
+**hanbao** = 基于 Hanbao v2.0.1（Apache-2.0）fork 改造的个人 AI 聊天软件。
 
 - 面向**飞牛 NAS（fnOS）**用户；
 - 以 **FPK 应用包**形式上架飞牛应用中心，用户一键安装即用；
@@ -20,7 +20,7 @@
 ### MVP（v1.0）
 - 核心：Web Console 聊天（8088），单用户
 - 模型：**仅云 API**（安装向导填 Key，默认 DashScope / OpenAI）；不做本地模型（飞牛 NAS 无独显）
-- 安全：强制管理员认证（`QWENPAW_AUTH_*`）
+- 安全：强制管理员认证（`HANBAO_AUTH_*`）
 - 数据：本地持久化（working / working.secret / working.backups 三 volume）
 - 交付：飞牛 FPK 包，应用中心一键安装
 - 品牌：hanbao 名称 / 图标 / 前端标题
@@ -43,7 +43,7 @@
     ├── config/             # 权限 / 资源声明
     ├── ICON.PNG            # 64x64 + 256x256
     └── app/docker/docker-compose.yaml
-        └── service: hanbao   # 基于 QwenPaw 2.0.1 的自建镜像
+        └── service: hanbao   # 基于 Hanbao 2.0.1 的自建镜像
             ├── ports: 8088
             └── volumes:
                 ├── hanbao-data     → /app/working
@@ -62,12 +62,12 @@
 | 项 | 真实位置（已核实） | 动作 |
 | --- | --- | --- |
 | 前端标题 / Logo | `console/`（React 源码） | 改为 hanbao |
-| CLI 命令别名 | `pyproject.toml` → `[project.scripts]` 的 `qwenpaw` / `copaw` | 增加 `hanbao` 入口（MVP 可保留原命令，加别名） |
-| 数据目录名 | File Guard 默认保护 `~/.qwenpaw.secret/`，working 目录 | 改为 `.hanbao.secret/` |
-| 遥测上报 | `qwenpaw init` telemetry | 移除或改向自有服务；默认 opt-out |
+| CLI 命令别名 | `pyproject.toml` → `[project.scripts]` 的 `hanbao` / `copaw` | 增加 `hanbao` 入口（MVP 可保留原命令，加别名） |
+| 数据目录名 | File Guard 默认保护 `~/.hanbao.secret/`，working 目录 | 改为 `.hanbao.secret/` |
+| 遥测上报 | `hanbao init` telemetry | 移除或改向自有服务；默认 opt-out |
 | 文档 / Help 链接 | `README.md`、内置 help | 指向 hanbao 文档 |
-| 镜像名 | `Dockerfile` / compose | `agentscope/qwenpaw` → 自建 `hanbao` |
-| Python 包名 `qwenpaw` | `src/qwenpaw/`、`pyproject.toml` name | **MVP 暂保留**（见可行性分析 §9-6），后续彻底改 |
+| 镜像名 | `Dockerfile` / compose | `agentscope/hanbao` → 自建 `hanbao` |
+| Python 包名 `hanbao` | `src/hanbao/`、`pyproject.toml` name | **MVP 暂保留**（见可行性分析 §9-6），后续彻底改 |
 
 ### 4.2 删减清单（按需求，MVP 建议）
 
@@ -102,7 +102,7 @@
 
 - **开发**：Python 3.11–3.13、Node.js（前端构建）、Docker Desktop（已装）、fnpack CLI
 - **运行**：飞牛 NAS（x86_64 / arm64），内存 ≥4GB，支持 Docker
-- **上游锁定**：QwenPaw v2.0.1（`agentscope==2.0.4.post1`）
+- **上游锁定**：Hanbao v2.0.1（`agentscope==2.0.4.post1`）
 
 ---
 
@@ -111,7 +111,7 @@
 | 阶段 | 内容 | 产出 | 状态 |
 | --- | --- | --- | --- |
 | 阶段0 准备 | 源码就位（本地路径）、建 git 仓库、锁定 v2.0.1 | 工程骨架 | ✅ 已完成 |
-| 阶段1 构建跑通原版 | 本机 Docker 完整构建并跑通上游原版 QwenPaw | 镜像 `hanbao:0.0.1-upstream`（4.02GB）+ 8088 可访问 | ✅ 已完成 |
+| 阶段1 构建跑通原版 | 本机 Docker 完整构建并跑通上游原版 Hanbao | 镜像 `hanbao:0.0.1-upstream`（4.02GB）+ 8088 可访问 | ✅ 已完成 |
 | 阶段2 品牌改造 | 改前端/CLI 别名/数据目录/遥测/文档 | 品牌层替换完成 | 🟡 主体完成（品牌残留 I-012~I-016 待评估） |
 | 阶段3 删减定制 | 按清单裁剪，跑通测试 | 裁剪后代码可运行 | 🟡 主体完成 + 收尾（I-024 Monaco 已清；审批 UI 死代码暂不删） |
 | v2.1.0 修复移植 | 采纳上游 v2.1.0 P0/P1 修复 | P0 全清 + P1 重点全清（15 项） | ✅ 已完成（2026-08-14，见 adoption.md） |

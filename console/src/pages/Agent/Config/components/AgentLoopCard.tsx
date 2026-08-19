@@ -1082,7 +1082,7 @@ function GateParamsEditor({
         )}
         extra={t(
           "agentConfig.loopMode.completionPromptHelp",
-          "Describe when the result is complete. QwenPaw automatically injects the completion-signal output instruction.",
+          "Describe when the result is complete. Hanbao automatically injects the completion-signal output instruction.",
         )}
       >
         <Input.TextArea autoSize={{ minRows: 3, maxRows: 7 }} />

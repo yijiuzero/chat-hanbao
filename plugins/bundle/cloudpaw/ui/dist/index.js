@@ -1,6 +1,6 @@
 function jt() {
   var st, at, it, ct;
-  const { React: e, antd: D, antdIcons: U, getApiUrl: Y, getApiToken: q } = window.QwenPaw.host, {
+  const { React: e, antd: D, antdIcons: U, getApiUrl: Y, getApiToken: q } = window.Hanbao.host, {
     Card: ue,
     Table: fe,
     Tag: v,
@@ -860,7 +860,7 @@ function jt() {
   function Ne() {
     var t;
     try {
-      const n = sessionStorage.getItem("qwenpaw-agent-storage") || localStorage.getItem("qwenpaw-agent-storage");
+      const n = sessionStorage.getItem("hanbao-agent-storage") || localStorage.getItem("hanbao-agent-storage");
       if (n) {
         const o = JSON.parse(n);
         return ((t = o == null ? void 0 : o.state) == null ? void 0 : t.selectedAgent) || null;
@@ -2154,9 +2154,9 @@ function jt() {
   }
   async function He(t) {
     var s, _;
-    const n = window.QwenPaw;
+    const n = window.Hanbao;
     if (!(n != null && n.host)) {
-      console.warn("[a2a] QwenPaw.host not available");
+      console.warn("[a2a] Hanbao.host not available");
       return;
     }
     const { getApiUrl: o, getApiToken: i } = n.host, d = o("/a2a/call/stream"), g = i();
@@ -2170,7 +2170,7 @@ function jt() {
       };
       g && (A.Authorization = `Bearer ${g}`);
       try {
-        const H = sessionStorage.getItem("qwenpaw-agent-storage") || localStorage.getItem("qwenpaw-agent-storage"), j = (_ = (s = JSON.parse(H || "{}")) == null ? void 0 : s.state) == null ? void 0 : _.selectedAgent;
+        const H = sessionStorage.getItem("hanbao-agent-storage") || localStorage.getItem("hanbao-agent-storage"), j = (_ = (s = JSON.parse(H || "{}")) == null ? void 0 : s.state) == null ? void 0 : _.selectedAgent;
         j && (A["X-Agent-Id"] = j);
       } catch {
       }
@@ -2271,11 +2271,11 @@ function jt() {
       }
     }
   }
-  (at = (st = window.QwenPaw).registerToolRender) == null || at.call(st, "cloudpaw", {
+  (at = (st = window.Hanbao).registerToolRender) == null || at.call(st, "cloudpaw", {
     proposal_choice: St,
     manage_prd: At,
     a2a_call: Rt
-  }), (ct = (it = window.QwenPaw).registerRoutes) == null || ct.call(it, "cloudpaw", [
+  }), (ct = (it = window.Hanbao).registerRoutes) == null || ct.call(it, "cloudpaw", [
     {
       path: "/a2a",
       component: It,
@@ -2286,7 +2286,7 @@ function jt() {
   ]), Wt(), Jt(), $t();
 }
 function Wt() {
-  const e = "qwenpaw-last-used-agent", D = "qwenpaw-agent-storage", U = "cloudpaw-first-install", Y = "cloud-orchestrator";
+  const e = "hanbao-last-used-agent", D = "hanbao-agent-storage", U = "cloudpaw-first-install", Y = "cloud-orchestrator";
   if (localStorage.getItem(U)) return;
   const q = localStorage.getItem(e), ue = localStorage.getItem(D);
   if (q || ue) {
@@ -2349,7 +2349,7 @@ function Wt() {
 }
 function Jt() {
   var W;
-  const e = (W = window.QwenPaw) == null ? void 0 : W.modules;
+  const e = (W = window.Hanbao) == null ? void 0 : W.modules;
   if (!e) return;
   const D = e["Chat/OptionsPanel/defaultConfig"];
   if (!(D != null && D.configProvider)) {

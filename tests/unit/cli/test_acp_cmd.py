@@ -1,21 +1,21 @@
 # -*- coding: utf-8 -*-
-"""Tests for the ``qwenpaw acp`` CLI command."""
+"""Tests for the ``hanbao acp`` CLI command."""
 from __future__ import annotations
 
 from click.testing import CliRunner
 
-from qwenpaw.cli.acp_cmd import acp_cmd
+from hanbao.cli.acp_cmd import acp_cmd
 
 
 def test_acp_cmd_passes_local_diagnostics(monkeypatch, tmp_path):
     captured = {}
 
-    async def fake_run_qwenpaw_agent(**kwargs):
+    async def fake_run_hanbao_agent(**kwargs):
         captured.update(kwargs)
 
     monkeypatch.setattr(
-        "qwenpaw.agents.acp.server.run_qwenpaw_agent",
-        fake_run_qwenpaw_agent,
+        "hanbao.agents.acp.server.run_hanbao_agent",
+        fake_run_hanbao_agent,
     )
 
     result = CliRunner().invoke(

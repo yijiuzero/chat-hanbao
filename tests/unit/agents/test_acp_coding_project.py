@@ -5,11 +5,11 @@ from __future__ import annotations
 
 from acp import text_block
 
-from qwenpaw.agents.acp.meta import (
+from hanbao.agents.acp.meta import (
     ACP_CODING_PROJECT_META_KEY,
     ACP_EPHEMERAL_META_KEY,
 )
-from qwenpaw.agents.acp.server import QwenPawACPAgent
+from hanbao.agents.acp.server import HanbaoACPAgent
 
 
 class _FakeConn:
@@ -28,7 +28,7 @@ class _FakeWorkspace:
             yield event
 
 
-class _TestACPAgent(QwenPawACPAgent):
+class _TestACPAgent(HanbaoACPAgent):
     def __init__(self, workspace: _FakeWorkspace) -> None:
         super().__init__(agent_id="default")
         self._fake_workspace = workspace

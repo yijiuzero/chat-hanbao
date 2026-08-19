@@ -7,10 +7,10 @@ from typing import Any
 import pytest
 from agentscope.tool import Toolkit
 
-from qwenpaw.agents.tools.file_io import read_file
-from qwenpaw.agents.tools.shell import execute_shell_command
-from qwenpaw.governance import PolicyGuardedTool
-from qwenpaw.providers.openai_chat_model_compat import (
+from hanbao.agents.tools.file_io import read_file
+from hanbao.agents.tools.shell import execute_shell_command
+from hanbao.governance import PolicyGuardedTool
+from hanbao.providers.openai_chat_model_compat import (
     _expand_regex_shorthands,
     _sanitize_tool_schemas,
 )

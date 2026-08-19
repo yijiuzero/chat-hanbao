@@ -2,7 +2,7 @@
 """Unit tests for the real-behavior-proof policy.
 
 Ported from openclaw's ``real-behavior-proof-policy.test.ts`` and adapted
-to QwenPaw's Python implementation.
+to Hanbao's Python implementation.
 """
 # pylint: disable=protected-access,redefined-outer-name,unused-argument
 # pylint: disable=wrong-import-position,line-too-long

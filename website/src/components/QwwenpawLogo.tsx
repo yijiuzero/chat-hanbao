@@ -1,22 +1,22 @@
 /**
- * QwenPaw logo: symbol only. When logo and brand text would both appear,
+ * Hanbao logo: symbol only. When logo and brand text would both appear,
  * we show only the logo (no separate text).
  */
 import { CatPawIcon } from "./CatPawIcon";
 
-interface QwenpawLogoProps {
+interface HanbaoLogoProps {
   variant?: "full" | "mark";
   size?: number;
   animated?: boolean;
   className?: string;
 }
 
-export function QwenpawLogo({
+export function HanbaoLogo({
   variant = "full",
   size = 48,
   animated: _animated = false,
   className = "",
-}: QwenpawLogoProps) {
+}: HanbaoLogoProps) {
   const markSize = variant === "mark" ? size : Math.round(size * 1.1);
   return (
     <span

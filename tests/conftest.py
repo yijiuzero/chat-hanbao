@@ -20,13 +20,13 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from qwenpaw.providers import provider_manager as _provider_manager_module
+from hanbao.providers import provider_manager as _provider_manager_module
 
 
 @pytest.fixture(autouse=True)
-def capture_qwenpaw_logs(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Let caplog see qwenpaw records despite the app logger handler."""
-    monkeypatch.setattr(logging.getLogger("qwenpaw"), "propagate", True)
+def capture_hanbao_logs(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Let caplog see hanbao records despite the app logger handler."""
+    monkeypatch.setattr(logging.getLogger("hanbao"), "propagate", True)
 
 
 # =============================================================================
@@ -455,7 +455,7 @@ def isolated_secret_dir(monkeypatch, tmp_path):
     This fixture ensures every test uses a clean temporary directory and
     a fresh ProviderManager singleton.
     """
-    secret_dir = tmp_path / ".qwenpaw.secret"
+    secret_dir = tmp_path / ".hanbao.secret"
     monkeypatch.setattr(_provider_manager_module, "SECRET_DIR", secret_dir)
     monkeypatch.setattr(
         _provider_manager_module.ProviderManager,

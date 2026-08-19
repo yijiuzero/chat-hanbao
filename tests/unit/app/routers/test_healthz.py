@@ -11,7 +11,7 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from qwenpaw.app.routers.healthz import router as healthz_router
+from hanbao.app.routers.healthz import router as healthz_router
 
 
 @pytest.fixture

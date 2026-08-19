@@ -8,8 +8,8 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from qwenpaw.agents.acp.client import ACPHostedClient
-from qwenpaw.config.config import ACPAgentConfig
+from hanbao.agents.acp.client import ACPHostedClient
+from hanbao.config.config import ACPAgentConfig
 
 
 class TestACPHostedClientTrustedAutoApprove:

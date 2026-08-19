@@ -548,6 +548,33 @@ _（其余 FPK 打包待执行）_
 
 ---
 
+## 阶段 4.5 · 包名全量改名（qwenpaw → hanbao，2026-08-19）
+
+**背景**：阶段 2 仅改了品牌展示名（Web/UI/TUI 文案），Python 包名 `qwenpaw`、环境变量 `QWENPAW_*`、数据目录 `~/.qwenpaw` 仍保留上游原名。2026-08-19 用户拍板全量改名——因 FPK 安装向导注入的凭据 env 名（`QWENPAW_AUTH_*`→`HANBAO_AUTH_*`）依赖改名，先于阶段 5 FPK 脚手架执行，避免三处 env 名返工。
+
+**执行方式（带 R2 合规守卫）**：
+- `src/qwenpaw` 目录 `git mv` → `src/hanbao`（含全部子模块）。
+- 四档大小写映射 `QWENPAW→HANBAO` / `QwenPaw→Hanbao` / `Qwenpaw→Hanbao` / `qwenpaw→hanbao` 改写 **902 个文本文件**内容。
+- 全局 `QWENPAW_*` 环境变量（含 `QWENPAW_AUTH_USERNAME`/`QWENPAW_AUTH_PASSWORD`/`QWENPAW_AUTH_ENABLED`）全部改名 `HANBAO_*`；`~/.qwenpaw` → `~/.hanbao`。
+- `pyproject.toml`：`name = "hanbao"`，`[project.scripts]` 入口 `hanbao = "hanbao.cli.main:cli"`（保留 `copaw` 别名兼容）。
+- 其余 6 个带 `qwenpaw` 文件名资产一并 `git mv`：`console/src/plugins/types/qwenpaw.d.ts`→`hanbao.d.ts`、`scripts/pack-tauri/qwenpaw.spec`→`hanbao.spec`、`website/public/qwenpaw-symbol.png|.svg`→`hanbao-*`、`website/public/qwenpaw_ip.png`→`hanbao_ip.png`、`website/src/components/QwenpawMascot.tsx`→`HanbaoMascot.tsx`。
+
+**合规守卫（R2 红线，零违约）**：
+- **整体跳过** `LICENSE` / `NOTICE` / `docs/license-compliance.md` / `docs/CHANGES-FROM-UPSTREAM.md` 四文件（本文件未被批量改写，仅此处手动追加记录）。
+- **保留上游署名（I-016）**：8 个 `plugins/*/plugin.json` 的 `"author": "QwenPaw Team"`、locale `copyright: Qwenpaw PRIVATE LIMITED`、review-bot `QwenPaw Maintainer Team`、startup_profile `Author` 等署名行未改。
+- **保留外部真实 URL**：`github.com/agentscope-ai/QwenPaw`、`qwenpaw.agentscope.io`、pypi `qwenpaw` 路径、`modelscope.cn` 等上游链接未伪造。
+- **保留历史内容**：`website/public/release-notes/*`、`website/public/blog/*`、`docs/upstream-v2.1.0-adoption.md` 叙述性历史未改写。
+
+**验收（全绿）**：
+- `src/hanbao` 内零 `from/import qwenpaw`、零 `QWENPAW_*`（`__pycache__/*.pyc` 构建产物含旧串，已 gitignore）。
+- `src/qwenpaw` 目录消失、`src/hanbao` 就位；`git diff --name-only HEAD` 共 **1328** 文件变更（含 7 个 `git mv` 重命名）。
+- `deploy/` 下 `HANBAO_AUTH_ENABLED` 等已落地；R2 四文件 `git diff` 为空。
+- 全仓残留 `qwenpaw` 仅余四类预期项：R2 合规文件、上游署名行、外部真实 URL、历史文档叙述。
+
+**对已知条目的影响**：阶段 5「I-007 镜像层落地」中记录的 `QWENPAW_AUTH_ENABLED`/`QWENPAW_AUTH_USERNAME`/`QWENPAW_AUTH_PASSWORD` 现已统一为 `HANBAO_AUTH_*`（见 `deploy/entrypoint.sh`、`deploy/Dockerfile`、`docker-compose.yml`）。FPK 安装向导后续须注入 `HANBAO_AUTH_USERNAME`/`HANBAO_AUTH_PASSWORD`。
+
+---
+
 ## 未修改声明
 
 除本文件记录的改动外，hanbao 中其余代码均来自上游 QwenPaw v2.0.1，其著作权归 The QwenPaw Authors 所有，按 Apache License 2.0 条款授权使用。

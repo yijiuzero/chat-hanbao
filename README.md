@@ -1,7 +1,7 @@
 # hanbao（函包）
 
-> **hanbao 基于 [QwenPaw](https://github.com/agentscope-ai/QwenPaw) v2.0.1（Apache-2.0）修改而来。**
-> 原始版权归 **The QwenPaw Authors** 所有。
+> **hanbao 基于 [Hanbao](https://github.com/agentscope-ai/QwenPaw) v2.0.1（Apache-2.0）修改而来。**
+> 原始版权归 **The Hanbao Authors** 所有。
 > 修改内容详见 [CHANGES-FROM-UPSTREAM.md](docs/CHANGES-FROM-UPSTREAM.md)。
 
 一个轻量的个人 AI 聊天应用，专为**飞牛 NAS** 打造。
@@ -38,7 +38,7 @@ docker run -d \
 ```
 
 > 💡 **Web Console 默认开启登录认证**：首次打开页面会进入注册页，请设置管理员密码
-> （环境变量 `QWENPAW_AUTH_ENABLED=false` 可显式关闭，不推荐）。
+> （环境变量 `HANBAO_AUTH_ENABLED=false` 可显式关闭，不推荐）。
 
 ## 项目状态
 
@@ -52,6 +52,6 @@ docker run -d \
 
 ## 许可
 
-hanbao 基于 QwenPaw v2.0.1，遵循 [Apache License 2.0](LICENSE)。
+hanbao 基于 Hanbao v2.0.1，遵循 [Apache License 2.0](LICENSE)。
 
 原始项目：[QwenPaw](https://github.com/agentscope-ai/QwenPaw) — Copyright 2025 The QwenPaw Authors

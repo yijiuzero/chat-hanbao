@@ -7,23 +7,23 @@ from types import SimpleNamespace
 
 import pytest
 
-import qwenpaw.providers.provider_manager as provider_manager_module
-from qwenpaw.config.config import ModelSlotConfig
-from qwenpaw.exceptions import ModelNotFoundException, ProviderError
-from qwenpaw.local_models.llamacpp import LlamaCppServerSetupResult
-from qwenpaw.providers.anthropic_provider import AnthropicProvider
-from qwenpaw.providers.capping_formatter import (
+import hanbao.providers.provider_manager as provider_manager_module
+from hanbao.config.config import ModelSlotConfig
+from hanbao.exceptions import ModelNotFoundException, ProviderError
+from hanbao.local_models.llamacpp import LlamaCppServerSetupResult
+from hanbao.providers.anthropic_provider import AnthropicProvider
+from hanbao.providers.capping_formatter import (
     _CappingAnthropicFormatter,
     _CappingGeminiFormatter,
     _CappingOpenAIFormatter,
 )
-from qwenpaw.providers.context_windows import DEFAULT_CONTEXT_WINDOW
-from qwenpaw.providers.openai_provider import (
+from hanbao.providers.context_windows import DEFAULT_CONTEXT_WINDOW
+from hanbao.providers.openai_provider import (
     GitHubModelsProvider,
     OpenAIProvider,
 )
-from qwenpaw.providers.provider import ModelInfo, ProviderInfo
-from qwenpaw.providers.provider_manager import ProviderManager
+from hanbao.providers.provider import ModelInfo, ProviderInfo
+from hanbao.providers.provider_manager import ProviderManager
 
 LEGACY_PROVIDER = {
     "providers": {
@@ -88,7 +88,7 @@ LEGACY_PROVIDER = {
 
 @pytest.fixture
 def isolated_secret_dir(monkeypatch, tmp_path):
-    secret_dir = tmp_path / ".qwenpaw.secret"
+    secret_dir = tmp_path / ".hanbao.secret"
     monkeypatch.setattr(provider_manager_module, "SECRET_DIR", secret_dir)
     return secret_dir
 
@@ -240,9 +240,9 @@ async def test_resume_local_model_restores_server_and_runtime_state(
     isolated_secret_dir,
 ) -> None:
     manager = ProviderManager()
-    model_id = "AgentScope/QwenPaw-Flash-2B-Q4_K_M"
+    model_id = "AgentScope/Hanbao-Flash-2B-Q4_K_M"
     manager.update_provider(
-        "qwenpaw-local",
+        "hanbao-local",
         {
             "base_url": "http://127.0.0.1:9000/v1",
             "extra_models": [
@@ -254,7 +254,7 @@ async def test_resume_local_model_restores_server_and_runtime_state(
         },
     )
     manager.active_model = ModelSlotConfig(
-        provider_id="qwenpaw-local",
+        provider_id="hanbao-local",
         model=model_id,
     )
     manager.save_active_model(manager.active_model)
@@ -290,7 +290,7 @@ async def test_resume_local_model_restores_server_and_runtime_state(
 
     await manager._resume_local_model(local_manager)
 
-    provider = manager.get_provider("qwenpaw-local")
+    provider = manager.get_provider("hanbao-local")
 
     assert local_manager.restored_model_id == model_id
     assert provider is not None

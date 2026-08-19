@@ -169,7 +169,7 @@ export function ChannelDrawer({
   const currentAgent = agents.find((a) => a.id === selectedAgent);
   const defaultMediaDir = currentAgent?.workspace_dir
     ? `${currentAgent.workspace_dir}/media`
-    : "~/.qwenpaw/media";
+    : "~/.hanbao/media";
   const currentLang = i18n.language?.startsWith("zh") ? "zh" : "en";
   const label = activeKey ? getChannelLabel(activeKey, t) : activeLabel;
   const { message } = useAppMessage();
@@ -1217,7 +1217,7 @@ export function ChannelDrawer({
               label={t("channels.wechatBotTokenFile")}
               tooltip={t("channels.wechatBotTokenFileTooltip")}
             >
-              <Input placeholder="~/.qwenpaw/wechat_bot_token" />
+              <Input placeholder="~/.hanbao/wechat_bot_token" />
             </Form.Item>
             <Form.Item name="media_dir" label={t("channels.wechatMediaDir")}>
               <Input placeholder={defaultMediaDir} />
@@ -1556,11 +1556,11 @@ export function ChannelDrawer({
               const url =
                 CHANNEL_DOC_EN_URLS[activeKey]! ||
                 CHANNEL_DOC_ZH_URLS[activeKey]!;
-              const isQwenPawDoc = url.includes(
-                "qwenpaw.agentscope.io/docs/channels/",
+              const isHanbaoDoc = url.includes(
+                "hanbao.agentscope.io/docs/channels/",
               );
               const finalUrl =
-                isQwenPawDoc && currentLang === "zh"
+                isHanbaoDoc && currentLang === "zh"
                   ? CHANNEL_DOC_ZH_URLS[activeKey]!
                   : CHANNEL_DOC_EN_URLS[activeKey]!;
               openExternalLink(finalUrl);

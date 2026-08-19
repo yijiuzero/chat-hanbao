@@ -88,28 +88,28 @@ export const UPDATE_MD: Record<string, string> = {
 2. 如果你是通过 pip 安装，在终端中执行以下命令升级：
 
 \`\`\`
-qwenpaw update
+hanbao update
 \`\`\`
 
 3. 如果你是从源码安装，进入项目目录并拉取最新代码后重新安装：
 
 \`\`\`
-cd QwenPaw
+cd Hanbao
 git pull origin main
 cd console && npm ci && npm run build
-cd .. && mkdir -p src/qwenpaw/console
-cp -R console/dist/. src/qwenpaw/console/
+cd .. && mkdir -p src/hanbao/console
+cp -R console/dist/. src/hanbao/console/
 pip install -e .
 \`\`\`
 
 4. 如果你使用的是 Docker，拉取最新镜像并重启容器：
 
 \`\`\`
-docker pull agentscope/qwenpaw:latest
-docker run -p 127.0.0.1:8088:8088 -v hanbao-data:/app/working -v hanbao-secrets:/app/working.secret -v hanbao-backups:/app/working.backups agentscope/qwenpaw:latest
+docker pull agentscope/hanbao:latest
+docker run -p 127.0.0.1:8088:8088 -v hanbao-data:/app/working -v hanbao-secrets:/app/working.secret -v hanbao-backups:/app/working.backups agentscope/hanbao:latest
 \`\`\`
 
-升级后重启服务 qwenpaw app。`,
+升级后重启服务 hanbao app。`,
 
   ru: `### Как обновить hanbao
 
@@ -120,28 +120,28 @@ docker run -p 127.0.0.1:8088:8088 -v hanbao-data:/app/working -v hanbao-secrets:
 2. Если устанавливали через pip, выполните:
 
 \`\`\`
-qwenpaw update
+hanbao update
 \`\`\`
 
 3. Если устанавливали из исходников, получите последние изменения и переустановите:
 
 \`\`\`
-cd QwenPaw
+cd Hanbao
 git pull origin main
 cd console && npm ci && npm run build
-cd .. && mkdir -p src/qwenpaw/console
-cp -R console/dist/. src/qwenpaw/console/
+cd .. && mkdir -p src/hanbao/console
+cp -R console/dist/. src/hanbao/console/
 pip install -e .
 \`\`\`
 
 4. Если используете Docker, загрузите новый образ и перезапустите контейнер:
 
 \`\`\`
-docker pull agentscope/qwenpaw:latest
-docker run -p 127.0.0.1:8088:8088 -v hanbao-data:/app/working -v hanbao-secrets:/app/working.secret -v hanbao-backups:/app/working.backups agentscope/qwenpaw:latest
+docker pull agentscope/hanbao:latest
+docker run -p 127.0.0.1:8088:8088 -v hanbao-data:/app/working -v hanbao-secrets:/app/working.secret -v hanbao-backups:/app/working.backups agentscope/hanbao:latest
 \`\`\`
 
-After upgrading, restart the service with \`qwenpaw app\`.`,
+After upgrading, restart the service with \`hanbao app\`.`,
 
   en: `### How to update hanbao
 
@@ -152,26 +152,26 @@ To update hanbao, use the method matching your installation type:
 2. If installed via pip, run:
 
 \`\`\`
-qwenpaw update
+hanbao update
 \`\`\`
 
 3. If installed from source, pull the latest code and reinstall:
 
 \`\`\`
-cd QwenPaw
+cd Hanbao
 git pull origin main
 cd console && npm ci && npm run build
-cd .. && mkdir -p src/qwenpaw/console
-cp -R console/dist/. src/qwenpaw/console/
+cd .. && mkdir -p src/hanbao/console
+cp -R console/dist/. src/hanbao/console/
 pip install -e .
 \`\`\`
 
 4. If using Docker, pull the latest image and restart the container:
 
 \`\`\`
-docker pull agentscope/qwenpaw:latest
-docker run -p 127.0.0.1:8088:8088 -v hanbao-data:/app/working -v hanbao-secrets:/app/working.secret -v hanbao-backups:/app/working.backups agentscope/qwenpaw:latest
+docker pull agentscope/hanbao:latest
+docker run -p 127.0.0.1:8088:8088 -v hanbao-data:/app/working -v hanbao-secrets:/app/working.secret -v hanbao-backups:/app/working.backups agentscope/hanbao:latest
 \`\`\`
 
-After upgrading, restart the service with \`qwenpaw app\`.`,
+After upgrading, restart the service with \`hanbao app\`.`,
 };

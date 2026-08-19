@@ -73,7 +73,7 @@ export interface QueueItemInput {
 // removed eagerly via remove())
 // ---------------------------------------------------------------------------
 
-export const STORAGE_PREFIX = "qwenpaw:message-queue:";
+export const STORAGE_PREFIX = "hanbao:message-queue:";
 
 /** Shape persisted in localStorage per session */
 interface PersistedQueue {
@@ -184,7 +184,7 @@ function getChannel(): BroadcastChannel | null {
   if (_channel) return _channel;
   if (typeof BroadcastChannel === "undefined") return null;
   try {
-    _channel = new BroadcastChannel("qwenpaw:queue");
+    _channel = new BroadcastChannel("hanbao:queue");
   } catch {
     _channel = null;
   }
@@ -225,7 +225,7 @@ export async function withSendLock<T>(
   }
   try {
     const result = (await locks.request(
-      `qwenpaw:queue-send:${sessionId}`,
+      `hanbao:queue-send:${sessionId}`,
       { ifAvailable: true },
       async (lock: unknown) => {
         if (!lock) return null;
@@ -264,7 +264,7 @@ export function holdOwnershipLock(
   }
   return locks
     .request(
-      `qwenpaw:queue-owner:${sessionId}`,
+      `hanbao:queue-owner:${sessionId}`,
       { mode: "exclusive", signal: abortSignal },
       async (lock: unknown) => {
         if (!lock) return;

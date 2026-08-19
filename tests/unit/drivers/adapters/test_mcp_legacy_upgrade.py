@@ -14,14 +14,14 @@ from pathlib import Path
 
 import pytest
 
-from qwenpaw.drivers.adapters.mcp_legacy_config import (
+from hanbao.drivers.adapters.mcp_legacy_config import (
     upgrade_legacy_mcp_credentials,
 )
-from qwenpaw.drivers.contracts import CredentialRef, DriverCard, PolicyRule
-from qwenpaw.drivers.credentials.store import AsyncCredentialStore
-from qwenpaw.drivers.credentials.types import CredentialRecord
-from qwenpaw.drivers.manager import DriverManager
-from qwenpaw.drivers.storage import card_path, dump_card, load_card
+from hanbao.drivers.contracts import CredentialRef, DriverCard, PolicyRule
+from hanbao.drivers.credentials.store import AsyncCredentialStore
+from hanbao.drivers.credentials.types import CredentialRecord
+from hanbao.drivers.manager import DriverManager
+from hanbao.drivers.storage import card_path, dump_card, load_card
 
 
 def _write_card(

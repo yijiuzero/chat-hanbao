@@ -13,7 +13,7 @@
     "backend": "gpt_image2.py"
   },
   "dependencies": ["httpx>=0.24.0"],
-  "qwenpaw_version": {
+  "hanbao_version": {
     "min": "1.1.7",
     "max": "2.1.0"
   },

@@ -1,6 +1,6 @@
 # hanbao 已知问题与踩坑追踪
 
-> 本文件记录移植 QwenPaw 过程中发现的**必须处理但当前阶段尚未处理**的问题。
+> 本文件记录移植 Hanbao 过程中发现的**必须处理但当前阶段尚未处理**的问题。
 > 每项都有明确的「必须处理时机」，到达对应阶段时**必须逐项核对**，未处理不得进入下一阶段。
 >
 > 状态取值：`🔴 待处理` / `🟡 处理中` / `🟢 已解决` / `⚪ 已确认无需处理`
@@ -20,10 +20,10 @@
 | [I-009](#i-009) | 构建机 C 盘 0GB 可用，Docker 无法写入 | 🔥 高（阻塞） | 阶段 1 构建时 | 🟢 已解决（迁 F 盘 Junction） |
 | [I-010](#i-010) | WSL 崩溃转储吞噬 18.58GB 磁盘 | 🔥 高 | 阶段 1 构建前 | 🟢 已解决（crashDumpCount=0） |
 | [I-011](#i-011) | Docker DataFolder 键对 WSL2 后端无效 | 🟠 中 | 阶段 1 构建前 | 🟢 已解决（Junction 重定向） |
-| [I-012](#i-012) | 品牌名残留：JS 命名空间 `window.QwenPaw` | 🟡 低 | 阶段 3 删减定制 | 🟢 已解决（2026-08-17 `window.hanbao`） |
-| [I-013](#i-013) | 品牌名残留：localStorage keys (`qwenpaw_*`) | 🟡 低 | 阶段 3 删减定制 | 🟢 已解决（2026-08-17 `hanbao_*`） |
-| [I-014](#i-014) | 品牌名残留：CSS 前缀 `qwenpaw` (Ant Design) | 🟡 低 | 阶段 3 删减定制 | 🟢 已解决（2026-08-17 `hanbao`） |
-| [I-015](#i-015) | 品牌名残留：测试/e2e/website 中的 QwenPaw | 🟢 极低 | 无阻塞 | 🟡 归入包名改名子阶段 |
+| [I-012](#i-012) | 品牌名残留：JS 命名空间 `window.Hanbao` | 🟡 低 | 阶段 3 删减定制 | 🟢 已解决（2026-08-17 `window.hanbao`） |
+| [I-013](#i-013) | 品牌名残留：localStorage keys (`hanbao_*`) | 🟡 低 | 阶段 3 删减定制 | 🟢 已解决（2026-08-17 `hanbao_*`） |
+| [I-014](#i-014) | 品牌名残留：CSS 前缀 `hanbao` (Ant Design) | 🟡 低 | 阶段 3 删减定制 | 🟢 已解决（2026-08-17 `hanbao`） |
+| [I-015](#i-015) | 包名全量改名：qwenpaw → hanbao（包/环境变量/标识符/目录） | 🟢 极低 | 阶段 5 FPK 前 | 🟢 已解决（2026-08-19 落地） |
 | [I-016](#i-016) | 品牌名残留：插件 plugin.json author 字段 | 🟢 极低 | 无阻塞 | 🟢 保留上游署名（合规） |
 | [I-017](#i-017) | sed 产生 JS 注释 `//` 污染 Python 文件 | 🔥 高 | 阶段 3 删减定制 | 🟢 已解决 |
 | [I-018](#i-018) | git checkout 导致 gitignored 文件从磁盘消失 | 🔥 高 | 阶段 3 删减定制 | 🟡 处理中 |
@@ -47,7 +47,7 @@
 
 | 被吞的文件 | 数量 | 命中规则 | 丢了会怎样 |
 |---|---|---|---|
-| `src/qwenpaw/agents/md_files/**/AGENTS.md` | 7 | `.gitignore:109` 裸 `AGENTS.md` | Agent 提示词缺失，智能体行为异常 |
+| `src/hanbao/agents/md_files/**/AGENTS.md` | 7 | `.gitignore:109` 裸 `AGENTS.md` | Agent 提示词缺失，智能体行为异常 |
 | `console/package-lock.json` | 1 | `.gitignore:82` | `npm ci` 失败，无法复现构建 |
 | `plugins/bundle/cloudpaw/ui/dist/index.js` | 1 | `.gitignore:33` `dist/` | 插件加载失败 |
 
@@ -83,7 +83,7 @@ git status --ignored --porcelain | grep "^!!"   # 被忽略的具体文件
 照原样构建出的镜像内部**不含许可文件**。
 
 ### 为什么上游没事而我们有事
-| | 上游 QwenPaw | hanbao |
+| | 上游 Hanbao | hanbao |
 |---|---|---|
 | 身份 | **版权方本人** | **再分发者（派生作品）** |
 | 义务 | 自己的作品，随附与否自便 | Apache-2.0 §4(a)(b)(d) 强制随附 |
@@ -101,7 +101,7 @@ COPY docs/CHANGES-FROM-UPSTREAM.md /app/docs/
 ```dockerfile
 LABEL org.opencontainers.image.licenses="Apache-2.0"
 LABEL org.opencontainers.image.source="https://github.com/agentscope-ai/QwenPaw"
-LABEL org.opencontainers.image.description="hanbao (函包), derived from QwenPaw v2.0.1"
+LABEL org.opencontainers.image.description="hanbao (函包), derived from Hanbao v2.0.1"
 ```
 
 ### 验收
@@ -162,10 +162,10 @@ docker run --rm hanbao:<tag> sh -c "ls -l /app/LICENSE /app/NOTICE"
 用户拍板「砍掉 browser_use + 桌面截图」后，本次一并完成代码摘除与镜像瘦身：
 
 **1. 后端工具摘除（[hanbao modification]）**
-- `src/qwenpaw/agents/tools/__init__.py` — 移除 `browser_use`、`desktop_screenshot` 两个内置工具注册
-- `src/qwenpaw/agents/react_agent.py` — 移除两工具的 hook 超时注册
-- `src/qwenpaw/agents/memory/proactive/proactive_responder.py` — 移除 `browser_use`/`desktop_screenshot` 的 import 与工具装配（FunctionTool 列表 + 多模态追加分支）
-- `src/qwenpaw/agents/memory/proactive/proactive_utils.py` — 移除 `build_proactive_memory_context` 中"屏幕活动分析"调用块
+- `src/hanbao/agents/tools/__init__.py` — 移除 `browser_use`、`desktop_screenshot` 两个内置工具注册
+- `src/hanbao/agents/react_agent.py` — 移除两工具的 hook 超时注册
+- `src/hanbao/agents/memory/proactive/proactive_responder.py` — 移除 `browser_use`/`desktop_screenshot` 的 import 与工具装配（FunctionTool 列表 + 多模态追加分支）
+- `src/hanbao/agents/memory/proactive/proactive_utils.py` — 移除 `build_proactive_memory_context` 中"屏幕活动分析"调用块
 
 **2. 依赖摘除（pyproject.toml）**
 - 移除 `playwright>=1.49.0`（browser_use 专属）、`mss>=9.0.0`（desktop_screenshot 专属）、`pywebview>=4.0`（桌面 GUI，仅 `desktop_cmd.py` 惰性 import，缺失优雅降级）
@@ -175,11 +175,11 @@ docker run --rm hanbao:<tag> sh -c "ls -l /app/LICENSE /app/NOTICE"
 - 删除 apt 安装的 XFCE4 / xfce4-terminal / Xvfb / dbus-x11 / Chromium + 15 个依赖库 / fonts-liberation / vim
 - `build-essential` 改为「安装 → `uv pip install` → 末尾 `apt-get purge`」临时使用，不进最终镜像
 - 移除 supervisord 的 `dbus`/`xvfb`/`xfce4` 三个程序，`app` 程序去掉 `DISPLAY`/`PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` 环境变量
-- 保留 `QWENPAW_RUNNING_IN_CONTAINER=1`（config 有 `/.dockerenv`+cgroup 兜底，保险仍设）
+- 保留 `HANBAO_RUNNING_IN_CONTAINER=1`（config 有 `/.dockerenv`+cgroup 兜底，保险仍设）
 - 合规层 LICENSE/NOTICE/CHANGES + OCI labels（I-002）原样保留
 
 **4. 待用户手动清理的孤儿文件（不 git rm，按环境安全规则留 orphan）**
-- `src/qwenpaw/agents/tools/browser_control.py`、`browser_snapshot.py`、`desktop_screenshot.py` — 已无引用但仍被 `COPY src ./src` 带进镜像（约数十 KB，无害）
+- `src/hanbao/agents/tools/browser_control.py`、`browser_snapshot.py`、`desktop_screenshot.py` — 已无引用但仍被 `COPY src ./src` 带进镜像（约数十 KB，无害）
 - `proactive_utils.py` 中 `_analyze_screen_activity` 函数已成死代码（调用方已删，内部 lazy import 不触发）
 
 ### 验收（待构建，按铁律先 commit 不立即 build）
@@ -209,7 +209,7 @@ docker run --rm hanbao:0.0.1-slim sh -c "which chromium xvfb-run startxfce4 2>/d
 |---|---|
 | 桌面栈剥离 | `chromium` / `chromium-browser` / `google-chrome` / `Xvfb` / `xvfb-run` / `xfce4-session` / `dbus-daemon` / `node` / `npm` 全部 `which` 无输出 ✅ |
 | Python / uv | `Python 3.12.14`、`uv` 就位 ✅ |
-| 前端产物在镜像内 | `/app/src/qwenpaw/console/`（`assets/` + `hanbao-logo.jpg` 243KB）✅ |
+| 前端产物在镜像内 | `/app/src/hanbao/console/`（`assets/` + `hanbao-logo.jpg` 243KB）✅ |
 | 服务启动 | supervisord 仅 `app` 一个进程（桌面栈进程已从 template 移除），10s 后 `entered RUNNING` ✅ |
 | 根路径真实性 | HTTP 200 且 body 为真实 React 页（`<title>hanbao Console</title>` + `<div id="root">` + `/assets/index-*.js`），**非** `console is not available` 错误 JSON ✅ |
 | API | `auth/status` → `{"enabled":false,"has_users":false}`（I-007 设计，默认不启用认证）✅ |
@@ -320,7 +320,7 @@ Git Bash 下需要超时控制时，应使用 `timeout.exe` 之外的方式，�
 **严重度**：🟠 中 &nbsp;|&nbsp; **状态**：🟢 已解决 &nbsp;|&nbsp; **必须处理时机**：阶段 2 删减定制
 
 ### 现象
-`qwenpaw init` 等命令会向上游上报使用数据。
+`hanbao init` 等命令会向上游上报使用数据。
 
 ### 为什么必须处理
 hanbao 将**分发给第三方用户**（飞牛应用中心下载）。让用户的数据在不知情的情况下上报给上游第三方，既不符合"本地数据主权"的产品定位，也存在隐私合规风险。
@@ -330,21 +330,21 @@ hanbao 将**分发给第三方用户**（飞牛应用中心下载）。让用户
 若保留任何形式的数据上报，必须在 FPK 安装向导中明确告知用户并提供开关。
 
 ### 已处置（2026-08-14）
-- [修改] `src/qwenpaw/utils/telemetry.py` — `_upload_telemetry_sync` 改为 no-op（return False），删除 `TELEMETRY_ENDPOINT`（`qwenpawelemetry-*.fcapp.run` 上报地址）
-- [修改] `src/qwenpaw/app/_app.py` — 移除启动时的自动上报调用
-- [修改] `src/qwenpaw/cli/init_cmd.py` — 移除遥测代码块 + `TELEMETRY_INFO` 文案 + `_echo_telemetry_info_box`
+- [修改] `src/hanbao/utils/telemetry.py` — `_upload_telemetry_sync` 改为 no-op（return False），删除 `TELEMETRY_ENDPOINT`（`hanbaoelemetry-*.fcapp.run` 上报地址）
+- [修改] `src/hanbao/app/_app.py` — 移除启动时的自动上报调用
+- [修改] `src/hanbao/cli/init_cmd.py` — 移除遥测代码块 + `TELEMETRY_INFO` 文案 + `_echo_telemetry_info_box`
 - [确认] 前端 console 无遥测（grep 无 analytics/posthog/sentry 依赖与上报端点）
-- 结果：hanbao 不再向 QwenPaw 官方上报任何数据，全链路零上报
+- 结果：hanbao 不再向 Hanbao 官方上报任何数据，全链路零上报
 
 ---
 
 <a id="i-007"></a>
 ## I-007 · Web Console 默认无认证
 
-**严重度**：🟠 中 &nbsp;|&nbsp; **状态**：🟢 已解决（deploy/entrypoint.sh + Dockerfile 默认 `QWENPAW_AUTH_ENABLED=true`，用户可 `-e QWENPAW_AUTH_ENABLED=false` 关闭） &nbsp;|&nbsp; **必须处理时机**：阶段 5 FPK 打包（镜像层已落地）
+**严重度**：🟠 中 &nbsp;|&nbsp; **状态**：🟢 已解决（deploy/entrypoint.sh + Dockerfile 默认 `HANBAO_AUTH_ENABLED=true`，用户可 `-e HANBAO_AUTH_ENABLED=false` 关闭） &nbsp;|&nbsp; **必须处理时机**：阶段 5 FPK 打包（镜像层已落地）
 
 ### 现象
-QwenPaw Web Console（8088）默认不开启认证，设计假设是"个人本地使用"。
+Hanbao Web Console（8088）默认不开启认证，设计假设是"个人本地使用"。
 
 ### 为什么必须处理
 飞牛 NAS 常有公网映射 / 内网多用户场景。若用户把 8088 暴露到公网，**任何人都能直接操作其 AI 助手、读写其文件、消耗其 API 额度**。
@@ -355,26 +355,26 @@ QwenPaw Web Console（8088）默认不开启认证，设计假设是"个人本�
 
 ### 调研结论（2026-08-17）：认证系统已完整存在，I-007 实为「默认关闭」而非「缺失」
 
-经代码核查，上游 QwenPaw **已内置完整 Web 登录认证**，hanbao 原样继承、未破坏：
+经代码核查，上游 Hanbao **已内置完整 Web 登录认证**，hanbao 原样继承、未破坏：
 
-- **后端**：`src/qwenpaw/app/auth.py` — 盐化 SHA-256 口令哈希 + HMAC-SHA256 自签 token（无额外依赖）；`AuthMiddleware`（`BaseHTTPMiddleware`）在 `_app.py:603` 挂载；启动时 `_app.py:111` 调用 `auto_register_from_env()` 从环境变量建管理员。
-- **开关**：`is_auth_enabled()` 读 `QWENPAW_AUTH_ENABLED`（true/1/yes 即开）。关时中间件放行（当前默认行为）。
+- **后端**：`src/hanbao/app/auth.py` — 盐化 SHA-256 口令哈希 + HMAC-SHA256 自签 token（无额外依赖）；`AuthMiddleware`（`BaseHTTPMiddleware`）在 `_app.py:603` 挂载；启动时 `_app.py:111` 调用 `auto_register_from_env()` 从环境变量建管理员。
+- **开关**：`is_auth_enabled()` 读 `HANBAO_AUTH_ENABLED`（true/1/yes 即开）。关时中间件放行（当前默认行为）。
 - **前端**：`console/src/pages/Login/index.tsx` 真实登录/注册页；`api/request.ts` 收到 401 自动跳 `/login`；token 存 `localStorage["hanbao_auth_token"]`（即 I-013 改名后的 key）。后端 + 前端双重拦截。
 - **单用户**：仅允许注册一个账号，契合「单用户私人豆包」定位；忘密码删 `SECRET_DIR/auth.json` 重启即可重注册。
 - **渠道不受影响**：中间件仅对 `/api/` 路径鉴权（`not path.startswith("/api/")` 即跳过），微信/OneBot 等渠道走独立连接，登录认证不干预。
 
 **结论 / 处理方向**：I-007 不是「造认证」，而是「FPK 打包时默认开启 + 向导注入凭据」：
-1. FPK 阶段（`阶段 5`）在默认 env / docker-compose 设 `QWENPAW_AUTH_ENABLED=true`；
-2. FPK 安装向导收集管理员账号密码 → 以 `QWENPAW_AUTH_USERNAME`/`QWENPAW_AUTH_PASSWORD` 注入，首次启动 `auto_register_from_env()` 自动建账号（上游专为 Docker/面板自动化部署设计）；
+1. FPK 阶段（`阶段 5`）在默认 env / docker-compose 设 `HANBAO_AUTH_ENABLED=true`；
+2. FPK 安装向导收集管理员账号密码 → 以 `HANBAO_AUTH_USERNAME`/`HANBAO_AUTH_PASSWORD` 注入，首次启动 `auto_register_from_env()` 自动建账号（上游专为 Docker/面板自动化部署设计）；
 3. 保留 entrypoint.sh 的 SECURITY NOTICE 警告（auth 关闭时提示），并保留 `security.allow_no_auth_hosts` 回环免登（NAS 本机访问便利）。
 4. ⚠️ 阶段 5 实施前需确认 `security.allow_no_auth_hosts` 默认值不误放行 LAN 访问（应为仅 loopback）。
 
 ### 实施记录（2026-08-18）：镜像层落地，默认开启认证
-- **默认值确认（安全前置）**：`src/qwenpaw/config/config.py:2361` `SecurityConfig.allow_no_auth_hosts` 默认 `["127.0.0.1","::1"]`，**仅 loopback、不开 LAN**；`trusted_proxies` 默认空，配合 `_should_skip_auth` 的"direct peer 须同为 loopback"防御纵深——开认证后不会被误免登，无需改动。
-- **deploy/entrypoint.sh**：新增 `export QWENPAW_AUTH_ENABLED="${QWENPAW_AUTH_ENABLED:-true}"`（默认开，用户 `-e ...=false` 可关）+ `print_auth_banner()`：开启且无凭据 env 时提示"首次打开页面设管理员密码"，有凭据 env 时提示"自动建账号"。原 `warn_if_auth_off_container_bind` 仅当用户显式关闭时触发。
-- **deploy/Dockerfile**：新增 `ENV QWENPAW_AUTH_ENABLED=true` 双保险（即便绕过 entrypoint 直接 exec app，仍默认开）。
+- **默认值确认（安全前置）**：`src/hanbao/config/config.py:2361` `SecurityConfig.allow_no_auth_hosts` 默认 `["127.0.0.1","::1"]`，**仅 loopback、不开 LAN**；`trusted_proxies` 默认空，配合 `_should_skip_auth` 的"direct peer 须同为 loopback"防御纵深——开认证后不会被误免登，无需改动。
+- **deploy/entrypoint.sh**：新增 `export HANBAO_AUTH_ENABLED="${HANBAO_AUTH_ENABLED:-true}"`（默认开，用户 `-e ...=false` 可关）+ `print_auth_banner()`：开启且无凭据 env 时提示"首次打开页面设管理员密码"，有凭据 env 时提示"自动建账号"。原 `warn_if_auth_off_container_bind` 仅当用户显式关闭时触发。
+- **deploy/Dockerfile**：新增 `ENV HANBAO_AUTH_ENABLED=true` 双保险（即便绕过 entrypoint 直接 exec app，仍默认开）。
 - **行为说明（上游设计）**：`auth.py:_should_skip_auth` 首行 `if not is_auth_enabled() or not has_registered_users(): return True`——**未注册账号前跳过认证**（首次注册模式）。故默认开认证但无凭据 env 时，安装后第一个打开页面的人可设密码（单用户家庭场景可接受；FPK 阶段应由向导注入凭据消除此窗口）。
-- **未做（留阶段 5 FPK）**：FPK 安装向导收集管理员账号密码 → 注入 `QWENPAW_AUTH_USERNAME`/`QWENPAW_AUTH_PASSWORD` → `auto_register_from_env()` 首启自动建账号。此环节依赖飞牛 FPK 打包规范（本环境暂无）。
+- **未做（留阶段 5 FPK）**：FPK 安装向导收集管理员账号密码 → 注入 `HANBAO_AUTH_USERNAME`/`HANBAO_AUTH_PASSWORD` → `auto_register_from_env()` 首启自动建账号。此环节依赖飞牛 FPK 打包规范（本环境暂无）。
 - 改完按铁律未立即构建，待用户说"测一下"再重建镜像验证。
 
 ### 关联改动（2026-08-14，非本项解决）
@@ -573,44 +573,50 @@ WSL2 后端的 Docker 数据盘路径由 `AppData\Local\Docker\wsl\disk\docker_d
 ---
 
 <a id="i-012"></a>
-## I-012 · 品牌名残留：JS 命名空间 `window.QwenPaw`
+## I-012 · 品牌名残留：JS 命名空间 `window.Hanbao`
 
-**严重度**：🟡 低 &nbsp;|&nbsp; **状态**：🔴 待处理 &nbsp;|&nbsp; **必须处理时机**：阶段 3 删减定制
+**严重度**：🟡 低 &nbsp;|&nbsp; **状态**：🟢 已解决（2026-08-17 `window.hanbao` 别名 + 向后兼容） &nbsp;|&nbsp; **必须处理时机**：阶段 3 删减定制
 
-- `window.QwenPaw` 是前端插件系统的宿主 API 命名空间，所有外部插件通过它获取 React/antd 等依赖。
-- **不能直接改名**：改了会让所有已安装插件失效。需要在阶段 3 评估兼容方案（如同时暴露 `window.hanbao` 别名 + 保留 `window.QwenPaw` 过渡期）。
+- `window.Hanbao` 是前端插件系统的宿主 API 命名空间，所有外部插件通过它获取 React/antd 等依赖。
+- **不能直接改名**：改了会让所有已安装插件失效。需要在阶段 3 评估兼容方案（如同时暴露 `window.hanbao` 别名 + 保留 `window.Hanbao` 过渡期）。
 
 <a id="i-013"></a>
-## I-013 · 品牌名残留：localStorage keys (`qwenpaw_*`)
+## I-013 · 品牌名残留：localStorage keys (`hanbao_*`)
 
-**严重度**：🟡 低 &nbsp;|&nbsp; **状态**：🔴 待处理 &nbsp;|&nbsp; **必须处理时机**：阶段 3 删减定制
+**严重度**：🟡 低 &nbsp;|&nbsp; **状态**：🟢 已解决（2026-08-17 `hanbao_*` 迁移） &nbsp;|&nbsp; **必须处理时机**：阶段 3 删减定制
 
-- 5 个 localStorage key 使用 `qwenpaw_` 前缀（auth_token、agent-storage、theme、sidebar_mode 等）。
+- 5 个 localStorage key 使用 `hanbao_` 前缀（auth_token、agent-storage、theme、sidebar_mode 等）。
 - **不能直接改名**：会导致所有用户丢失登录态和偏好设置。需要迁移逻辑：读旧 key → 写新 key → 删旧 key。
 
 <a id="i-014"></a>
-## I-014 · 品牌名残留：CSS 前缀 `qwenpaw` (Ant Design ConfigProvider)
+## I-014 · 品牌名残留：CSS 前缀 `hanbao` (Ant Design ConfigProvider)
 
-**严重度**：🟡 低 &nbsp;|&nbsp; **状态**：🔴 待处理 &nbsp;|&nbsp; **必须处理时机**：阶段 3 删减定制
+**严重度**：🟡 低 &nbsp;|&nbsp; **状态**：🟢 已解决（2026-08-17 `hanbao` 前缀 + 同步 less 选择器） &nbsp;|&nbsp; **必须处理时机**：阶段 3 删减定制
 
-- `App.tsx` 中 `ConfigProvider prefix="qwenpaw" prefixCls="qwenpaw"` 控制所有 Ant Design 组件的 CSS 类名前缀。
-- **不能直接改名**：改了会让所有样式失效。需同步更新所有 `.less` 文件中的 `&:global(.qwenpaw-*)` 选择器。
+- `App.tsx` 中 `ConfigProvider prefix="hanbao" prefixCls="hanbao"` 控制所有 Ant Design 组件的 CSS 类名前缀。
+- **不能直接改名**：改了会让所有样式失效。需同步更新所有 `.less` 文件中的 `&:global(.hanbao-*)` 选择器。
 
 <a id="i-015"></a>
-## I-015 · 品牌名残留：测试/e2e/website 中的 QwenPaw
+## I-015 · 包名全量改名：qwenpaw → hanbao（Python 包 / 环境变量 / 标识符 / 目录）
 
-**严重度**：🟢 极低 &nbsp;|&nbsp; **状态**：🔴 待处理 &nbsp;|&nbsp; **必须处理时机**：无阻塞
+**严重度**：🟢 极低 &nbsp;|&nbsp; **状态**：🟢 已解决（2026-08-19 全量改名落地） &nbsp;|&nbsp; **必须处理时机**：阶段 5 FPK 前
 
-- `tests/`、`e2e/`、`website/` 目录包含大量 QwenPaw 引用（测试 fixture、文档、博客等）。
-- 不影响容器镜像和用户体验。纯内部文件，后续闲暇时批量替换即可。
+### 范围与结果（2026-08-19）
+- `src/qwenpaw` → `src/hanbao`（`git mv` 目录）；`pyproject.toml` `name = "hanbao"`；`[project.scripts]` 入口 `hanbao = "hanbao.cli.main:cli"`。
+- 四档大小写映射 `QWENPAW→HANBAO` / `QwenPaw→Hanbao` / `Qwenpaw→Hanbao` / `qwenpaw→hanbao` 改写 902 个文本文件；`QWENPAW_*` 环境变量（含 `QWENPAW_AUTH_USERNAME/PASSWORD`）全部改名 `HANBAO_*`。
+- **合规红线 R2 守住**：LICENSE / NOTICE / docs/license-compliance.md / docs/CHANGES-FROM-UPSTREAM.md 四个文件**零改动**。
+- **上游署名保留（I-016）**：8 个 `plugins/*/plugin.json` 的 `"author": "QwenPaw Team"`、locale `copyright: Qwenpaw PRIVATE LIMITED`、review-bot `QwenPaw Maintainer Team`、startup_profile `Author` 等署名行未改。
+- **外部资源 URL 保留**：`github.com/agentscope-ai/QwenPaw`、`qwenpaw.agentscope.io`（CDN/文档/referer）、pypi `qwenpaw` 路径、`modelscope.cn` 等真实上游链接不改（避免伪造不存在的地址）。
+- **历史文档保留**：`website/public/release-notes/*`、`website/public/blog/*`、`docs/upstream-v2.1.0-adoption.md` 等叙述性历史内容不改写（避免失真）。
+- 全仓残留 `qwenpaw` 仅存在于上述四类（R2 / 署名 / 外部 URL / 历史文档）；代码标识符、import、`QWENPAW_*` env 已零残留。
 
 <a id="i-016"></a>
 ## I-016 · 品牌名残留：插件 plugin.json author 字段
 
-**严重度**：🟢 极低 &nbsp;|&nbsp; **状态**：🔴 待处理 &nbsp;|&nbsp; **必须处理时机**：无阻塞
+**严重度**：🟢 极低 &nbsp;|&nbsp; **状态**：🟢 保留上游署名（合规，不改写） &nbsp;|&nbsp; **必须处理时机**：无阻塞
 
-- `plugins/*/plugin.json` 中 `author: "QwenPaw Team"` 等字段。
-- 用户看不到这些元数据，不影响功能。后续批量替换。
+- `plugins/*/plugin.json` 中 `author: "QwenPaw Team"` 等字段为上游署名，按合规要求保留（R2 红线：不得擦除上游版权/署名）。
+- 用户看不到这些元数据，不影响功能。包名已改（见 I-015），仅署名行保留。
 
 ---
 
@@ -639,17 +645,17 @@ WSL2 后端的 Docker 数据盘路径由 `AppData\Local\Docker\wsl\disk\docker_d
 **严重度**：🔥 高 &nbsp;|&nbsp; **状态**：🟡 处理中 &nbsp;|&nbsp; **必须处理时机**：阶段 3 完成前
 
 ### 现象
-在阶段 3 删减定制过程中，多次出现执行 `git checkout HEAD -- <path>` 恢复文件后，`console/src/api/` 和 `src/qwenpaw/app/routers/` 等目录下的文件从磁盘消失。具体表现为：
+在阶段 3 删减定制过程中，多次出现执行 `git checkout HEAD -- <path>` 恢复文件后，`console/src/api/` 和 `src/hanbao/app/routers/` 等目录下的文件从磁盘消失。具体表现为：
 
 1. **第一次**（2026-08-11）：`git checkout` 后 `console/src/api/modules/` 目录整个变空，Docker 构建阶段 `tsc` 报 200+ 个 `TS2307: Cannot find module`。
-2. **第二次**（2026-08-12）：`src/qwenpaw/app/routers/__init__.py` 被清空，容器启动后 `ImportError: cannot import name 'create_agent_scoped_router'`。
+2. **第二次**（2026-08-12）：`src/hanbao/app/routers/__init__.py` 被清空，容器启动后 `ImportError: cannot import name 'create_agent_scoped_router'`。
 3. **第三次**（2026-08-12）：`routers/` 下 5 个 `.py` 文件（`_backup_helpers.py`, `tool_calls.py`, `tools.py`, `voice.py`, `workspace.py`）同时消失。
 
 ### 根因
 这些文件在上游 tarball 中存在，但被 `.gitignore` 规则（主要是 `dist/`、`*.md` 的变体影响）匹配。初始建仓时虽然 `git add -f` 强制纳入了，但后续的 `git rm --cached` 或 check-ignore 路径匹配导致它们从 staging area 丢失。一旦文件不在 git index 中，`git checkout` 无法恢复它们。
 
 ### 临时方案
-- 从上游本地源码（`E:\浏览器下载\QwenPaw-2.0.1\`）用 `cp -r` 恢复缺失文件
+- 从上游本地源码（`E:\浏览器下载\Hanbao-2.0.1\`）用 `cp -r` 恢复缺失文件
 - 或用 `git checkout HEAD -- <path>` 恢复（仅对仍在 index 中的文件有效）
 
 ### 根本修复方向
@@ -664,14 +670,14 @@ WSL2 后端的 Docker 数据盘路径由 `AppData\Local\Docker\wsl\disk\docker_d
 **严重度**：🔥 高 &nbsp;|&nbsp; **状态**：🟡 处理中 &nbsp;|&nbsp; **必须处理时机**：上架前
 
 ### 现象
-上游 QwenPaw 内置的 4 个文档处理技能 `docx`/`pdf`/`pptx`/`xlsx`，其 `LICENSE.txt` 为 **Anthropic 专有许可**（`© 2025 Anthropic, PBC. All rights reserved.`），明确禁止「分发 / 复制 / 衍生作品 / 销售」。Anthropic 官方仓库也确认这 4 个文档技能是 **source-available, not open source**（源码可见但非开源）。
+上游 Hanbao 内置的 4 个文档处理技能 `docx`/`pdf`/`pptx`/`xlsx`，其 `LICENSE.txt` 为 **Anthropic 专有许可**（`© 2025 Anthropic, PBC. All rights reserved.`），明确禁止「分发 / 复制 / 衍生作品 / 销售」。Anthropic 官方仓库也确认这 4 个文档技能是 **source-available, not open source**（源码可见但非开源）。
 
-函包作为 fork QwenPaw 的再分发者，把这 4 个技能打包进 FPK 上架飞牛 = **著作权侵权**，比商标红线（R2）更严重。
+函包作为 fork Hanbao 的再分发者，把这 4 个技能打包进 FPK 上架飞牛 = **著作权侵权**，比商标红线（R2）更严重。
 
 ### 已确认事实
 - 4 个侵权技能：`docx` / `pdf` / `pptx` / `xlsx`（含 SKILL.md + scripts + LICENSE.txt，全 Anthropic 专有）
 - 其余 7 个内置技能：无 license 字段，继承 Apache-2.0，安全
-- 上游 QwenPaw 自己把这些技能标 `Proprietary` 并附 Anthropic LICENSE.txt（知情）
+- 上游 Hanbao 自己把这些技能标 `Proprietary` 并附 Anthropic LICENSE.txt（知情）
 
 ### 决策（2026-08-13 泽零拍板）
 - **方案 A**：接受「只能读不能改/创建」，暂时放弃文档创建/编辑能力
@@ -704,11 +710,11 @@ GPL 是 copyleft 传染性许可，与 Apache-2.0 闭源分发目标冲突，违
 
 ### 处置
 - [修改] `pyproject.toml` — `html2text>=2024.2.26` → `markdownify>=1.0.0`（MIT 许可）
-- [修改] `src/qwenpaw/agents/tools/web_search.py` — `import html2text` → `from markdownify import markdownify as md`；`_html_to_text` 改用 `md(html, heading_style="ATX", strip=["img","script","style"])`
+- [修改] `src/hanbao/agents/tools/web_search.py` — `import html2text` → `from markdownify import markdownify as md`；`_html_to_text` 改用 `md(html, heading_style="ATX", strip=["img","script","style"])`
 - 删除 `_new_html2text()` 函数（原 html2text 转换器）
 
 ### 教训
-上游 QwenPaw 虽然整体 Apache-2.0，但**依赖树里可能藏 GPL 库**（html2text 是 Aaron Swartz 的老牌 GPL 项目）。fork 项目必须做一次**全依赖 license 审计**，不能只看顶层许可证。
+上游 Hanbao 虽然整体 Apache-2.0，但**依赖树里可能藏 GPL 库**（html2text 是 Aaron Swartz 的老牌 GPL 项目）。fork 项目必须做一次**全依赖 license 审计**，不能只看顶层许可证。
 
 ---
 
@@ -845,3 +851,4 @@ GPL 是 copyleft 传染性许可，与 Apache-2.0 闭源分发目标冲突，违
 | 2026-08-18 | I-004 瘦身**第一刀落地验收**：用户拍板「保持多渠道，只砍本地模型残留」→ 删 transformers/modelscope/hf_hub（`ccc0fe8`）。重建后镜像 **1.93GB→1.78GB**（-150MB 含连带依赖），venv 746M→629M。干净容器全绿：认证默认开 `{"enabled":true}`、18 渠道注册完整、markitdown CLI 实测可用（onnxruntime 链完好）。800MB 经实测评估极难达成，I-004 状态改 🟢（务实线 ≤1.5GB 待拍板） |
 | 2026-08-18 | 发现并修复 **P0**：`provider_manager.py` 残留孤立 `if provider_id is not None:`（v2.1.0 移植 d4eb42a 遗留）致 `IndentationError`、整条 import 链崩、服务完全无法启动，commit `b95b02c`。清理 browser_use/desktop_screenshot 残留引用（`750e15b`）并删除 3 个孤儿文件 `browser_control.py`/`browser_snapshot.py`/`desktop_screenshot.py`（`2e54cab`）；工作区 15 个 `.diff`/`.patch` 草稿 + `.tmp_console_dist/` 已清理 |
 | 2026-08-18 | I-004 **最终重建 + 干净容器验收通过**：47/47 步、`BUILD_EXIT=0`、镜像 1.93GB（+20MB 属上游包版本波动）。干净容器（不挂宿主目录）实测：桌面栈全剥离、supervisord 仅 app 进程、真实 React 页 `hanbao Console` 返回 200、`auth/status` 正常、日志零异常。固化两条验证方法学：①验证容器勿挂宿主 src（会盖掉镜像内前端产物）②勿只看 HTTP 状态码（错误 JSON 也返 200，必须查 body） |
+| 2026-08-19 | I-015 **包名全量改名 qwenpaw→hanbao 落地**：`src/qwenpaw`→`src/hanbao`（`git mv`）、`pyproject.toml` `name="hanbao"`、入口 `hanbao=hanbao.cli.main:cli`；四档大小写映射改写 902 文本文件，`QWENPAW_*`→`HANBAO_*`；R2 四文件零改动、8 个 plugin.json 上游署名保留、外部 URL/历史文档保留。改名后 FPK 向导注入凭据须用 `HANBAO_AUTH_USERNAME/PASSWORD`（接 I-007 默认开认证）。已知文档 I-012/013/014/015/016 状态统一为 🟢 |

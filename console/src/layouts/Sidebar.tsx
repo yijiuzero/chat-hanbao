@@ -339,7 +339,7 @@ export default function Sidebar({ selectedKey }: SidebarProps) {
       location.pathname.startsWith("/chat") ||
       location.pathname.startsWith("/coding");
     if (onChatPage) {
-      window.dispatchEvent(new CustomEvent("qwenpaw:sidebar-new-chat"));
+      window.dispatchEvent(new CustomEvent("hanbao:sidebar-new-chat"));
     } else {
       sessionStorage.setItem("hanbao_pending_new_chat", "1");
       const mode = "chat";

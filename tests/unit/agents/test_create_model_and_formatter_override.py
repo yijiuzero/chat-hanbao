@@ -7,9 +7,9 @@ from unittest.mock import patch
 
 import pytest
 
-from qwenpaw.agents import model_factory
-from qwenpaw.config import config as config_module
-from qwenpaw.config.config import ModelSlotConfig
+from hanbao.agents import model_factory
+from hanbao.config import config as config_module
+from hanbao.config.config import ModelSlotConfig
 
 
 def _patched_load_agent_config(_agent_id):  # noqa: ARG001

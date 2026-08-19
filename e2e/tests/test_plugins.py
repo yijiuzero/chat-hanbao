@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-QwenPaw Plugin Manager end-to-end tests.
+Hanbao Plugin Manager end-to-end tests.
 
 UI-driven only: any pure API/contract checks for the Plugin Manager
 endpoints belong in ``tests/integration/`` (which already covers them).

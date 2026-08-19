@@ -50,12 +50,12 @@ describe("messageQueueStore", () => {
   // Constants / helpers
   // ---------------------------------------------------------------------------
 
-  it("STORAGE_PREFIX is 'qwenpaw:message-queue:'", () => {
-    expect(STORAGE_PREFIX).toBe("qwenpaw:message-queue:");
+  it("STORAGE_PREFIX is 'hanbao:message-queue:'", () => {
+    expect(STORAGE_PREFIX).toBe("hanbao:message-queue:");
   });
 
   it("getStorageKey concatenates prefix + sessionId", () => {
-    expect(getStorageKey("abc")).toBe("qwenpaw:message-queue:abc");
+    expect(getStorageKey("abc")).toBe("hanbao:message-queue:abc");
   });
 
   it("MAX_QUEUE_SIZE is 50", () => {

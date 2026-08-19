@@ -18,18 +18,18 @@ import {
   buildMenuNamespace,
   buildRouteNamespace,
   buildSlotNamespace,
-  type QwenPawAuditNamespace,
-  type QwenPawMenuNamespace,
-  type QwenPawRouteNamespace,
-  type QwenPawSlotNamespace,
+  type HanbaoAuditNamespace,
+  type HanbaoMenuNamespace,
+  type HanbaoRouteNamespace,
+  type HanbaoSlotNamespace,
 } from "./registry/sdk";
 import { menuRegistry, routeRegistry } from "./registry/store";
 import type {
   HostAgentInfo,
   HostSessionInfo,
   HostThemeMode,
-  QwenPawChatNamespace,
-} from "./types/qwenpaw";
+  HanbaoChatNamespace,
+} from "./types/hanbao";
 
 declare const VITE_API_BASE_URL: string;
 
@@ -178,15 +178,15 @@ export interface WindowNamespace {
     renderers: Record<string, React.FC<any>>,
   ) => void;
   /** Console-wide plugin Menu API. Attached by installHostExternals(). */
-  menu?: QwenPawMenuNamespace;
+  menu?: HanbaoMenuNamespace;
   /** Console-wide plugin Route API. */
-  route?: QwenPawRouteNamespace;
+  route?: HanbaoRouteNamespace;
   /** Console-wide plugin Slot API (header.left, sider.bottom, …). */
-  slot?: QwenPawSlotNamespace;
+  slot?: HanbaoSlotNamespace;
   /** Chat-surface customization API. Attached by installHostSdk(). */
-  chat?: QwenPawChatNamespace;
+  chat?: HanbaoChatNamespace;
   /** Override audit log (debug). Attached by installHostExternals(). */
-  audit?: QwenPawAuditNamespace;
+  audit?: HanbaoAuditNamespace;
 }
 
 declare global {

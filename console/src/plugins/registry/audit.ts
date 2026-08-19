@@ -1,5 +1,5 @@
 /**
- * registry/audit.ts — single override log shared by all QwenPaw registries
+ * registry/audit.ts — single override log shared by all Hanbao registries
  * (console-wide menu/route/slot + chat extensions).
  *
  * Ring buffer (default 500 entries). Plugin authors can read via

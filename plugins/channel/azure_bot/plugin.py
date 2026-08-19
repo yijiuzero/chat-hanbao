@@ -3,7 +3,7 @@
 
 import logging
 
-from qwenpaw.plugins.api import PluginApi
+from hanbao.plugins.api import PluginApi
 
 logger = logging.getLogger(__name__)
 

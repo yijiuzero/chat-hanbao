@@ -1,5 +1,5 @@
 /**
- * QwenPaw branding logo (logo.png). Favicon uses qwenpaw-symbol.svg.
+ * Hanbao branding logo (logo.png). Favicon uses hanbao-symbol.svg.
  */
 interface CatPawIconProps {
   size: number;

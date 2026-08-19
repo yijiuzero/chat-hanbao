@@ -2,13 +2,13 @@
 
 ## 概述
 
-QwenPaw 当前默认的上下文策略是 **scroll**：旧轮次不会被总结后丢弃，而是先写入持久化 SQLite 历史库；当模型窗口接近上限时，再把中间历史从实时上下文中驱逐出去，并用一条紧凑的上下文内索引表示。之后 Agent 可以按需把原始历史读回来。
+Hanbao 当前默认的上下文策略是 **scroll**：旧轮次不会被总结后丢弃，而是先写入持久化 SQLite 历史库；当模型窗口接近上限时，再把中间历史从实时上下文中驱逐出去，并用一条紧凑的上下文内索引表示。之后 Agent 可以按需把原始历史读回来。
 
 旧的 AgentScope 原生压缩路径仍然可用，配置 `strategy: "native"` 即可切回；新配置默认使用 `strategy: "scroll"`。
 
 ## 三种记忆系统
 
-QwenPaw 把记忆组织为三套互补的系统——工作记忆（Working）、情景记忆（Episodic）和语义记忆（Semantic）——大致对应人类记忆，每套由不同子系统负责：
+Hanbao 把记忆组织为三套互补的系统——工作记忆（Working）、情景记忆（Episodic）和语义记忆（Semantic）——大致对应人类记忆，每套由不同子系统负责：
 
 | 记忆系统     | 是什么                                                                                     | 文档                    |
 | ------------ | ------------------------------------------------------------------------------------------ | ----------------------- |
@@ -44,7 +44,7 @@ flowchart LR
 - **不依赖摘要**：被驱逐的内容由 `EvictionIndex` 表示，而不是由 LLM 生成一段压缩摘要。
 - **可回溯原文**：索引中的每一行都带 `seq` 区间。Agent 可以调用 `recall_history(op="expand", lo, hi)` 读取完整原始记录（或在 `recall_history_python` REPL 中用 `ms.expand(lo, hi)`）。
 - **跨会话历史**：历史行包含 `session_id` 和 `agent_id`，默认可检索当前 Agent 的所有历史会话；显式放宽时也能查询同一工作区内其他 Agent 的历史。
-- **安全降级**：如果 scroll 无法构建，或 recall 工具无法安全运行，QwenPaw 会退回 native 上下文管理，避免把历史驱逐到无法读取的位置。
+- **安全降级**：如果 scroll 无法构建，或 recall 工具无法安全运行，Hanbao 会退回 native 上下文管理，避免把历史驱逐到无法读取的位置。
 
 索引层级只会在达到 10 个 block 的容量时向上归并；压力不会提前压实索引。重建实时上下文后，只有当上下文仍高于 `max(trigger, reserve)` 时，Scroll 才会折叠已完成的工具结果。
 
@@ -68,7 +68,7 @@ flowchart LR
 | `headline`                                      | 模型主动写入的里程碑标题，用作驱逐索引叶子。            |
 | `blocks`, `metadata`, `created_at`, `dedup_key` | 完整序列化块、元数据、时间戳和幂等键。                  |
 
-如果当前 SQLite 支持 FTS5，QwenPaw 会维护 `conversation_history_fts` 全文索引；否则 `ms.search` 会降级为较慢的 `LIKE` 扫描。
+如果当前 SQLite 支持 FTS5，Hanbao 会维护 `conversation_history_fts` 全文索引；否则 `ms.search` 会降级为较慢的 `LIKE` 扫描。
 
 ## 工作记忆（Working Memory）
 
@@ -150,7 +150,7 @@ Re-expand a span with the recall_history tool: recall_history(op="expand", lo, h
 
 ### Recall API
 
-Recall API 是情景记忆的接口：把工作记忆驱逐后留下的、持久且逐字的历史读回来。scroll 启用时，QwenPaw 会注入两个工具：
+Recall API 是情景记忆的接口：把工作记忆驱逐后留下的、持久且逐字的历史读回来。scroll 启用时，Hanbao 会注入两个工具：
 
 - **`recall_history`**——常规读取的结构化入口。每次调用都是参数绑定的只读查询，在进程内执行，因此在任何平台上都不需要沙箱、不需要审批：
 
@@ -192,7 +192,7 @@ print(ms.agents())
 
 安全说明：`recall_history_python` 会运行模型生成的 Python。正常情况下，它需要治理层注入 sandbox 配置；如果没有 sandbox，它会默认拒绝执行。（`recall_history` 不受影响：它从不执行模型生成的代码，所以在没有沙箱的平台——例如未装 WSL2 的 Windows——上也能正常运行。）只有同时满足以下条件时才允许 REPL 非沙箱运行：
 
-- 环境变量 `QWENPAW_ALLOW_UNSANDBOXED_RECALL` 为 truthy
+- 环境变量 `HANBAO_ALLOW_UNSANDBOXED_RECALL` 为 truthy
 - `running.light_context_config.scroll_config.allow_unsandboxed = true`
 
 非沙箱 recall 等同于让模型以 Agent 用户身份执行任意宿主机 Python，仅适合可信本地开发。
@@ -207,7 +207,7 @@ print(ms.agents())
 
 scroll 不再有独立的 token 工具结果 cap。所有实时 preview 都使用 `pruning_recent_msg_max_bytes`。只有重建后的上下文仍高于压力目标时，Scroll 才会把选中的已完成结果替换为精确的 `recall_history` 指针。`pruning_recent_n` 和 `pruning_old_msg_max_bytes` 只适用于 Native 策略。
 
-启用统一 pruning 时，QwenPaw 会让 AgentScope 内置的 token 工具结果上限不再触发，避免已经按 bytes 裁剪的 preview 被二次截断并丢失按文本块隔离的恢复 metadata。关闭统一 pruning 时，AgentScope 的默认上限仍作为安全兜底保留。
+启用统一 pruning 时，Hanbao 会让 AgentScope 内置的 token 工具结果上限不再触发，避免已经按 bytes 裁剪的 preview 被二次截断并丢失按文本块隔离的恢复 metadata。关闭统一 pruning 时，AgentScope 的默认上限仍作为安全兜底保留。
 
 `scroll_config.tool_output_token_cap` 仅为保证旧配置文件仍能加载而保留。该字段会被忽略；如果显式配置，将输出迁移 warning。请改用 `tool_result_pruning_config.pruning_recent_msg_max_bytes`，注意单位已从模型估算 token 改为 bytes。关闭 `tool_result_pruning_config.enabled` 也会同时关闭 scroll 的执行期单条工具结果上限。
 

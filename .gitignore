@@ -38,11 +38,11 @@ cookbook/_build
 # Console frontend build (generated in Docker/CI, do not commit)
 console/.cursor/
 console/.wiki/
-src/qwenpaw/console/dist/
-src/qwenpaw/console/
+src/hanbao/console/dist/
+src/hanbao/console/
 
 # Docs bundled at build time (copied from website/public/docs/)
-src/qwenpaw/docs/
+src/hanbao/docs/
 
 # frontend (website)
 website/node_modules/
@@ -112,7 +112,7 @@ logs/
 
 # vibe coding
 # [hanbao modification] Scoped to repo root only. The bare "AGENTS.md" pattern
-# also matched src/qwenpaw/agents/md_files/**/AGENTS.md, which are runtime
+# also matched src/hanbao/agents/md_files/**/AGENTS.md, which are runtime
 # prompt assets that MUST be tracked.
 /AGENTS.md
 .claude
@@ -141,7 +141,7 @@ src/.hypothesis/
 
 # Worktrees
 .worktrees/
-.qwenpaw/worktrees/
+.hanbao/worktrees/
 
 # Local File
 /localfile/

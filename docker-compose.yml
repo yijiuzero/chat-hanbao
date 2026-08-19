@@ -1,15 +1,15 @@
 version: '3.8'
 
 volumes:
-  qwenpaw-data:
-    name: qwenpaw-data
-  qwenpaw-secrets:
-    name: qwenpaw-secrets
-  qwenpaw-backups:
-    name: qwenpaw-backups
+  hanbao-data:
+    name: hanbao-data
+  hanbao-secrets:
+    name: hanbao-secrets
+  hanbao-backups:
+    name: hanbao-backups
 
 services:
-  qwenpaw:
+  hanbao:
     # [hanbao modification] 上架飞牛采用「预构建镜像 + 不构建」模式：
     # 镜像由开发者本地构建后推到自有仓库 / 或打包随 FPK 分发，飞牛上只 docker run，
     # 不在 NAS 执行 docker build（故无需从上游 agentscope 仓库拉取构建镜像）。
@@ -17,17 +17,17 @@ services:
     # 若随 FPK 打包 tar 并用 docker load 载入，保持默认本地 hanbao:latest 即可。
     image: ${HANBAO_IMAGE:-hanbao:latest}
     init: true
-    container_name: qwenpaw
+    container_name: hanbao
     restart: always
     # 监听所有网卡，使同一局域网内的手机/笔记本可访问（Web Console 认证已默认开启，LAN 暴露安全）。
     # 若飞牛应用中心通过自身网关代理访问，可改回 127.0.0.1。
     ports:
       - "0.0.0.0:8088:8088"
     # environment:
-    #   - QWENPAW_AUTH_ENABLED=true
-    #   - QWENPAW_AUTH_USERNAME=admin
-    #   - QWENPAW_AUTH_PASSWORD=yourpassword
+    #   - HANBAO_AUTH_ENABLED=true
+    #   - HANBAO_AUTH_USERNAME=admin
+    #   - HANBAO_AUTH_PASSWORD=yourpassword
     volumes:
-      - qwenpaw-data:/app/working
-      - qwenpaw-secrets:/app/working.secret
-      - qwenpaw-backups:/app/working.backups
+      - hanbao-data:/app/working
+      - hanbao-secrets:/app/working.secret
+      - hanbao-backups:/app/working.backups

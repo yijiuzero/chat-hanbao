@@ -1,4 +1,4 @@
-export const QWENPAW_CLIENT_MESSAGE_ID_KEY = "hanbao_client_message_id";
+export const HANBAO_CLIENT_MESSAGE_ID_KEY = "hanbao_client_message_id";
 
 function randomBase36(length: number): string {
   const bytes = new Uint8Array(length);
@@ -24,7 +24,7 @@ export function attachClientMessageId(
     ...message,
     metadata: {
       ...metadata,
-      [QWENPAW_CLIENT_MESSAGE_ID_KEY]: clientMessageId,
+      [HANBAO_CLIENT_MESSAGE_ID_KEY]: clientMessageId,
     },
   };
 }

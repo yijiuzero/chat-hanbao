@@ -76,7 +76,7 @@ interface ResponsePartial {
   nick?: ChatScalarValues["welcome.nick"];
 }
 
-export interface QwenPawChatNamespace {
+export interface HanbaoChatNamespace {
   welcome: {
     set(pluginId: string, partial: WelcomePartial): Disposable;
     render(pluginId: string, value: WelcomeRenderValue): Disposable;
@@ -163,7 +163,7 @@ export interface QwenPawChatNamespace {
   disposeAll(pluginId: string): void;
 }
 
-export interface QwenPawAuditNamespace {
+export interface HanbaoAuditNamespace {
   overrides(): OverrideRecord[];
 }
 
@@ -215,7 +215,7 @@ function normalizeWelcomeRender(value: WelcomeRenderValue): WelcomeRenderFn {
 // Build the namespace
 // ─────────────────────────────────────────────────────────────────────────────
 
-function makeChatNamespace(): QwenPawChatNamespace {
+function makeChatNamespace(): HanbaoChatNamespace {
   let anonSeq = 0;
   const anonId = (kind: string) => {
     anonSeq += 1;
@@ -376,7 +376,7 @@ export function installHostSdk(): void {
   }
 
   if (!ns.audit) {
-    const auditNamespace: QwenPawAuditNamespace = {
+    const auditNamespace: HanbaoAuditNamespace = {
       overrides: () => auditStore.overrides(),
     };
     ns.audit = auditNamespace;

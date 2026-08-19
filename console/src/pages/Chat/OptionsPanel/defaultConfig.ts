@@ -4,7 +4,7 @@ const defaultConfig = {
   theme: {
     colorPrimary: "#FF7F16",
     darkMode: false,
-    prefix: "qwenpaw",
+    prefix: "hanbao",
     leftHeader: {
       logo: "",
       title: "Work with hanbao",

@@ -33,7 +33,7 @@ type QuickStartProps = {
   docsBase: string;
 };
 
-const DOCKER_IMAGE = "agentscope/qwenpaw:latest";
+const DOCKER_IMAGE = "agentscope/hanbao:latest";
 const AGENTSCOPE_PLATFORM_URL = "https://platform.agentscope.io/";
 const MODELSCOPE_URL =
   "https://modelscope.cn/studios/fork?target=AgentScope/QwenPaw";
@@ -71,34 +71,34 @@ function MethodTabIcon({ method }: { method: InstallMethod }) {
 }
 
 export const PIP_INSTALL_COMMANDS = [
-  "pip install qwenpaw",
-  "qwenpaw init --defaults",
-  "qwenpaw app",
+  "pip install hanbao",
+  "hanbao init --defaults",
+  "hanbao app",
 ] as const;
 
 const COMMANDS = {
   pip: [...PIP_INSTALL_COMMANDS],
   scriptMac: [
     "curl -fsSL https://qwenpaw.agentscope.io/install.sh | bash",
-    "qwenpaw init --defaults",
-    "qwenpaw app",
+    "hanbao init --defaults",
+    "hanbao app",
   ],
   scriptWinCmd: [
     "curl -fsSL https://qwenpaw.agentscope.io/install.bat -o install.bat && install.bat",
-    "qwenpaw init --defaults",
-    "qwenpaw app",
+    "hanbao init --defaults",
+    "hanbao app",
   ],
   scriptWinPs: [
     "irm https://qwenpaw.agentscope.io/install.ps1 | iex",
-    "qwenpaw init --defaults",
-    "qwenpaw app",
+    "hanbao init --defaults",
+    "hanbao app",
   ],
   docker: [
     `docker pull ${DOCKER_IMAGE}`,
     `docker run -p 127.0.0.1:8088:8088 \\
-  -v qwenpaw-data:/app/working \\
-  -v qwenpaw-secrets:/app/working.secret \\
-  -v qwenpaw-backups:/app/working.backups \\
+  -v hanbao-data:/app/working \\
+  -v hanbao-secrets:/app/working.secret \\
+  -v hanbao-backups:/app/working.backups \\
   ${DOCKER_IMAGE}`,
   ],
 } as const;
@@ -262,10 +262,10 @@ export function QuickStart({ docsBase }: QuickStartProps) {
         initial="hidden"
         whileInView="show"
         viewport={{ once: true, margin: "-60px" }}
-        id="qwenpaw-quickstart"
+        id="hanbao-quickstart"
       >
         <div
-          className="pointer-events-none absolute left-1/2 top-0 h-px w-screen -translate-x-1/2 animate-[qwenpaw-dash-move-right_1s_linear_infinite]"
+          className="pointer-events-none absolute left-1/2 top-0 h-px w-screen -translate-x-1/2 animate-[hanbao-dash-move-right_1s_linear_infinite]"
           style={{
             background:
               "repeating-linear-gradient(to right, rgba(255,157,77,0.45) 0 8px, transparent 8px 16px)",
@@ -273,7 +273,7 @@ export function QuickStart({ docsBase }: QuickStartProps) {
           }}
         />
         <div
-          className="pointer-events-none absolute left-1/2 top-full h-px w-screen -translate-x-1/2 -translate-y-px animate-[qwenpaw-dash-move-left_1s_linear_infinite]"
+          className="pointer-events-none absolute left-1/2 top-full h-px w-screen -translate-x-1/2 -translate-y-px animate-[hanbao-dash-move-left_1s_linear_infinite]"
           style={{
             background:
               "repeating-linear-gradient(to right, rgba(255,157,77,0.45) 0 8px, transparent 8px 16px)",
@@ -282,7 +282,7 @@ export function QuickStart({ docsBase }: QuickStartProps) {
         />
         <div className="relative mx-auto max-w-4xl">
           <div
-            className="pointer-events-none absolute bottom-0 left-4 top-0 w-px md:left-0 animate-[qwenpaw-dash-move-down_1s_linear_infinite]"
+            className="pointer-events-none absolute bottom-0 left-4 top-0 w-px md:left-0 animate-[hanbao-dash-move-down_1s_linear_infinite]"
             style={{
               background:
                 "repeating-linear-gradient(to bottom, rgba(255,157,77,0.45) 0 8px, transparent 8px 16px)",
@@ -290,7 +290,7 @@ export function QuickStart({ docsBase }: QuickStartProps) {
             }}
           />
           <div
-            className="pointer-events-none absolute bottom-0 right-4 top-0 w-px md:right-0 animate-[qwenpaw-dash-move-up_1s_linear_infinite]"
+            className="pointer-events-none absolute bottom-0 right-4 top-0 w-px md:right-0 animate-[hanbao-dash-move-up_1s_linear_infinite]"
             style={{
               background:
                 "repeating-linear-gradient(to bottom, rgba(255,157,77,0.45) 0 8px, transparent 8px 16px)",
@@ -314,7 +314,7 @@ export function QuickStart({ docsBase }: QuickStartProps) {
             </motion.div>
             <div className="relative isolate mx-auto max-w-4xl">
               <div
-                className="pointer-events-none absolute left-1/2 top-0 z-20 h-px w-screen -translate-x-1/2 animate-[qwenpaw-dash-move-left_1s_linear_infinite]"
+                className="pointer-events-none absolute left-1/2 top-0 z-20 h-px w-screen -translate-x-1/2 animate-[hanbao-dash-move-left_1s_linear_infinite]"
                 style={{
                   background:
                     "repeating-linear-gradient(to right, rgba(255,157,77,0.45) 0 8px, transparent 8px 16px)",
@@ -621,7 +621,7 @@ export function QuickStart({ docsBase }: QuickStartProps) {
                 </motion.div>
               </div>
               <div
-                className="pointer-events-none absolute bottom-0 left-1/2 h-px w-screen -translate-x-1/2 animate-[qwenpaw-dash-move-right_1s_linear_infinite]"
+                className="pointer-events-none absolute bottom-0 left-1/2 h-px w-screen -translate-x-1/2 animate-[hanbao-dash-move-right_1s_linear_infinite]"
                 style={{
                   background:
                     "repeating-linear-gradient(to right, rgba(255,157,77,0.45) 0 8px, transparent 8px 16px)",

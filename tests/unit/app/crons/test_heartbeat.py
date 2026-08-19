@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
-from qwenpaw.app.crons.heartbeat import (
+from hanbao.app.crons.heartbeat import (
     _extract_message_preview,
     is_cron_expression,
     parse_heartbeat_every,

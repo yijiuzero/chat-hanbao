@@ -19,10 +19,10 @@ jobs:
     environment: staging
 
     env:
-      QWENPAW_BASE_URL: http://localhost:8088
-      QWENPAW_HEADLESS: 'true'
-      QWENPAW_TIMEOUT: '60000'
-      QWENPAW_DASHSCOPE_API_KEY: ${{ secrets.QWENPAW_DASHSCOPE_API_KEY }}
+      HANBAO_BASE_URL: http://localhost:8088
+      HANBAO_HEADLESS: 'true'
+      HANBAO_TIMEOUT: '60000'
+      HANBAO_DASHSCOPE_API_KEY: ${{ secrets.HANBAO_DASHSCOPE_API_KEY }}
 
     steps:
       - uses: actions/checkout@v4
@@ -44,9 +44,9 @@ jobs:
       - name: Copy console build into package
         shell: bash
         run: |
-          rm -rf src/qwenpaw/console/*
-          mkdir -p src/qwenpaw/console
-          cp -R console/dist/* src/qwenpaw/console/
+          rm -rf src/hanbao/console/*
+          mkdir -p src/hanbao/console
+          cp -R console/dist/* src/hanbao/console/
 
       # ---- Install Python dependencies ----
       - name: Set up Python 3.11
@@ -68,7 +68,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p .e2e_coverage
-          SRC_ABS=$(cd src/qwenpaw && pwd)
+          SRC_ABS=$(cd src/hanbao && pwd)
           {
             echo "[run]"
             echo "parallel = true"
@@ -81,33 +81,33 @@ jobs:
           } > .e2e_coverage/coverage_e2e.ini
 
       # ---- Start backend (isolated) ----
-      - name: Start QwenPaw backend
+      - name: Start Hanbao backend
         shell: bash
         run: |
-          QWENPAW_E2E_DIR=$(mktemp -d)
-          echo "QWENPAW_E2E_DIR=$QWENPAW_E2E_DIR" >> "$GITHUB_ENV"
-          mkdir -p "$QWENPAW_E2E_DIR/working" \
-                   "$QWENPAW_E2E_DIR/secret" \
-                   "$QWENPAW_E2E_DIR/backups"
+          HANBAO_E2E_DIR=$(mktemp -d)
+          echo "HANBAO_E2E_DIR=$HANBAO_E2E_DIR" >> "$GITHUB_ENV"
+          mkdir -p "$HANBAO_E2E_DIR/working" \
+                   "$HANBAO_E2E_DIR/secret" \
+                   "$HANBAO_E2E_DIR/backups"
 
           # Export working dirs so subsequent steps (notably the pytest
           # step) can write seed files into the same paths the backend
           # is reading from. Without this, pytest's os.getenv lookup
-          # falls back to ~/.qwenpaw and seeds land in the wrong place.
-          echo "QWENPAW_WORKING_DIR=$QWENPAW_E2E_DIR/working" >> "$GITHUB_ENV"
-          echo "QWENPAW_SECRET_DIR=$QWENPAW_E2E_DIR/secret" >> "$GITHUB_ENV"
-          echo "QWENPAW_BACKUP_DIR=$QWENPAW_E2E_DIR/backups" >> "$GITHUB_ENV"
+          # falls back to ~/.hanbao and seeds land in the wrong place.
+          echo "HANBAO_WORKING_DIR=$HANBAO_E2E_DIR/working" >> "$GITHUB_ENV"
+          echo "HANBAO_SECRET_DIR=$HANBAO_E2E_DIR/secret" >> "$GITHUB_ENV"
+          echo "HANBAO_BACKUP_DIR=$HANBAO_E2E_DIR/backups" >> "$GITHUB_ENV"
 
-          QWENPAW_WORKING_DIR="$QWENPAW_E2E_DIR/working" \
-          QWENPAW_SECRET_DIR="$QWENPAW_E2E_DIR/secret" \
-          QWENPAW_BACKUP_DIR="$QWENPAW_E2E_DIR/backups" \
-          QWENPAW_AUTH_ENABLED=false \
+          HANBAO_WORKING_DIR="$HANBAO_E2E_DIR/working" \
+          HANBAO_SECRET_DIR="$HANBAO_E2E_DIR/secret" \
+          HANBAO_BACKUP_DIR="$HANBAO_E2E_DIR/backups" \
+          HANBAO_AUTH_ENABLED=false \
           PYTHONUNBUFFERED=1 \
           COVERAGE_PROCESS_START="${{ github.workspace }}/.e2e_coverage/coverage_e2e.ini" \
           COVERAGE_FILE="${{ github.workspace }}/.e2e_coverage/e2e_subproc" \
-          python -m qwenpaw app --host 127.0.0.1 --port 8088 --log-level info &
+          python -m hanbao app --host 127.0.0.1 --port 8088 --log-level info &
 
-          echo $! > /tmp/qwenpaw-e2e.pid
+          echo $! > /tmp/hanbao-e2e.pid
 
       - name: Wait for backend ready
         shell: bash
@@ -134,8 +134,8 @@ jobs:
         if: always()
         shell: bash
         run: |
-          if [ -f /tmp/qwenpaw-e2e.pid ]; then
-            PID=$(cat /tmp/qwenpaw-e2e.pid)
+          if [ -f /tmp/hanbao-e2e.pid ]; then
+            PID=$(cat /tmp/hanbao-e2e.pid)
             kill -INT "$PID" 2>/dev/null || true
             for i in $(seq 1 15); do
               kill -0 "$PID" 2>/dev/null || break

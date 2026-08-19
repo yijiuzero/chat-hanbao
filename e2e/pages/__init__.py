@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-QwenPaw E2E test framework - Pages module.
+Hanbao E2E test framework - Pages module.
 
 Exports all page object classes.
 """

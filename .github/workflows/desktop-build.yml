@@ -100,14 +100,14 @@ jobs:
             --bundle-dir console/src-tauri/target/release/bundle/nsis `
             --pattern '*-setup.exe' `
             --target windows-x86_64 `
-            --output "dist/QwenPaw-Tauri-${{ steps.version.outputs.version }}-Windows-setup.exe" `
+            --output "dist/Hanbao-Tauri-${{ steps.version.outputs.version }}-Windows-setup.exe" `
             --pubkey-config console/src-tauri/tauri.version.conf.json
 
       - name: Verify desktop (Tauri Windows)
         timeout-minutes: 10
         uses: ./.github/actions/verify-tauri-windows
         with:
-          dashscope-api-key: ${{ secrets.QWENPAW_DASHSCOPE_API_KEY }}
+          dashscope-api-key: ${{ secrets.HANBAO_DASHSCOPE_API_KEY }}
 
       - name: Stop desktop server (Tauri Windows)
         if: always()
@@ -115,14 +115,14 @@ jobs:
         run: |
           $ErrorActionPreference = "Continue"
           # Kill the Tauri shell and its sidecar subprocess by name.
-          Get-Process -Name "qwenpaw-desktop" -ErrorAction SilentlyContinue |
+          Get-Process -Name "hanbao-desktop" -ErrorAction SilentlyContinue |
             Stop-Process -Force -ErrorAction SilentlyContinue
-          Get-Process -Name "qwenpaw-backend" -ErrorAction SilentlyContinue |
+          Get-Process -Name "hanbao-backend" -ErrorAction SilentlyContinue |
             Stop-Process -Force -ErrorAction SilentlyContinue
           Start-Sleep -Seconds 2
-          Get-Process -Name "qwenpaw-desktop" -ErrorAction SilentlyContinue |
+          Get-Process -Name "hanbao-desktop" -ErrorAction SilentlyContinue |
             Stop-Process -Force -ErrorAction SilentlyContinue
-          Get-Process -Name "qwenpaw-backend" -ErrorAction SilentlyContinue |
+          Get-Process -Name "hanbao-backend" -ErrorAction SilentlyContinue |
             Stop-Process -Force -ErrorAction SilentlyContinue
           exit 0
 
@@ -132,9 +132,9 @@ jobs:
         with:
           name: desktop-verify-logs-tauri-windows-${{ steps.version.outputs.version }}
           path: |
-            ${{ runner.temp }}/qwenpaw-desktop-stdout.log
-            ${{ runner.temp }}/qwenpaw-desktop-stderr.log
-            ~/AppData/Local/com.qwenpaw.desktop/logs/
+            ${{ runner.temp }}/hanbao-desktop-stdout.log
+            ${{ runner.temp }}/hanbao-desktop-stderr.log
+            ~/AppData/Local/com.hanbao.desktop/logs/
           if-no-files-found: ignore
           retention-days: 7
 
@@ -150,15 +150,15 @@ jobs:
       - name: Upload Tauri Windows artifact
         uses: actions/upload-artifact@v4
         with:
-          name: QwenPaw-Desktop-Tauri-Windows-${{ steps.version.outputs.version }}
-          path: dist/QwenPaw-Tauri-*-Windows-setup.exe
+          name: Hanbao-Desktop-Tauri-Windows-${{ steps.version.outputs.version }}
+          path: dist/Hanbao-Tauri-*-Windows-setup.exe
 
       - name: Upload Tauri Windows updater metadata
         uses: actions/upload-artifact@v4
         with:
           name: tauri-updater-meta-windows
           path: |
-            dist/QwenPaw-Tauri-*-Windows-setup.exe.sig
+            dist/Hanbao-Tauri-*-Windows-setup.exe.sig
             dist/tauri-windows-x86_64-updater.json
 
   build-tauri-macos:
@@ -224,17 +224,17 @@ jobs:
         timeout-minutes: 10
         uses: ./.github/actions/verify-tauri-macos
         with:
-          dashscope-api-key: ${{ secrets.QWENPAW_DASHSCOPE_API_KEY }}
+          dashscope-api-key: ${{ secrets.HANBAO_DASHSCOPE_API_KEY }}
 
       - name: Stop desktop server (Tauri macOS)
         if: always()
         run: |
           # Kill the Tauri shell and its sidecar subprocess.
-          pkill -f "QwenPaw Desktop" 2>/dev/null || true
-          pkill -f "qwenpaw-backend" 2>/dev/null || true
+          pkill -f "Hanbao Desktop" 2>/dev/null || true
+          pkill -f "hanbao-backend" 2>/dev/null || true
           sleep 2
-          pkill -9 -f "QwenPaw Desktop" 2>/dev/null || true
-          pkill -9 -f "qwenpaw-backend" 2>/dev/null || true
+          pkill -9 -f "Hanbao Desktop" 2>/dev/null || true
+          pkill -9 -f "hanbao-backend" 2>/dev/null || true
           # Best-effort: kill anything sitting on the detected port.
           if [ -n "${BASE_URL:-}" ]; then
             PORT="${BASE_URL##*:}"
@@ -248,9 +248,9 @@ jobs:
         with:
           name: desktop-verify-logs-tauri-macos-${{ steps.version.outputs.version }}
           path: |
-            ${{ runner.temp }}/qwenpaw-desktop-stdout.log
-            ${{ runner.temp }}/qwenpaw-desktop-stderr.log
-            ~/Library/Logs/com.qwenpaw.desktop/
+            ${{ runner.temp }}/hanbao-desktop-stdout.log
+            ${{ runner.temp }}/hanbao-desktop-stderr.log
+            ~/Library/Logs/com.hanbao.desktop/
           if-no-files-found: ignore
           retention-days: 7
 
@@ -266,14 +266,14 @@ jobs:
       - name: Upload Tauri macOS artifact
         uses: actions/upload-artifact@v4
         with:
-          name: QwenPaw-Desktop-Tauri-macOS-${{ steps.version.outputs.version }}
-          path: dist/QwenPaw-Tauri-*-macOS.zip
+          name: Hanbao-Desktop-Tauri-macOS-${{ steps.version.outputs.version }}
+          path: dist/Hanbao-Tauri-*-macOS.zip
 
       - name: Upload Tauri macOS updater metadata
         uses: actions/upload-artifact@v4
         with:
           name: tauri-updater-meta-macos
           path: |
-            dist/QwenPaw-Tauri-*-macOS.app.tar.gz
-            dist/QwenPaw-Tauri-*-macOS.app.tar.gz.sig
+            dist/Hanbao-Tauri-*-macOS.app.tar.gz
+            dist/Hanbao-Tauri-*-macOS.app.tar.gz.sig
             dist/tauri-darwin-*-updater.json

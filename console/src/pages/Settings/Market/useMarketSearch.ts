@@ -86,7 +86,7 @@ export function useMarketSearch(): MarketSearchState {
     setAutoLoadBlockedState(blocked);
   }, []);
 
-  // Keep server-provided provider order (QwenPaw first) for ranking.
+  // Keep server-provided provider order (Hanbao first) for ranking.
   const providerKeyList = useMemo(() => {
     const ordered = providers
       .map((p) => p.key)
@@ -111,8 +111,8 @@ export function useMarketSearch(): MarketSearchState {
         setSelectedProviderKeys((prev) => {
           const valid = [...prev].filter((k) => enabled.includes(k));
           if (valid.length > 0) return new Set(valid);
-          const fallback = enabled.includes("qwenpaw")
-            ? ["qwenpaw"]
+          const fallback = enabled.includes("hanbao")
+            ? ["hanbao"]
             : enabled.slice(0, 1);
           return new Set(fallback);
         });

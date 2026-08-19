@@ -3,12 +3,12 @@ from pathlib import Path
 
 import pytest
 
-from qwenpaw.drivers.capabilities import DriverInvocation
-from qwenpaw.drivers.contracts import CredentialRef, DriverCard, PolicyRule
-from qwenpaw.drivers.credentials.store import AsyncCredentialStore
-from qwenpaw.drivers.handlers.mcp import MCPDriverHandler
-from qwenpaw.drivers.manager import DriverManager
-from qwenpaw.drivers.storage import card_path, dump_card
+from hanbao.drivers.capabilities import DriverInvocation
+from hanbao.drivers.contracts import CredentialRef, DriverCard, PolicyRule
+from hanbao.drivers.credentials.store import AsyncCredentialStore
+from hanbao.drivers.handlers.mcp import MCPDriverHandler
+from hanbao.drivers.manager import DriverManager
+from hanbao.drivers.storage import card_path, dump_card
 from tests.integration.driver_mcp_fakes import patch_mcp_runtime_clients
 
 

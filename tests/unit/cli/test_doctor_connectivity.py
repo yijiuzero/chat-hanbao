@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
-from qwenpaw.cli import doctor_connectivity
-from qwenpaw.config.config import TelegramConfig
+from hanbao.cli import doctor_connectivity
+from hanbao.config.config import TelegramConfig
 
 
 def test_probe_telegram_uses_custom_base_url(monkeypatch) -> None:

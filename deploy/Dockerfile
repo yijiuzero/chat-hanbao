@@ -38,16 +38,16 @@ FROM python:3.12-slim
 # ENV variables
 ENV NODE_ENV=production
 ENV WORKSPACE_DIR=/app
-ENV QWENPAW_WORKING_DIR=/app/working
-ENV QWENPAW_SECRET_DIR=/app/working.secret
-ENV QWENPAW_BACKUP_DIR=/app/working.backups
+ENV HANBAO_WORKING_DIR=/app/working
+ENV HANBAO_SECRET_DIR=/app/working.secret
+ENV HANBAO_BACKUP_DIR=/app/working.backups
 
-# Channel filtering: use QWENPAW_DISABLED_CHANNELS (exclusion, recommended)
-# or QWENPAW_ENABLED_CHANNELS (whitelist). Override at runtime with -e.
-ARG QWENPAW_DISABLED_CHANNELS="imessage"
-ENV QWENPAW_DISABLED_CHANNELS=${QWENPAW_DISABLED_CHANNELS}
-ARG QWENPAW_ENABLED_CHANNELS=""
-ENV QWENPAW_ENABLED_CHANNELS=${QWENPAW_ENABLED_CHANNELS}
+# Channel filtering: use HANBAO_DISABLED_CHANNELS (exclusion, recommended)
+# or HANBAO_ENABLED_CHANNELS (whitelist). Override at runtime with -e.
+ARG HANBAO_DISABLED_CHANNELS="imessage"
+ENV HANBAO_DISABLED_CHANNELS=${HANBAO_DISABLED_CHANNELS}
+ARG HANBAO_ENABLED_CHANNELS=""
+ENV HANBAO_ENABLED_CHANNELS=${HANBAO_ENABLED_CHANNELS}
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -71,7 +71,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   && apt-get clean
 
 # Indicate running in container (used by telemetry/secret-store guards).
-ENV QWENPAW_RUNNING_IN_CONTAINER=1
+ENV HANBAO_RUNNING_IN_CONTAINER=1
 
 WORKDIR ${WORKSPACE_DIR}
 
@@ -85,17 +85,17 @@ ENV PATH="/app/venv/bin:$PATH"
 COPY pyproject.toml setup.py README.md ./
 COPY --from=uv-src /uv /bin/uv
 ENV PYTHONPATH=/app/src
-RUN mkdir -p src/qwenpaw && \
-    echo '' > src/qwenpaw/__init__.py && \
-    echo '__version__ = "0.0.1"' > src/qwenpaw/__version__.py && \
+RUN mkdir -p src/hanbao && \
+    echo '' > src/hanbao/__init__.py && \
+    echo '__version__ = "0.0.1"' > src/hanbao/__version__.py && \
     uv pip install --no-cache-dir . && \
-    rm -rf ./build && rm -rf src/qwenpaw
+    rm -rf ./build && rm -rf src/hanbao
 
 # Copy real source and reinstall (dependencies already in venv from above).
 COPY src ./src
-COPY website/public/docs/ ./src/qwenpaw/docs/
+COPY website/public/docs/ ./src/hanbao/docs/
 # Inject console dist from build stage (repo does not commit dist).
-COPY --from=console-builder /app/console/dist/ ./src/qwenpaw/console/
+COPY --from=console-builder /app/console/dist/ ./src/hanbao/console/
 RUN uv pip install --no-cache-dir --no-deps . && rm -rf ./build
 
 # [hanbao modification] Apache-2.0 compliance: ship license & attribution files
@@ -106,13 +106,13 @@ COPY docs/CHANGES-FROM-UPSTREAM.md /app/docs/
 
 LABEL org.opencontainers.image.licenses="Apache-2.0"
 LABEL org.opencontainers.image.source="https://github.com/agentscope-ai/QwenPaw"
-LABEL org.opencontainers.image.description="hanbao (函包), derived from QwenPaw v2.0.1"
+LABEL org.opencontainers.image.description="hanbao (函包), derived from Hanbao v2.0.1"
 
 # [hanbao modification] Brand display name in comment
-# hanbao app port (default 8088). Override at runtime with -e QWENPAW_PORT=3000.
-ENV QWENPAW_PORT=8088
-# [hanbao modification] I-007: 上架飞牛默认开启 Web Console 认证（可被 -e QWENPAW_AUTH_ENABLED=false 覆盖）
-ENV QWENPAW_AUTH_ENABLED=true
+# hanbao app port (default 8088). Override at runtime with -e HANBAO_PORT=3000.
+ENV HANBAO_PORT=8088
+# [hanbao modification] I-007: 上架飞牛默认开启 Web Console 认证（可被 -e HANBAO_AUTH_ENABLED=false 覆盖）
+ENV HANBAO_AUTH_ENABLED=true
 
 # [hanbao modification] I-004: remove the build toolchain from the final image.
 RUN apt-get purge -y build-essential gcc g++ make && \

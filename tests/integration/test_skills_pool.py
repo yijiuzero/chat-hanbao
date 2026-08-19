@@ -790,7 +790,7 @@ def test_hub_install_start_poll_complete(app_server) -> None:
     agent_id = "integ_hub_install_poll_01"
     skill_url = (
         "https://github.com/agentscope-ai/QwenPaw"
-        "/tree/main/src/qwenpaw/agents/skills/file_reader-zh"
+        "/tree/main/src/hanbao/agents/skills/file_reader-zh"
     )
     create_agent = app_server.api_request(
         "POST",

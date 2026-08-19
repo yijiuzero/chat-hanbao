@@ -4,8 +4,8 @@ import {
   type BlogStatsRow,
 } from "./supabase";
 
-const VIEWED_PREFIX = "qwenpaw:blog:viewed:";
-const LIKED_PREFIX = "qwenpaw:blog:liked:";
+const VIEWED_PREFIX = "hanbao:blog:viewed:";
+const LIKED_PREFIX = "hanbao:blog:liked:";
 
 const pendingLikeToggles = new Set<string>();
 
