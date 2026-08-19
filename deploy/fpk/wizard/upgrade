@@ -1,0 +1,28 @@
+[
+  {
+    "stepTitle": "升级确认",
+    "items": [
+      {
+        "type": "tips",
+        "helpText": "升级将保留应用数据卷（对话记录与配置，位于 @appdata）。如管理员凭据有变更，可在此重新填写。"
+      },
+      {
+        "type": "text",
+        "field": "HANBAO_AUTH_USERNAME",
+        "label": "管理员账号（留空则不改动）",
+        "initValue": "",
+        "rules": [
+          { "required": false }
+        ]
+      },
+      {
+        "type": "password",
+        "field": "HANBAO_AUTH_PASSWORD",
+        "label": "管理员密码（留空则不改动）",
+        "rules": [
+          { "required": false }
+        ]
+      }
+    ]
+  }
+]

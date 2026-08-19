@@ -1,0 +1,28 @@
+[
+  {
+    "stepTitle": "管理员账号设置",
+    "items": [
+      {
+        "type": "text",
+        "field": "HANBAO_AUTH_USERNAME",
+        "label": "管理员账号",
+        "initValue": "admin",
+        "rules": [
+          { "required": false }
+        ]
+      },
+      {
+        "type": "password",
+        "field": "HANBAO_AUTH_PASSWORD",
+        "label": "管理员密码",
+        "rules": [
+          { "required": false }
+        ]
+      },
+      {
+        "type": "tips",
+        "helpText": "留空则首次打开应用后自行注册管理员账号；填写后将在首次启动时自动建号，避免局域网抢注。"
+      }
+    ]
+  }
+]

@@ -1,9 +1,7 @@
-# ============================================================
-# 飞牛 FPK 权限声明（config/privilege）
-#
-# ⚠️ 待飞牛官方 FPK 规范核对：文件名/字段名为基于 2026-08-19 调研的
-# 最佳实践猜测。native 形态需本机 docker 能力以 load 镜像并 compose up，
-# 且需网络以暴露 Web Console（8088）。按飞牛 privilege schema 校正。
-# ============================================================
-docker: true
-network: true
+{
+  "defaults": {
+    "run-as": "package"
+  },
+  "username": "hanbao",
+  "groupname": "hanbao"
+}

@@ -1,0 +1,28 @@
+[
+  {
+    "stepTitle": "管理员账号设置",
+    "items": [
+      {
+        "type": "text",
+        "field": "HANBAO_AUTH_USERNAME",
+        "label": "管理员账号（留空则不改动）",
+        "initValue": "",
+        "rules": [
+          { "required": false }
+        ]
+      },
+      {
+        "type": "password",
+        "field": "HANBAO_AUTH_PASSWORD",
+        "label": "管理员密码（留空则不改动）",
+        "rules": [
+          { "required": false }
+        ]
+      },
+      {
+        "type": "tips",
+        "helpText": "修改后提交将更新容器内的管理员凭据；留空则保留原有设置。"
+      }
+    ]
+  }
+]

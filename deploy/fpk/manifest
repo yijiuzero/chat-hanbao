@@ -1,37 +1,26 @@
 # ============================================================
-# 飞牛 FPK 应用清单（manifest）
-#
-# ⚠️ 待飞牛官方 FPK 规范核对：本文件字段/格式基于 2026-08-19 对
-# developer.fnnas.com 文档与 WechatOnCloud/fnos、MiBeeNVR 仓库的调研最佳实践，
-# 发布前须对照官方 spec 校正（尤其字段名、是否 YAML/JSON、是否需额外段）。
-#
-# 已确定的设计决策：
-#   - 形态：native（非 docker-project），镜像由 cmd/main 自己 docker load
-#   - 端口：8088（Web Console 已默认开认证 I-007）
-#   - 架构：linux/amd64（x86_64）
-#   - source：thirdparty（派生自 QwenPaw v2.1.0，Apache-2.0）
+# 飞牛 FPK 应用清单（manifest）— INI 格式，key=value
+# 官方规范: https://developer.fnnas.com/docs/core-concepts/manifest/
+# 形态: docker-project（飞牛按 config/resource 的 docker-project 声明接管容器生命周期）
+# 离线镜像: install_callback 预载内置 tar，compose pull_policy: never，全程不拉外网
+# 来源: 派生自 QwenPaw v2.1.0 (Apache-2.0)，二次开发 hanbao
 # ============================================================
 
-appid: hanbao
-name: 函包 hanbao
-version: 0.1.0
-description: 飞牛 NAS 上的私人 AI 聊天助手（微信 + OneBot 渠道）
-icon: ICON_256.PNG
-category: ai
+appname=hanbao
+version=0.1.0
+display_name=函包 hanbao
+desc=飞牛 NAS 上的私人 AI 聊天助手（微信 + OneBot 渠道）。本地运行、数据自控，仅依赖云端 OpenAI 兼容 API。
+source=thirdparty
+platform=x86
 
-# 架构与运行形态
-platform: x86
-arch:
-  - x86_64
+maintainer=泽零 / Zeling
+maintainer_url=https://github.com/yijiuzero/chat-hanbao
 
-# 服务暴露
-service_port: 8088
-checkport: true
-ctl_stop: true
+os_min_version=1.2.0
 
-# 桌面入口（飞牛桌面快捷方式）
-desktop_uidir: ui
-desktop_applaunchname: hanbao.main
+desktop_uidir=ui
+desktop_applaunchname=hanbao.main
 
-# 来源声明（合规：派生自上游 QwenPaw，Apache-2.0）
-source: thirdparty
+service_port=8088
+checkport=true
+ctl_stop=true

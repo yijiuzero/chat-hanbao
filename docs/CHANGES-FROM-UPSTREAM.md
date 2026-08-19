@@ -553,7 +553,21 @@ hanbao 是 QwenPaw 的派生作品（再分发者），即便只分发镜像（�
   - `wizard` / `manifest` / `config/{resource,privilege}` / `app/ui/config`：安装向导、应用清单、资源/权限、桌面入口。
   - 图标：`ICON.PNG`(64) / `ICON_256.PNG`(256) + `app/ui/images/icon_64.png`、`icon_256.png`（2026-08-18 由用户原创水墨图中心裁切生成）。
 - **修正 `deploy/save-image.sh`**：注释「飞牛自动 docker load」不实（仅 docker-project 形态），改为 native 由 cmd/main 自 load；默认输出路径改为 `deploy/fpk/app/hanbao-amd64.tar`（cmd/main 取值位置）。
-- **⚠️ 待核对（schema 级）**：`manifest`/`wizard`/`config/*`/`app/ui/config` 的**确切字段名与文件格式**需对照 developer.fnnas.com 官方 FPK 规范校正（当前为 2026-08-19 调研最佳实践猜测，各文件头已标注 ⚠️）；`fnpack` 打包与飞牛实测需用户环境+代理。
+- ✅ **schema 已于 2026-08-19 第二批对照官方规范逐条校正**（见下「FPK 脚手架按官方规范校正」）。`fnpack` 打包与飞牛实测仍需用户环境+代理。
+
+### FPK 脚手架按官方规范校正（2026-08-19 第二批）
+- **拉取官方规范**：developer.fnnas.com 本机直连可达（无需代理）。逐篇核对 应用框架 / fnpack / manifest / 环境变量 / 用户向导 / 应用入口 / 应用资源 / 应用权限 / Docker 案例，确认前批 native 脚手架与官方 schema 多处冲突（`fnpack build` 会直接报错）。
+- **形态切换：native → docker-project**：官方规范仅以 docker-project 作为容器应用标准路径，`config/resource` 的 `docker-project` 声明即飞牛接管容器生命周期的开关；前批担心的「离线镜像未 load 就 compose up 报 No such image」由 `pull_policy: never` + `install_callback` 预载 tar 彻底化解。`cmd/main` 改为 status-only（start/stop 由飞牛管理），`install_callback` 负责 `docker load` 内置 tar + 写 `$TRIM_PKGETC/hanbao.env`。
+- **schema 逐条校正**：
+  - `manifest`：由臆造 YAML 改为官方 INI（`appname`/`display_name`/`desc`/`source`/`platform`/`maintainer`/`os_min_version`/`desktop_uidir`/`desktop_applaunchname`/`service_port`/`checkport`/`ctl_stop`）；移除非字段 `appid`/`name`/`description`/`icon`/`category`/`arch`。
+  - `wizard`：由单文件改为 `wizard/` 目录（install/config/upgrade/uninstall 四个 JSON 数组向导），字段 `type`/`field`/`label`/`rules`/`password`。
+  - `config/resource`：改为 `docker-project` JSON（`projects[].name=hanbao, path=docker`）。
+  - `config/privilege`：改为 package 用户 JSON（`run-as: package`, `username/groupname=hanbao`）。
+  - `app/ui/config`：改为 `.url` 入口（`hanbao.main`，`type: iframe`, `port: "8088"`, `url: "/"`, `allUsers: true`）。
+  - `app/docker/docker-compose.yaml`：移除 `version`；`env_file: ${TRIM_PKGETC}/hanbao.env` 注入凭据；挂载 `$TRIM_PKGVAR:/app/working` 持久化（替代原 named volume）；`pull_policy: never`。
+  - `deploy/save-image.sh`：输出路径改 `deploy/fpk/app/docker/hanbao-amd64.tar`（落 `app/docker/`，install 后位于 `$TRIM_APPDEST/docker/` 供 load）。
+- **校验**：bash 语法 + 7 个 JSON 合法 + fnpack 必检结构（manifest/ICON.PNG/ICON_256.PNG/app/cmd/config/wizard + app/ui）全部齐备。
+- ⚠️ 唯一待 fnOS 实测确认项：compose `env_file: ${TRIM_PKGETC}/hanbao.env` 中 `TRIM_PKGETC` 是否由飞牛在 docker-project 执行时展开；若否，回退为 `install_callback` 额外写 `app/docker/hanbao.env` + 相对路径 `./hanbao.env`。
 
 _（其余 FPK 打包待执行：fnpack 封装 + 飞牛实测 + 上架）_
 

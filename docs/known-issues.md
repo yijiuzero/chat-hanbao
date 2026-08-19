@@ -374,7 +374,7 @@ Hanbao Web Console（8088）默认不开启认证，设计假设是"个人本地
 - **deploy/entrypoint.sh**：新增 `export HANBAO_AUTH_ENABLED="${HANBAO_AUTH_ENABLED:-true}"`（默认开，用户 `-e ...=false` 可关）+ `print_auth_banner()`：开启且无凭据 env 时提示"首次打开页面设管理员密码"，有凭据 env 时提示"自动建账号"。原 `warn_if_auth_off_container_bind` 仅当用户显式关闭时触发。
 - **deploy/Dockerfile**：新增 `ENV HANBAO_AUTH_ENABLED=true` 双保险（即便绕过 entrypoint 直接 exec app，仍默认开）。
 - **行为说明（上游设计）**：`auth.py:_should_skip_auth` 首行 `if not is_auth_enabled() or not has_registered_users(): return True`——**未注册账号前跳过认证**（首次注册模式）。故默认开认证但无凭据 env 时，安装后第一个打开页面的人可设密码（单用户家庭场景可接受；FPK 阶段应由向导注入凭据消除此窗口）。
-- **已建（2026-08-19，阶段5 native 脚手架）**：FPK 安装向导（`deploy/fpk/wizard`）收集 `HANBAO_AUTH_USERNAME`/`HANBAO_AUTH_PASSWORD` → `install_callback` 持久化 `$TRIM_PKGVAR/hanbao.env` → `cmd/main` start 时 source 注入容器 → `auto_register_from_env()` 首启自动建账号（I-007 抢注窗口消除）。⚠️ `manifest`/`wizard`/`config/{resource,privilege}`/`app/ui/config` 的**确切字段格式**待对照飞牛官方 FPK 规范核对（本环境无代理/示例包）。
+- **已建并校正（2026-08-19，阶段5 FPK 脚手架，docker-project 形态）**：FPK 安装向导（`deploy/fpk/wizard/install`）收集 `HANBAO_AUTH_USERNAME`/`HANBAO_AUTH_PASSWORD` → `install_callback` 预载镜像 tar + 持久化 `$TRIM_PKGETC/hanbao.env` → compose `env_file` 注入容器 → `auto_register_from_env()` 首启自动建账号（I-007 抢注窗口消除）。✅ `manifest`/`wizard/`/`config/{resource,privilege}`/`app/ui/config` 字段格式已于 2026-08-19 对照飞牛官方规范（developer.fnnas.com，本机直连可达无需代理）逐条校正；剩 `fnpack build` + fnOS 实测验证。
 - 改完按铁律未立即构建，待用户说"测一下"再重建镜像验证。
 
 ### 关联改动（2026-08-14，非本项解决）

@@ -2,24 +2,40 @@
 # ============================================================
 # hanbao FPK 安装回调（install_callback）
 #
-# 飞牛应用中心在完成安装向导后调用本脚本。向导收集到的字段以「环境变量」
-# 形式传入，且字段名即环境变量名（无 wizard_ 前缀），例如：
-#   HANBAO_AUTH_USERNAME  /  HANBAO_AUTH_PASSWORD
+# 飞牛在完成安装向导后调用本脚本。向导字段以同名环境变量传入（无 TRIM_ 前缀）：
+#   HANBAO_AUTH_USERNAME / HANBAO_AUTH_PASSWORD
 #
-# 凭据只在安装时注入一次，故本脚本把其持久化到 $TRIM_PKGVAR/hanbao.env，
-# 供 cmd/main 在每次 start 时 source 后注入容器（接 I-007 默认开认证，
-# auto_register_from_env 首启自动建管理员账号，消除局域网抢注窗口）。
+# 本脚本做两件事：
+#   1) 预载内置镜像 tar（docker load），已存在则跳过；配合 compose pull_policy:never
+#      实现离线运行，不向外部仓库拉取。
+#   2) 把向导收集的管理员凭据持久化到 $TRIM_PKGETC/hanbao.env，供 docker-compose
+#      通过 env_file 注入容器（接 I-007 默认开认证 + auto_register_from_env 首启
+#      自动建管理员账号，消除局域网抢注窗口）。用户留空则不写用户名/密码，走首启注册页。
 # ============================================================
 set -eu
 
-PKGVAR="${TRIM_PKGVAR:-/var/lib/fnos/packages/hanbao}"
-ENV_FILE="${PKGVAR}/hanbao.env"
+APP_DEST="${TRIM_APPDEST:?install_callback: TRIM_APPDEST 未设置}"
+PKG_ETC="${TRIM_PKGETC:?install_callback: TRIM_PKGETC 未设置}"
 
-mkdir -p "${PKGVAR}"
+IMAGE_TAR="${APP_DEST}/docker/hanbao-amd64.tar"
+IMAGE_NAME="hanbao:latest"
+ENV_FILE="${PKG_ETC}/hanbao.env"
 
-# 仅在用户确实填了凭据时才写入（留空则 cmd/main 不注入，走首启注册页）
+# 1) 预载镜像（离线，不依赖外网）
+if docker image inspect "${IMAGE_NAME}" >/dev/null 2>&1; then
+  echo "[hanbao] 镜像 ${IMAGE_NAME} 已存在，跳过 docker load"
+elif [ -f "${IMAGE_TAR}" ]; then
+  echo "[hanbao] >>> docker load -i ${IMAGE_TAR}"
+  docker load -i "${IMAGE_TAR}"
+else
+  echo "[hanbao] 未找到镜像 ${IMAGE_NAME} 且 ${IMAGE_TAR} 不存在" >&2
+  exit 1
+fi
+
+# 2) 持久化向导凭据（留空则只写 HANBAO_AUTH_ENABLED=true）
+mkdir -p "${PKG_ETC}"
 {
-  echo "# hanbao FPK 安装向导注入的凭据（由 install_callback 生成，勿手改）"
+  echo "# hanbao FPK 安装向导注入的凭据（install_callback 生成，勿手改）"
   echo "HANBAO_AUTH_ENABLED=true"
   if [ -n "${HANBAO_AUTH_USERNAME:-}" ]; then
     echo "HANBAO_AUTH_USERNAME=${HANBAO_AUTH_USERNAME}"
@@ -29,4 +45,4 @@ mkdir -p "${PKGVAR}"
   fi
 } > "${ENV_FILE}"
 
-echo "凭据已写入 ${ENV_FILE}"
+echo "[hanbao] 凭据已写入 ${ENV_FILE}"
