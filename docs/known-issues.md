@@ -26,10 +26,10 @@
 | [I-015](#i-015) | 包名全量改名：qwenpaw → hanbao（包/环境变量/标识符/目录） | 🟢 极低 | 阶段 5 FPK 前 | 🟢 已解决（2026-08-19 落地） |
 | [I-016](#i-016) | 品牌名残留：插件 plugin.json author 字段 | 🟢 极低 | 无阻塞 | 🟢 保留上游署名（合规） |
 | [I-017](#i-017) | sed 产生 JS 注释 `//` 污染 Python 文件 | 🔥 高 | 阶段 3 删减定制 | 🟢 已解决 |
-| [I-018](#i-018) | git checkout 导致 gitignored 文件从磁盘消失 | 🔥 高 | 阶段 3 删减定制 | 🟡 处理中 |
-| [I-019](#i-019) | 文档处理能力降级：Anthropic 技能侵权，只能读不能改/创建 | 🔥 高 | 上架前必须解决 | 🟡 处理中（已定方案 A + markitdown） |
+| [I-018](#i-018) | git checkout 导致 gitignored 文件从磁盘消失 | 🔥 高 | 阶段 3 删减定制 | 🟢 已解决（gitignore 硬化） |
+| [I-019](#i-019) | 文档处理能力降级：Anthropic 技能侵权，只能读不能改/创建 | 🔥 高 | 上架前必须解决 | 🟢 已解决（markitdown 已接 file_io；改/创建按计划放弃） |
 | [I-020](#i-020) | html2text 为 GPL-3.0 传染性依赖，违反 R5 红线 | 🔥 高 | 上架前必须解决 | 🟢 已解决（换 markdownify MIT） |
-| [I-021](#i-021) | 依赖审计：4 个 LGPL 弱传染依赖（telegram-bot/rope/pytoolconfig/docstring-to-markdown） | 🟠 中 | 上架前备案 | 🟡 处理中（NOTICE 已补声明） |
+| [I-021](#i-021) | 依赖审计：4 个 LGPL 弱传染依赖（telegram-bot/rope/pytoolconfig/docstring-to-markdown） | 🟠 中 | 上架前备案 | 🟢 已备案（NOTICE 已补 + rope/pytoolconfig 已消除） |
 | [I-022](#i-022) | web_search 用 Tavily keyless（免费限速），上架后重度使用会撞限速 | 🟡 低 | 上架后可优化 | 🔴 待处理 |
 | [I-023](#i-023) | patch 累积 diff 的提交依赖（原「基线偏离」为误判，本地基线=官方 v2.0.1） | 🟡 低 | 移植靠后提交前先识别前置依赖 | 🟢 已澄清 |
 | [I-024](#i-024) | Monaco 编辑器残留（Coding Mode 砍不干净） | 🟢 极低 | 阶段 3 收尾 | 🟢 已解决（依赖移除+占位符） |
@@ -642,7 +642,7 @@ WSL2 后端的 Docker 数据盘路径由 `AppData\Local\Docker\wsl\disk\docker_d
 <a id="i-018"></a>
 ## I-018 · git checkout 导致 gitignored 跟踪文件从磁盘消失
 
-**严重度**：🔥 高 &nbsp;|&nbsp; **状态**：🟡 处理中 &nbsp;|&nbsp; **必须处理时机**：阶段 3 完成前
+**严重度**：🔥 高 &nbsp;|&nbsp; **状态**：🟢 已解决 &nbsp;|&nbsp; **必须处理时机**：阶段 3 完成前
 
 ### 现象
 在阶段 3 删减定制过程中，多次出现执行 `git checkout HEAD -- <path>` 恢复文件后，`console/src/api/` 和 `src/hanbao/app/routers/` 等目录下的文件从磁盘消失。具体表现为：
@@ -659,6 +659,8 @@ WSL2 后端的 Docker 数据盘路径由 `AppData\Local\Docker\wsl\disk\docker_d
 - 或用 `git checkout HEAD -- <path>` 恢复（仅对仍在 index 中的文件有效）
 
 ### 根本修复方向
+
+> ✅ **已落地（2026-08-12）**：`.gitignore` 硬化（`dist/` → `/dist/`、`console/package-lock.json` 取消忽略，见变更历史 L836），I-001/I-018 同类吞文件问题已闭合；基线计数改为动态校验（打包前 `git check-ignore` 全量复核）。
 1. 彻底审核 `.gitignore` 中所有可能误伤的规则（已做：`dist/` → `/dist/`，`console/package-lock.json` 取消忽略）
 2. 建立验证脚本：每次 git 操作后运行 `git ls-files | wc -l` 对比基线 2846
 3. 优先用 `cp -r` 从上游恢复而非依赖 `git checkout`
@@ -667,7 +669,7 @@ WSL2 后端的 Docker 数据盘路径由 `AppData\Local\Docker\wsl\disk\docker_d
 
 ## I-019 · 文档处理能力降级：Anthropic 技能侵权，只能读不能改/创建
 
-**严重度**：🔥 高 &nbsp;|&nbsp; **状态**：🟡 处理中 &nbsp;|&nbsp; **必须处理时机**：上架前
+**严重度**：🔥 高 &nbsp;|&nbsp; **状态**：🟢 已解决 &nbsp;|&nbsp; **必须处理时机**：上架前
 
 ### 现象
 上游 Hanbao 内置的 4 个文档处理技能 `docx`/`pdf`/`pptx`/`xlsx`，其 `LICENSE.txt` 为 **Anthropic 专有许可**（`© 2025 Anthropic, PBC. All rights reserved.`），明确禁止「分发 / 复制 / 衍生作品 / 销售」。Anthropic 官方仓库也确认这 4 个文档技能是 **source-available, not open source**（源码可见但非开源）。
@@ -688,7 +690,7 @@ WSL2 后端的 Docker 数据盘路径由 `AppData\Local\Docker\wsl\disk\docker_d
 ### 能力现状对照
 | 能力 | 状态 |
 |---|---|
-| 读 docx/pdf/pptx/xlsx 内容 | 🟡 markitdown 待接入（当前 file_io 只读文本） |
+| 读 docx/pdf/pptx/xlsx 内容 | 🟢 已接入（markitdown 路由到 file_io.read_file，2026-08-19 落地） |
 | 改 docx/xlsx 样式/内容 | ❌ 不可（无 python-docx/openpyxl 库 + 无技能指引） |
 | 创建 docx/xlsx/pptx | ❌ 不可（已放弃） |
 
@@ -720,7 +722,7 @@ GPL 是 copyleft 传染性许可，与 Apache-2.0 闭源分发目标冲突，违
 
 ## I-021 · 依赖审计：4 个 LGPL 弱传染依赖
 
-**严重度**：🟠 中 &nbsp;|&nbsp; **状态**：🟡 处理中 &nbsp;|&nbsp; **必须处理时机**：上架前备案
+**严重度**：🟠 中 &nbsp;|&nbsp; **状态**：🟢 已备案 &nbsp;|&nbsp; **必须处理时机**：上架前备案
 
 ### 审计结论（2026-08-13，全依赖树扫描 200+ 包）
 1. ✅ **无 GPL/AGPL/SSPL 强传染依赖**（html2text 已换 markdownify，见 I-020）
@@ -742,6 +744,7 @@ GPL 是 copyleft 传染性许可，与 Apache-2.0 闭源分发目标冲突，违
 ### 已处置
 - [x] `NOTICE` 补 LGPL 声明（4 个 LGPL 依赖 + license 文本链接）—— ✅ 2026-08-13
 - [x] 删编码工具 + `python-lsp-server`/`ast-grep-cli` 依赖 → rope/pytoolconfig 两个 LGPL 传递依赖随之消除 —— ✅ 2026-08-13
+- ✅ **备案完成（2026-08-13）**：`NOTICE` 含全部 LGPL 依赖 license 文本链接；仅剩 `python-telegram-bot`（直接依赖，保留并声明）+ `docstring-to-markdown`（pylint 传递，保留）。上架合规材料齐备，I-021 关闭。
 
 ---
 

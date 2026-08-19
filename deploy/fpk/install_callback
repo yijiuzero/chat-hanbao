@@ -8,9 +8,10 @@
 # 本脚本做两件事：
 #   1) 预载内置镜像 tar（docker load），已存在则跳过；配合 compose pull_policy:never
 #      实现离线运行，不向外部仓库拉取。
-#   2) 把向导收集的管理员凭据持久化到 $TRIM_PKGETC/hanbao.env，供 docker-compose
-#      通过 env_file 注入容器（接 I-007 默认开认证 + auto_register_from_env 首启
-#      自动建管理员账号，消除局域网抢注窗口）。用户留空则不写用户名/密码，走首启注册页。
+#   2) 把向导收集的管理员凭据持久化到 hanbao.env，双写 $TRIM_PKGETC 与
+#      $TRIM_APPDEST/docker（供 docker-compose 通过 ./hanbao.env 注入容器，
+#      见 app/docker/docker-compose.yaml）。接 I-007 默认开认证 + auto_register_from_env
+#      首启自动建管理员账号，消除局域网抢注窗口。用户留空则不写用户名/密码，走首启注册页。
 # ============================================================
 set -eu
 
@@ -33,7 +34,9 @@ else
 fi
 
 # 2) 持久化向导凭据（留空则只写 HANBAO_AUTH_ENABLED=true）
-mkdir -p "${PKG_ETC}"
+#    双写：PKG_ETC（飞牛 TRIM_PKGETC 展开时）+ app/docker（compose 用相对路径 ./hanbao.env 回退）
+#    无论飞牛是否展开 TRIM_PKGETC，容器都能读到凭据，I-007 首启自动建账号闭环不漏
+mkdir -p "${PKG_ETC}" "${APP_DEST}/docker"
 {
   echo "# hanbao FPK 安装向导注入的凭据（install_callback 生成，勿手改）"
   echo "HANBAO_AUTH_ENABLED=true"
@@ -43,6 +46,6 @@ mkdir -p "${PKG_ETC}"
   if [ -n "${HANBAO_AUTH_PASSWORD:-}" ]; then
     echo "HANBAO_AUTH_PASSWORD=${HANBAO_AUTH_PASSWORD}"
   fi
-} > "${ENV_FILE}"
+} | tee "${ENV_FILE}" "${APP_DEST}/docker/hanbao.env" >/dev/null
 
 echo "[hanbao] 凭据已写入 ${ENV_FILE}"

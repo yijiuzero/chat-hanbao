@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 # flake8: noqa: E501
 # pylint: disable=line-too-long
+import asyncio
 import os
+import shutil
+import subprocess
 from pathlib import Path
 from typing import Optional
 
@@ -92,6 +95,39 @@ def _get_encoding_for_file(file_path: str) -> str:
     return "utf-8"
 
 
+_MARKITDOWN_EXTS = {
+    ".doc", ".docx", ".pdf", ".ppt", ".pptx",
+    ".xls", ".xlsx", ".msg", ".rtf", ".epub", ".odt",
+}
+
+
+async def _read_file_text(file_path: str) -> str:
+    """Read file content as text.
+
+    For binary Office / PDF documents, route through ``markitdown`` (if the
+    CLI is available on PATH) to extract Markdown text; otherwise fall back to
+    :func:`read_file_safe` (plain text). This keeps ``read_file``'s line-range
+    and truncation logic intact while returning real document content instead
+    of mojibake (I-019).
+    """
+    suffix = Path(file_path).suffix.lower()
+    if suffix in _MARKITDOWN_EXTS and shutil.which("markitdown"):
+        try:
+            proc = await asyncio.to_thread(
+                subprocess.run,
+                ["markitdown", file_path],
+                capture_output=True,
+                text=True,
+                timeout=30,
+            )
+            if proc.returncode == 0 and proc.stdout.strip():
+                return proc.stdout
+        except Exception:
+            # fall through to plain read on any failure
+            pass
+    return await read_file_safe(file_path)
+
+
 @tool_descriptor(
     requires_sandbox=("file_read",),
     async_execution=True,
@@ -156,7 +192,7 @@ async def read_file(  # pylint: disable=too-many-return-statements
     file_path = _resolve_file_path(file_path)
 
     try:
-        content = await read_file_safe(file_path)
+        content = await _read_file_text(file_path)
         all_lines = content.split("\n")
         total = len(all_lines)
 

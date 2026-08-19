@@ -9,12 +9,12 @@
 - 类型：AI 聊天机器人（本地部署 / 家庭单用户）
 - 版本：0.1.0（首发，[飞牛规范待定] 版本号规则）
 - 一句话简介：飞牛 NAS 上的私人 AI 聊天助手（微信 + OneBot 渠道）
-- 详细描述：fork 自 QwenPaw v2.1.0 (Apache-2.0) 减法式二次开发（品牌/包名已全量改名 hanbao，见 docs/CHANGES-FROM-UPSTREAM.md 阶段4.5），本地运行、数据自控、仅依赖云端 OpenAI 兼容 API。
+- 详细描述：fork 自 QwenPaw v2.0.1 (Apache-2.0) 减法式二次开发，并移植 v2.1.0 安全修复（品牌/包名已全量改名 hanbao，见 docs/CHANGES-FROM-UPSTREAM.md 阶段4.5），本地运行、数据自控、仅依赖云端 OpenAI 兼容 API。
 - 开源协议：Apache-2.0
-- 上游：基于 Hanbao v2.0.1 (Apache-2.0)，保留上游版权与 NOTICE（合规）
+- 上游：QwenPaw v2.0.1 (Apache-2.0)，已移植 v2.1.0 修复；保留上游版权与 NOTICE（合规）
 - 端口：8088（Web Console，已默认开启登录认证 I-007，LAN 暴露安全）
 - 架构：linux/amd64
-- 镜像体积（当前）：~1.78GB（venv 瘦身第一刀后；原 800MB 目标经实测评估极难达成，务实线 ≤1.5GB 待拍板）
+- 镜像体积（当前）：~1.78GB（venv 瘦身第一刀后；原 800MB 目标经实测评估极难达成；经用户 2026-08-19 拍板保留全部渠道 SDK 不砍，镜像维持 1.78GB，≤1.5GB 目标作废）
 - 渠道：微信 + OneBot（QQ / 钉钉 / 飞书 / Telegram 已关闭）
 
 ## 阶段5 FPK 脚手架进度（2026-08-19 已按官方规范校正）

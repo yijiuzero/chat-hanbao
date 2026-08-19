@@ -567,7 +567,18 @@ hanbao 是 QwenPaw 的派生作品（再分发者），即便只分发镜像（�
   - `app/docker/docker-compose.yaml`：移除 `version`；`env_file: ${TRIM_PKGETC}/hanbao.env` 注入凭据；挂载 `$TRIM_PKGVAR:/app/working` 持久化（替代原 named volume）；`pull_policy: never`。
   - `deploy/save-image.sh`：输出路径改 `deploy/fpk/app/docker/hanbao-amd64.tar`（落 `app/docker/`，install 后位于 `$TRIM_APPDEST/docker/` 供 load）。
 - **校验**：bash 语法 + 7 个 JSON 合法 + fnpack 必检结构（manifest/ICON.PNG/ICON_256.PNG/app/cmd/config/wizard + app/ui）全部齐备。
-- ⚠️ 唯一待 fnOS 实测确认项：compose `env_file: ${TRIM_PKGETC}/hanbao.env` 中 `TRIM_PKGETC` 是否由飞牛在 docker-project 执行时展开；若否，回退为 `install_callback` 额外写 `app/docker/hanbao.env` + 相对路径 `./hanbao.env`。
+- ⚠️ 待 fnOS 实测确认项（**已于 2026-08-19 第三批按回退方案落地**）：compose `env_file: ${TRIM_PKGETC}/hanbao.env` 中 `TRIM_PKGETC` 是否由飞牛展开。无论飞牛是否展开，已改为双保险：`install_callback` 用 `tee` 同时写 `$TRIM_PKGETC/hanbao.env` 与 `$TRIM_APPDEST/docker/hanbao.env`，compose `env_file` 改用相对路径 `./hanbao.env`（指向 app/docker/ 下由 install_callback 生成文件），闭环不漏（I-007 首启自动建账号）。
+
+### FPK 凭据回退落地 + I-019 闭环 + 文档清洗（2026-08-19 第三批，未构建）
+- **FPK 凭据闭环缺口修复（🔴→✅）**：上批 compose 用 `env_file: ${TRIM_PKGETC}/hanbao.env`，但 install_callback 仅写 `$TRIM_PKGETC/hanbao.env`，若 fnOS 不展开 `TRIM_PKGETC` 则容器读不到凭据、退回首启注册页（重开 I-007 抢注窗口）。本批：`install_callback` 用 `tee` 双写 `$TRIM_PKGETC/hanbao.env` 与 `$TRIM_APPDEST/docker/hanbao.env`；compose `env_file` 改相对路径 `./hanbao.env`（飞牛 docker-project 执行 cwd 为 app/docker/，指向 install_callback 生成文件）。无论飞牛是否展开 TRIM 变量均成立。
+- **I-019 彻底闭环（🔴→✅）**：`src/hanbao/agents/tools/file_io.py` 的 `read_file` 此前按纯文本读 .docx/.pdf/.xlsx（二进制乱码）。本批新增 `_read_file_text()`：按扩展名把 Office/PDF 路由到 `markitdown` CLI 转 Markdown（镜像内已装、PATH 可达；`shutil.which` 缺失则自动回退纯文本读），保留原行号/截断逻辑。Anthropic 侵权技能已删、markitdown（MIT）替代读能力正式接通。改/创建文档仍按计划放弃。
+- **文档清洗（低风险编辑）**：
+  - `README.md`：删 `docker pull/run yijiuzero/chat-hanbao`（未发布虚假 registry，与 FPK 离线自带镜像冲突）；快速开始改为「飞牛一键安装」为主 + 「手动 Docker 构建」为辅；FPK 状态 🚧→✅；版本口径统一为「基于 QwenPaw v2.0.1(fork) 并移植 v2.1.0」。
+  - `deploy/fpk/info.md`：版本口径统一（fork v2.0.1 + 移植 v2.1.0）；镜像务实线标注「经用户 2026-08-19 拍板保留全部渠道 SDK 不砍，维持 1.78GB，≤1.5GB 目标作废」。
+  - `docs/known-issues.md`：I-018 gitignore 根因已修 🟡→🟢；I-019 已闭环 🟡→🟢；I-021 LGPL 备案完成 🟡→🟢/已备案。
+- **用户决策（2026-08-19）**：渠道 SDK **不砍**（即便当前仅启用微信+OneBot，其他渠道依赖保留不删），故镜像维持 1.78GB，≤1.5GB 瘦身目标作废。
+- 校验：install_callback/compose bash 语法 OK；file_io.py `py_compile` 通过；`_read_file_text` 接入 `read_file` 调用链确认。
+- 提交不构建（构建铁律）；R2 四文件全程零改动（CHANGES 仅手动追加本段，合规）。
 
 _（其余 FPK 打包待执行：fnpack 封装 + 飞牛实测 + 上架）_
 
