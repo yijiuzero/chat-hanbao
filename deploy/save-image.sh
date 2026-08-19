@@ -2,14 +2,16 @@
 # ============================================================
 #  [hanbao modification] 导出 hanbao 镜像为 tar，随 FPK 应用包分发
 #
-#  飞牛 FPK「自带镜像」模式（上架飞牛官方应用中心）：
-#    安装 FPK 时飞牛自动 docker load 此 tar，无需任何外部镜像仓库。
+#  飞牛 FPK「native 形态」自带镜像模式（上架飞牛官方应用中心）：
+#    ⚠️ 与原 docker-project 形态不同，native 形态下飞牛【不会】自动 load 镜像
+#    （应用中心在生命周期钩子之前就 compose up 会因镜像未 load 报 No such image）。
+#    故镜像 tar 由 FPK 内的 cmd/main 在 start 时自己 `docker load`（见 deploy/fpk/cmd/main）。
 #    更新时发布新 FPK 包（内含新镜像 tar）覆盖即可，更新也走 FPK。
 #
 #  用法:
-#    ./deploy/save-image.sh                 # 导出当前 hanbao:latest -> deploy/hanbao-image.tar
-#    ./deploy/save-image.sh output/my.tar   # 指定输出路径
-#    BUILD=0 ./deploy/save-image.sh         # 跳过构建，只导出已存在的镜像
+#    ./deploy/save-image.sh                              # 导出当前 hanbao:latest -> deploy/fpk/app/hanbao-amd64.tar
+#    ./deploy/save-image.sh output/my.tar                # 指定输出路径
+#    BUILD=0 ./deploy/save-image.sh                      # 跳过构建，只导出已存在的镜像
 #
 #  前置条件:
 #    - Docker daemon 已启动
@@ -20,7 +22,7 @@
 set -euo pipefail
 
 IMAGE="${HANBAO_IMAGE:-hanbao:latest}"
-OUT="${1:-deploy/hanbao-image.tar}"
+OUT="${1:-deploy/fpk/app/hanbao-amd64.tar}"
 BUILD="${BUILD:-1}"
 
 if [[ "$BUILD" != "0" ]]; then
@@ -32,4 +34,4 @@ echo ">>> 导出 ${IMAGE} -> ${OUT}"
 mkdir -p "$(dirname "$OUT")"
 docker save "${IMAGE}" -o "${OUT}"
 echo "完成: ${OUT} ($(du -h "$OUT" | cut -f1))"
-echo "将该 tar 放入 FPK 包的镜像目录，飞牛安装时自动 docker load。"
+echo "该 tar 默认落在 deploy/fpk/app/hanbao-amd64.tar，随 FPK 打包；cmd/main 在 start 时 docker load。"

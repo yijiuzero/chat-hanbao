@@ -544,7 +544,18 @@ hanbao 是 QwenPaw 的派生作品（再分发者），即便只分发镜像（�
 - **保留**：`deploy/Dockerfile` 两个 agentscope 阿里云 ACR 构建镜像（node/uv）仅影响开发者本机构建（已缓存），与飞牛分发无关。
 - **卡点（诚实）**：真正的 `.fpk` 封装（manifest/图标/权限/安装向导）需飞牛官方 FPK 打包规范，本地无文档。需用户开代理供查询或提供示例。
 
-_（其余 FPK 打包待执行）_
+### FPK native 脚手架落地（2026-08-19）
+- **形态拍板：native**（非 docker-project）。docker-project 由应用中心在生命周期钩子前就 `compose up`，离线内置镜像尚未 `docker load` 会报 No such image；native 由 `cmd/main` 自己 `docker load` + `up`，完全掌控时序。
+- **新增 `deploy/fpk/` 脚手架（全部 [hanbao modification]）**：
+  - `cmd/main`：原生生命周期控制器（start/stop/status/install/uninstall）；start 时先 `docker load` 内置 tar（已存在则跳过），再 source `$TRIM_PKGVAR/hanbao.env` 注入 `HANBAO_AUTH_*` 后 `docker compose up -d`。
+  - `install_callback`：安装向导收集到的 `HANBAO_AUTH_USERNAME`/`HANBAO_AUTH_PASSWORD`（字段名=环境变量名，无 wizard_ 前缀）持久化到 `$TRIM_PKGVAR/hanbao.env`，供 cmd/main 每次 start 复用（I-007 首启自动建账号闭环）。
+  - `app/docker/docker-compose.yaml`：`image: hanbao:latest` + `pull_policy: never` + `0.0.0.0:${TRIM_SERVICE_PORT:-8088}:8088` + named volume 持久化（hanbao-data/secrets/backups）。
+  - `wizard` / `manifest` / `config/{resource,privilege}` / `app/ui/config`：安装向导、应用清单、资源/权限、桌面入口。
+  - 图标：`ICON.PNG`(64) / `ICON_256.PNG`(256) + `app/ui/images/icon_64.png`、`icon_256.png`（2026-08-18 由用户原创水墨图中心裁切生成）。
+- **修正 `deploy/save-image.sh`**：注释「飞牛自动 docker load」不实（仅 docker-project 形态），改为 native 由 cmd/main 自 load；默认输出路径改为 `deploy/fpk/app/hanbao-amd64.tar`（cmd/main 取值位置）。
+- **⚠️ 待核对（schema 级）**：`manifest`/`wizard`/`config/*`/`app/ui/config` 的**确切字段名与文件格式**需对照 developer.fnnas.com 官方 FPK 规范校正（当前为 2026-08-19 调研最佳实践猜测，各文件头已标注 ⚠️）；`fnpack` 打包与飞牛实测需用户环境+代理。
+
+_（其余 FPK 打包待执行：fnpack 封装 + 飞牛实测 + 上架）_
 
 ---
 

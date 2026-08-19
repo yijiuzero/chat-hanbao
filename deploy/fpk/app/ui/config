@@ -1,0 +1,9 @@
+{
+  "name": "函包 hanbao",
+  "icon": "images/icon_256.png",
+  "type": "web",
+  "url": "http://localhost:8088"
+}
+# ⚠️ 待飞牛官方 FPK 规范核对：app/ui/config 的桌面入口格式（JSON 字段名/是否
+# 独立 schema）为基于 2026-08-19 调研的最佳实践猜测。desktop_applaunchname=hanbao.main
+# 指向此入口；type=web 表示点击桌面图标在浏览器打开 Web Console（端口 8088）。

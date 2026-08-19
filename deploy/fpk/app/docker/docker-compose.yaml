@@ -1,0 +1,34 @@
+version: "3.8"
+
+# [hanbao modification] FPK native 形态
+# 镜像随 FPK 内置 tar 分发，由 ../cmd/main 在 start 时 `docker load` 载入，
+# 故此处 pull_policy: never，使用本地 hanbao:latest，绝不向外部仓库拉取。
+# 应用监听容器内 8088；HANBAO_AUTH_* 凭据由 cmd/main 启动时 source hanbao.env 注入。
+services:
+  hanbao:
+    image: hanbao:latest
+    init: true
+    container_name: hanbao
+    restart: always
+    pull_policy: never
+    # 监听所有网卡，使同一局域网内的手机/笔记本可访问
+    # （Web Console 认证已默认开启，LAN 暴露安全）
+    ports:
+      - "0.0.0.0:${TRIM_SERVICE_PORT:-8088}:8088"
+    environment:
+      - HANBAO_PORT=8088
+      - HANBAO_AUTH_ENABLED=${HANBAO_AUTH_ENABLED:-true}
+      - HANBAO_AUTH_USERNAME=${HANBAO_AUTH_USERNAME:-}
+      - HANBAO_AUTH_PASSWORD=${HANBAO_AUTH_PASSWORD:-}
+    volumes:
+      - hanbao-data:/app/working
+      - hanbao-secrets:/app/working.secret
+      - hanbao-backups:/app/working.backups
+
+volumes:
+  hanbao-data:
+    name: hanbao-data
+  hanbao-secrets:
+    name: hanbao-secrets
+  hanbao-backups:
+    name: hanbao-backups

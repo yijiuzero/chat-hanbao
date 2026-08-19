@@ -1,0 +1,32 @@
+#!/bin/sh
+# ============================================================
+# hanbao FPK 安装回调（install_callback）
+#
+# 飞牛应用中心在完成安装向导后调用本脚本。向导收集到的字段以「环境变量」
+# 形式传入，且字段名即环境变量名（无 wizard_ 前缀），例如：
+#   HANBAO_AUTH_USERNAME  /  HANBAO_AUTH_PASSWORD
+#
+# 凭据只在安装时注入一次，故本脚本把其持久化到 $TRIM_PKGVAR/hanbao.env，
+# 供 cmd/main 在每次 start 时 source 后注入容器（接 I-007 默认开认证，
+# auto_register_from_env 首启自动建管理员账号，消除局域网抢注窗口）。
+# ============================================================
+set -eu
+
+PKGVAR="${TRIM_PKGVAR:-/var/lib/fnos/packages/hanbao}"
+ENV_FILE="${PKGVAR}/hanbao.env"
+
+mkdir -p "${PKGVAR}"
+
+# 仅在用户确实填了凭据时才写入（留空则 cmd/main 不注入，走首启注册页）
+{
+  echo "# hanbao FPK 安装向导注入的凭据（由 install_callback 生成，勿手改）"
+  echo "HANBAO_AUTH_ENABLED=true"
+  if [ -n "${HANBAO_AUTH_USERNAME:-}" ]; then
+    echo "HANBAO_AUTH_USERNAME=${HANBAO_AUTH_USERNAME}"
+  fi
+  if [ -n "${HANBAO_AUTH_PASSWORD:-}" ]; then
+    echo "HANBAO_AUTH_PASSWORD=${HANBAO_AUTH_PASSWORD}"
+  fi
+} > "${ENV_FILE}"
+
+echo "凭据已写入 ${ENV_FILE}"

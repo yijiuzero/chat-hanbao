@@ -1,0 +1,86 @@
+#!/bin/sh
+# ============================================================
+# hanbao FPK 原生(native)形态生命周期控制器
+#
+# 飞牛应用中心调用约定：cmd/main {start|stop|status}
+#  - start  : 载入内置镜像 tar → docker compose up -d
+#  - stop   : docker compose down
+#  - status : 查询容器运行状态
+#
+# [hanbao modification] 与 docker-project 形态不同，native 形态下应用中心
+# 不会在生命周期钩子之前自动 load 镜像，必须由本脚本自己 `docker load`
+# 内置 tar 再 `compose up`，才能完全掌控时序（离线内置镜像不会因尚未
+# load 而报 No such image）。
+# ============================================================
+set -eu
+
+# 包根目录（cmd/main 的上一级）
+PKG_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+APP_DIR="${PKG_DIR}/app"
+DOCKER_DIR="${APP_DIR}/docker"
+IMAGE_TAR="${APP_DIR}/hanbao-amd64.tar"
+IMAGE_NAME="hanbao:latest"
+COMPOSE_FILE="${DOCKER_DIR}/docker-compose.yaml"
+
+# 凭据持久文件：install_callback 写入，本脚本 start 时 source
+# （飞牛变量 TRIM_PKGVAR 指向包可写变量目录；本地调试缺省到包内 .pkgvar）
+PKGVAR="${TRIM_PKGVAR:-${PKG_DIR}/.pkgvar}"
+CRED_ENV="${PKGVAR}/hanbao.env"
+
+log() { echo "[hanbao] $*"; }
+
+load_image() {
+  if docker image inspect "${IMAGE_NAME}" >/dev/null 2>&1; then
+    log "镜像 ${IMAGE_NAME} 已存在，跳过 docker load"
+    return 0
+  fi
+  if [ -f "${IMAGE_TAR}" ]; then
+    log ">>> docker load -i ${IMAGE_TAR}"
+    docker load -i "${IMAGE_TAR}"
+  else
+    echo "错误：未找到镜像 ${IMAGE_NAME} 且 ${IMAGE_TAR} 不存在" >&2
+    exit 1
+  fi
+}
+
+cmd_start() {
+  load_image
+  # 注入安装向导收集的凭据（若用户跳过了向导，则留空走首启注册页）
+  if [ -f "${CRED_ENV}" ]; then
+    log "注入凭据 ${CRED_ENV}"
+    set -a; . "${CRED_ENV}"; set +a
+  fi
+  cd "${DOCKER_DIR}"
+  log ">>> docker compose up -d"
+  docker compose -f "${COMPOSE_FILE}" up -d
+}
+
+cmd_stop() {
+  if [ -d "${DOCKER_DIR}" ]; then
+    cd "${DOCKER_DIR}" || return 0
+    docker compose -f "${COMPOSE_FILE}" down || true
+  fi
+}
+
+cmd_status() {
+  docker ps --filter "name=^hanbao$" --format '{{.Names}}\t{{.Status}}' 2>/dev/null || true
+}
+
+cmd_install() {
+  # 安装时预载镜像，缩短首次启动等待
+  load_image
+}
+
+cmd_uninstall() {
+  cmd_stop
+}
+
+case "${1:-start}" in
+  start)      cmd_start ;;
+  stop)       cmd_stop ;;
+  status)     cmd_status ;;
+  install)    cmd_install ;;
+  uninstall)  cmd_uninstall ;;
+  restart)    cmd_stop; cmd_start ;;
+  *) echo "用法: cmd/main {start|stop|status|install|uninstall|restart}"; exit 1 ;;
+esac
