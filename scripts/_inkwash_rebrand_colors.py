@@ -25,6 +25,10 @@ RULES = [
     # qwenpaw 蓝（链接/图表/焦点）：#1677ff 与 Tailwind 蓝 #3b82f6 → 石板灰（canvas 安全，与朱砂红组成水墨双色）
     (re.compile(r"#1677ff(?![0-9a-fA-F])", re.IGNORECASE), "#5C6B73"),
     (re.compile(r"#3b82f6(?![0-9a-fA-F])", re.IGNORECASE), "#5C6B73"),
+    # Spark Design 百炼紫（上游主题色，qwenpaw 味最典型）：#615ced 与 rgba(97,92,237,*)
+    # → 朱砂红（CSS 明暗统一用 #C0392B；rgba 保留 alpha 透明度）
+    (re.compile(r"#615ced(?![0-9a-fA-F])", re.IGNORECASE), "#C0392B"),
+    (re.compile(r"rgba\(\s*97\s*,\s*92\s*,\s*237\s*,\s*([\d.]+)\s*\)"), r"rgba(158, 43, 37, \1)"),
 ]
 
 EXTS = {".less", ".css", ".tsx", ".ts"}

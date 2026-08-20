@@ -160,7 +160,7 @@ html.dark-mode .ant-table-tbody > tr:hover > td {
 
 html.dark-mode .hanbao-table-tbody > tr.hanbao-table-row-selected > td,
 html.dark-mode .ant-table-tbody > tr.ant-table-row-selected > td {
-  background: rgba(97, 92, 237, 0.12) !important;
+  background: rgba(158, 43, 37, 0.12) !important;
 }
 
 /* Table fixed columns shadow in dark mode */
@@ -316,12 +316,12 @@ html.dark-mode .ant-select-item-empty {
 
 html.dark-mode .hanbao-select-item-option-active,
 html.dark-mode .ant-select-item-option-active {
-  background: rgba(97, 92, 237, 0.12) !important;
+  background: rgba(158, 43, 37, 0.12) !important;
 }
 
 html.dark-mode .hanbao-select-item-option-selected,
 html.dark-mode .ant-select-item-option-selected {
-  background: rgba(97, 92, 237, 0.2) !important;
+  background: rgba(158, 43, 37, 0.2) !important;
   color: #C0392B !important;
 }
 
@@ -402,7 +402,7 @@ html.dark-mode
 html.dark-mode
   .ant-picker-time-panel-cell-selected
   .ant-picker-time-panel-cell-inner {
-  background: rgba(97, 92, 237, 0.2) !important;
+  background: rgba(158, 43, 37, 0.2) !important;
   color: #C0392B !important;
 }
 
@@ -458,7 +458,7 @@ html.dark-mode .ant-picker-cell .ant-picker-cell-inner {
 
 html.dark-mode .hanbao-picker-cell:hover .hanbao-picker-cell-inner,
 html.dark-mode .ant-picker-cell:hover .ant-picker-cell-inner {
-  background: rgba(97, 92, 237, 0.2) !important;
+  background: rgba(158, 43, 37, 0.2) !important;
   color: rgba(255, 255, 255, 0.85) !important;
 }
 
@@ -490,7 +490,7 @@ html.dark-mode .ant-picker-cell-range-end .ant-picker-cell-inner {
 /* Range in-between cells */
 html.dark-mode .hanbao-picker-cell-in-range::before,
 html.dark-mode .ant-picker-cell-in-range::before {
-  background: rgba(97, 92, 237, 0.15) !important;
+  background: rgba(158, 43, 37, 0.15) !important;
 }
 
 html.dark-mode .hanbao-picker-cell-in-range .hanbao-picker-cell-inner,
