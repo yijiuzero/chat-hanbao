@@ -66,7 +66,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 \
     python3-venv \
     fonts-wqy-zenhei \
-    fonts-wqy-microhei \
+    # [hanbao modification] fonts-wqy-microhei 已从 Debian 源移除（Unable to locate package），
+    # 文泉驿正黑 zenhei 已覆盖中文字体渲染，移除 microhei
   && rm -rf /var/lib/apt/lists/* \
   && apt-get clean
 
