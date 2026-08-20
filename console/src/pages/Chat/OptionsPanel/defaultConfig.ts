@@ -24,16 +24,16 @@ const defaultConfig = {
     disclaimer: "Works for you, grows with you",
   },
   welcome: {
-    greeting: "Hello, how can I help you today?",
+    greeting: "Hi, I'm hanbao.",
     description:
-      "I am a helpful assistant that can help you with your questions.",
+      "A smart companion by your side — I remember your days and preferences, chat with you, and can use tools to help.",
     avatar: "/online.svg",
     prompts: [
       {
-        value: "Let's start a new journey!",
+        value: "Tell me about your day?",
       },
       {
-        value: "Can you tell me what skills you have?",
+        value: "What can I do for you?",
       },
     ],
   },
