@@ -202,14 +202,24 @@ function AppInner() {
             ? antdTheme.darkAlgorithm
             : antdTheme.defaultAlgorithm,
           token: {
-            // [hanbao modification] Brand color A "蜜橘暖暖": #FF8C42 primary + 可爱治愈圆角/辅助色
-            colorPrimary: "#FF8C42",
-            borderRadius: 10,
-            colorPrimaryBg: "#FFF3E9",
-            colorPrimaryBgHover: "#FFE6D2",
-            colorPrimaryBorder: "#FFD8A8",
-            colorLink: "#FF8C42",
-            colorLinkHover: "#FFA066",
+            // [hanbao modification] 水墨风品牌：墨黑文字 + 朱砂红印章 + 宣纸底（原暖橘已弃用，logo 保留暖橘点缀）
+            colorPrimary: isDark ? "#C0392B" : "#9E2B25",
+            colorLink: isDark ? "#D9574B" : "#9E2B25",
+            colorLinkHover: "#B03A2E",
+            colorLinkActive: "#7E211C",
+            colorTextBase: isDark ? "#ECE9E3" : "#1F1F1F",
+            colorBgBase: isDark ? "#1A1A1A" : "#F7F4ED",
+            colorBgLayout: isDark ? "#161616" : "#F2EEE4",
+            colorBgContainer: isDark ? "#242424" : "#FFFFFF",
+            colorBgElevated: isDark ? "#2A2A2A" : "#FFFFFF",
+            colorBorder: isDark ? "rgba(255,255,255,0.14)" : "rgba(31,31,31,0.12)",
+            colorBorderSecondary: isDark ? "rgba(255,255,255,0.09)" : "rgba(31,31,31,0.08)",
+            borderRadius: 8,
+            borderRadiusLG: 12,
+            colorPrimaryBg: isDark ? "rgba(192,57,43,0.16)" : "#F7E9E7",
+            colorPrimaryBgHover: isDark ? "rgba(192,57,43,0.26)" : "#F0DCD9",
+            colorPrimaryBorder: isDark ? "rgba(192,57,43,0.45)" : "#E3C4BF",
+            colorError: isDark ? "#E57368" : "#C0392B",
           },
         }}
       >

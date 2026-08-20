@@ -45,7 +45,7 @@ export function getChannelIconUrl(channelKey: string): string {
 
 /** Predefined background colors for letter-avatar icons. */
 const LETTER_ICON_COLORS: Record<string, string> = {
-  console: "#FF8C42",
+  console: "#C0392B",
   onebot: "#6ECB63",
   dingtalk: "#3370FF",
   feishu: "#3370FF",
@@ -61,7 +61,7 @@ const LETTER_ICON_COLORS: Record<string, string> = {
   imessage: "#34C759",
   voice: "#F44336",
   xiaoyi: "#CF1322",
-  yuanbao: "#1677FF",
+  yuanbao: "#5C6B73",
 };
 
 /** A palette of fallback colors for channels without a predefined color. */

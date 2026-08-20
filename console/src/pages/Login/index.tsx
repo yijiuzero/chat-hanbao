@@ -83,8 +83,8 @@ export default function LoginPage() {
         alignItems: "center",
         justifyContent: "center",
         background: isDark
-          ? "linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)"
-          : "linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)",
+          ? "radial-gradient(circle at 25% 25%, rgba(255,255,255,0.04) 0, transparent 45%), linear-gradient(160deg, #161616 0%, #1f1f1f 100%)"
+          : "radial-gradient(circle at 20% 20%, rgba(31,31,31,0.05) 0, transparent 45%), radial-gradient(circle at 80% 80%, rgba(31,31,31,0.04) 0, transparent 50%), linear-gradient(160deg, #F7F4ED 0%, #EFE9DC 100%)",
       }}
     >
       <div
@@ -92,10 +92,13 @@ export default function LoginPage() {
           width: 400,
           padding: 32,
           borderRadius: 12,
-          background: isDark ? "#1f1f1f" : "#fff",
+          background: isDark ? "#242424" : "#fff",
+          border: isDark
+            ? "1px solid rgba(255,255,255,0.10)"
+            : "1px solid rgba(31,31,31,0.10)",
           boxShadow: isDark
             ? "0 4px 24px rgba(0,0,0,0.4)"
-            : "0 4px 24px rgba(0,0,0,0.1)",
+            : "0 8px 32px rgba(31,31,31,0.08)",
         }}
       >
         <div style={{ textAlign: "center", marginBottom: 32 }}>
@@ -104,7 +107,7 @@ export default function LoginPage() {
             alt="hanbao"
             style={{ height: 48, marginBottom: 12 }}
           />
-          <h2 style={{ margin: 0, fontWeight: 600, fontSize: 20 }}>
+          <h2 className="ink-title" style={{ margin: 0, fontWeight: 600, fontSize: 20 }}>
             {isRegister ? t("login.registerTitle") : t("login.title")}
           </h2>
           {!hasUsers && (

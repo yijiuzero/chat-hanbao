@@ -4,11 +4,14 @@ body {
   overflow: hidden;
   margin: 0;
   padding: 0;
-  background: #f9f8f4;
+  background: #F2EEE4;
+  background-image:
+    radial-gradient(circle at 18% 12%, rgba(31, 31, 31, 0.018) 0, transparent 42%),
+    radial-gradient(circle at 82% 88%, rgba(31, 31, 31, 0.022) 0, transparent 46%);
 }
 
 .hanbao-layout {
-  background: #f9f8f4;
+  background: #F2EEE4;
 }
 
 /* ─── Dark mode global token overrides ─────────────────────────────────────── */
@@ -19,24 +22,25 @@ html.dark-mode {
 }
 
 html.dark-mode body {
-  background: #141414;
+  background: #161616;
+  background-image: radial-gradient(circle at 15% 15%, rgba(255, 255, 255, 0.018) 0, transparent 40%);
   color: rgba(255, 255, 255, 0.85);
 }
 
 /* Ant Design layout background in dark mode */
 html.dark-mode .ant-layout,
 html.dark-mode .hanbao-layout {
-  background: #141414 !important;
+  background: #161616 !important;
 }
 
 html.dark-mode .ant-layout-content,
 html.dark-mode .hanbao-layout-content {
-  background: #141414 !important;
+  background: #161616 !important;
 }
 
 /* Page content area background */
 html.dark-mode .page-content {
-  background: #141414;
+  background: #161616;
   border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
@@ -184,8 +188,8 @@ html.dark-mode .ant-pagination .ant-pagination-item a {
 
 html.dark-mode .hanbao-pagination .hanbao-pagination-item-active,
 html.dark-mode .ant-pagination .ant-pagination-item-active {
-  background: #FF8C42 !important;
-  border-color: #FF8C42 !important;
+  background: #C0392B !important;
+  border-color: #C0392B !important;
 }
 
 html.dark-mode .hanbao-pagination .hanbao-pagination-item-active a,
@@ -212,7 +216,7 @@ html.dark-mode .hanbao-table-column-sorter-up.active,
 html.dark-mode .hanbao-table-column-sorter-down.active,
 html.dark-mode .ant-table-column-sorter-up.active,
 html.dark-mode .ant-table-column-sorter-down.active {
-  color: #FF8C42 !important;
+  color: #C0392B !important;
 }
 
 /* Checkbox in table */
@@ -224,8 +228,8 @@ html.dark-mode .ant-checkbox-inner {
 
 html.dark-mode .hanbao-checkbox-checked .hanbao-checkbox-inner,
 html.dark-mode .ant-checkbox-checked .ant-checkbox-inner {
-  background: #FF8C42 !important;
-  border-color: #FF8C42 !important;
+  background: #C0392B !important;
+  border-color: #C0392B !important;
 }
 
 /* Page titles (h1) */
@@ -318,7 +322,7 @@ html.dark-mode .ant-select-item-option-active {
 html.dark-mode .hanbao-select-item-option-selected,
 html.dark-mode .ant-select-item-option-selected {
   background: rgba(97, 92, 237, 0.2) !important;
-  color: #FF8C42 !important;
+  color: #C0392B !important;
 }
 
 /* Form labels */
@@ -399,7 +403,7 @@ html.dark-mode
   .ant-picker-time-panel-cell-selected
   .ant-picker-time-panel-cell-inner {
   background: rgba(97, 92, 237, 0.2) !important;
-  color: #FF8C42 !important;
+  color: #C0392B !important;
 }
 
 /* DatePicker / RangePicker calendar panel */
@@ -469,7 +473,7 @@ html.dark-mode .ant-picker-cell-disabled {
 /* Today marker */
 html.dark-mode .hanbao-picker-cell-today .hanbao-picker-cell-inner::before,
 html.dark-mode .ant-picker-cell-today .ant-picker-cell-inner::before {
-  border-color: #FF8C42 !important;
+  border-color: #C0392B !important;
 }
 
 /* Selected start/end cell */
@@ -479,7 +483,7 @@ html.dark-mode .hanbao-picker-cell-range-start .hanbao-picker-cell-inner,
 html.dark-mode .ant-picker-cell-range-start .ant-picker-cell-inner,
 html.dark-mode .hanbao-picker-cell-range-end .hanbao-picker-cell-inner,
 html.dark-mode .ant-picker-cell-range-end .ant-picker-cell-inner {
-  background: #FF8C42 !important;
+  background: #C0392B !important;
   color: #fff !important;
 }
 
@@ -505,7 +509,7 @@ html.dark-mode
 html.dark-mode
   .hanbao-picker-cell-in-view.hanbao-picker-cell-range-hover-end::after,
 html.dark-mode .ant-picker-cell-in-view.ant-picker-cell-range-hover-end::after {
-  border-color: #FF8C42 !important;
+  border-color: #C0392B !important;
 }
 
 /* Panel footer (OK button area) */
@@ -517,7 +521,7 @@ html.dark-mode .ant-picker-footer {
 
 html.dark-mode .hanbao-picker-today-btn,
 html.dark-mode .ant-picker-today-btn {
-  color: #FF8C42 !important;
+  color: #C0392B !important;
 }
 
 /* Divider between two panels in RangePicker */
@@ -675,12 +679,12 @@ html.dark-mode .ant-slider-rail {
 
 html.dark-mode .hanbao-slider-track,
 html.dark-mode .ant-slider-track {
-  background-color: #FF8C42 !important;
+  background-color: #C0392B !important;
 }
 
 html.dark-mode .hanbao-slider-mark-text,
 html.dark-mode .ant-slider-mark-text {
-  color: #FF8C42 !important;
+  color: #C0392B !important;
 }
 
 html.dark-mode .hanbao-form-item-label > label .hanbao-form-item-tooltip,
@@ -690,7 +694,7 @@ html.dark-mode .ant-form-item-label > label .ant-form-item-tooltip {
 
 html.dark-mode .hanbao-slider-handle::after,
 html.dark-mode .ant-slider-handle::after {
-  box-shadow: 0 0 0 2px #FF8C42 !important;
+  box-shadow: 0 0 0 2px #C0392B !important;
   background-color: #1f1f1f !important;
 }
 
@@ -806,7 +810,7 @@ html.dark-mode [class*="chat-anywhere"] [class*="message"] code {
 }
 
 html.dark-mode [class*="chat-anywhere"] [class*="message"] a {
-  color: #FF8C42 !important;
+  color: #C0392B !important;
 }
 
 /* Tool card content blocks — dark mode text and background overrides.
@@ -897,12 +901,12 @@ html.dark-mode
   min-height: 100vh;
   max-height: 100vh;
   overflow: hidden;
-  background: #f9f8f4;
+  background: #F2EEE4;
 }
 
 .ant-layout-content {
   overflow: hidden;
-  background: #f9f8f4;
+  background: #F2EEE4;
 }
 
 .hanbao-bubble-list-wrapper {
@@ -926,12 +930,12 @@ html.dark-mode
 html.dark-mode .hanbao-chat-anywhere,
 html.dark-mode .hanbao-chat-anywhere-message-list,
 html.dark-mode .hanbao-bubble-list-wrapper {
-  background: #141414 !important;
+  background: #161616 !important;
 }
 
 /* Chat welcome message in dark mode */
 html.dark-mode .hanbao-chat-anywhere-welcome-default {
-  background: #141414 !important;
+  background: #161616 !important;
 }
 
 /* Chat input area in dark mode */
@@ -944,14 +948,14 @@ html.dark-mode .hanbao-sender-content {
 /* Menu background in light mode */
 .hanbao-menu,
 .ant-menu {
-  background: #f9f8f4 !important;
+  background: #F2EEE4 !important;
 }
 
-/* Menu selected item in light mode */
+/* Menu selected item in light mode — [hanbao modification] 朱砂红浅底 */
 .hanbao-menu-item-selected,
 .ant-menu-item-selected {
-  background: rgba(43, 18, 0, 0.08) !important;
-  color: inherit !important;
+  background: rgba(158, 43, 37, 0.10) !important;
+  color: #9E2B25 !important;
 }
 
 /* Hide submenu arrow in light mode */
@@ -1003,8 +1007,8 @@ html.dark-mode .hanbao-sender-content {
   border-radius: 8px;
   /* 8px */
   box-sizing: border-box;
-  border: 1px solid #eae9e7;
-  /* #EAE9E7 */
+  border: 1px solid rgba(31, 31, 31, 0.10);
+  /* [hanbao modification] 墨线 */
 }
 
 .table-container {
@@ -1174,4 +1178,59 @@ html.dark-mode .debug-log-path strong {
 [class*="tool-call-block-content"] {
   max-height: 250px !important;
   overflow-y: auto !important;
+}
+
+/* ─── [hanbao modification] 水墨风通用工具类 ─────────────────────────────── */
+/* 书法感标题：衬线字体 + 墨黑 + 字间距，用于 Login / 控制台 / 设置 等关键页 */
+.ink-title {
+  font-family: "Songti SC", "STSong", "Noto Serif SC", "SimSun", serif !important;
+  color: #1f1f1f;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+html.dark-mode .ink-title {
+  color: #ECE9E3;
+}
+
+/* 水墨分割线：极淡墨色细线 */
+.ink-divider {
+  border: none;
+  border-top: 1px solid rgba(31, 31, 31, 0.10);
+  margin: 16px 0;
+}
+html.dark-mode .ink-divider {
+  border-top-color: rgba(255, 255, 255, 0.10);
+}
+
+/* 宣纸卡片：亮色米白微渐变 + 细墨边；暗色墨灰 + 细墨边 */
+.ink-card {
+  background: linear-gradient(160deg, #FBF8F1 0%, #F4EFE5 100%);
+  border: 1px solid rgba(31, 31, 31, 0.10);
+  border-radius: 12px;
+}
+html.dark-mode .ink-card {
+  background: linear-gradient(160deg, #242424 0%, #1d1d1d 100%);
+  border-color: rgba(255, 255, 255, 0.10);
+}
+
+/* 朱砂印章点缀：小印，用于品牌标记 */
+.ink-seal {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: #9E2B25;
+}
+html.dark-mode .ink-seal {
+  background: #C0392B;
+}
+
+/* ─── [hanbao modification] 全局品牌变量桥接 ─────────────────────────────
+   组件 less 中大量使用 var(--colorPrimary, <回退色>) 的 qwenpaw 自定义约定。
+   此处定义 --colorPrimary，使其解析为水墨朱砂红并随明暗切换（回退色已统一为 #C0392B）。 */
+:root {
+  --colorPrimary: #9E2B25;
+}
+html.dark-mode {
+  --colorPrimary: #C0392B;
 }

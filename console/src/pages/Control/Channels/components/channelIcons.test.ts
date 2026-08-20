@@ -34,8 +34,8 @@ describe("getChannelIconUrl", () => {
 });
 
 describe("getChannelLetterColor", () => {
-  it("returns predefined color '#FF8C42' for known channel 'console'", () => {
-    expect(getChannelLetterColor("console")).toBe("#FF8C42");
+  it("returns predefined color '#C0392B' for known channel 'console'", () => {
+    expect(getChannelLetterColor("console")).toBe("#C0392B");
   });
 
   it("returns predefined color '#5865F2' for known channel 'discord'", () => {

@@ -622,6 +622,8 @@ _（其余 FPK 打包待执行：fnpack 封装 + 飞牛实测 + 上架）_
 - 配色 **A 蜜橘暖暖 `#FF8C42`** + 图形化「函包」logo + 可爱治愈风。
 - 加法核心：解决「用户说感冒，跨天后还被当当前事实」痛点（根因：长期记忆 `MEMORY.md` 无时间戳/无 TTL，system prompt 日期注入显著性低）。
 
+**方向二次调整（2026-08-20 用户）**：上传了一张高对比度水墨古典肖像（黑发东方女性 + 龙纹旗袍 + 流苏耳坠），要求把 logo（图 + favicon）全切到此图，**整体品牌基调从「可爱治愈」全切到「水墨古风」**。Mikas 聊天头像 **online.svg（红线）保留不动**，其它品牌元素（T6~T7 后续页面）顺势跟进。配色 token（`#FF8C42` 主色、辅助梯度）暂不动，待 T6 重做页面时再评估是否需要整体换色调（主色在水墨基底上还算和谐，留作待评估项）。**当日午后进一步拍板（AskUserQuestion）**：① 主色基调选「**墨黑 + 朱砂红**」——主色切换为朱砂红（亮 `#9E2B25` / 暗 `#C0392B`），原暖橘 `#FF8C42` 弃用、仅 logo 保留暖橘点缀（推翻 T5 的 A 暖橘主色）；② 装饰深度选「**关键面子页加水墨装饰**」（Login/侧边栏/聊天/控制台），后台几十个表单页仅靠 antd token 自动染水墨色、不改结构。详见下方「界面全量水墨化（T6+T7）」。
+
 ### 品牌基础（T5，2026-08-19，已完成）
 
 - [修改] `console/src/App.tsx` — antd `ConfigProvider` token：`colorPrimary "#FF7F16"` → `"#FF8C42"`（脱离 qwenpaw 同款橙）+ `borderRadius: 10` + 辅助色 token（`colorPrimaryBg`/`colorPrimaryBorder`/`colorPrimaryLink` 统一为 A 方案暖橙梯度）。
@@ -638,12 +640,40 @@ _（其余 FPK 打包待执行：fnpack 封装 + 飞牛实测 + 上架）_
 - ⚠️ 该预览为纯前端（未接后端），仅能看到登录页/外壳品牌化；完整 UI（聊天页 Mikasa 头像等）需后端 + 认证，走 T1 镜像重建后在容器实测。
 - 改动**未提交**（本次仅构建预览验证，尚未 commit；按铁律 docker 镜像重建 T1 待用户开 daemon+代理后执行）。
 
+### Logo 二次品牌化（T5b，2026-08-20，已替换实现，待 commit）
+
+背景：用户上传一张 1024×1024 高对比度水墨古典肖像（黑发东方女性 + 龙纹旗袍 + 流苏耳坠），要求把 logo（含 favicon）全切到此图，**品牌基调整体从「可爱治愈」改为「水墨古风」**。Mikas 聊天头像 `online.svg` **红线保留不动**。
+
+- [新增] `console/public/hanbao-portrait-source.png`（824 KB，源图归档，1024×1024）；`scripts/_make_hanbao_portrait.py`（Pillow 缩放脚本 + `[hanbao modification]` 标注，处理：源图归档 + logo 用 240px 高缩图 + favicon 用 256×256 头肩特写裁剪）。
+- [新增] `console/public/hanbao-portrait-logo.png`（77 KB，**水墨肖像 logo 用图**，比例缩到高 240px）；`console/public/hanbao-portrait-favicon.png`（77 KB，**水墨肖像 favicon 用图**，裁剪脸部+胸口上半部分，特写更紧凑）。`scripts/_make_hanbao_logos.py`（PIL+base64 写入脚本 + `[hanbao modification]`）。
+- [修改] `console/public/logo-light.svg`（605 B → 103 KB）— 圆角信封+暖橙函包 → **白底水墨肖像卡片 + 深色 `#1f1f1f` 宋体 wordmark「hanbao」**（`viewBox="0 0 320 60"`，肖像卡片 `rect` 白底圆角 8 + 浅灰描边，SVG `<image>` 嵌 PNG base64，避免 React 端引入额外请求）。
+- [修改] `console/public/logo-dark.svg`（605 B → 103 KB）— 同款肖像卡片（**白底不变**，适配暗色 header 上的"水墨卷轴/画框"质感），wordmark 改浅色 `#f5f5f5`；卡片描边在暗背景下换用 `#3a3a3a` 让"画框感"更稳（不会因白底在深色 header 上"飘"）。
+- [修改] `console/public/hanbao-icon.svg`（454 B → 104 KB）— 函包图形 favicon → **水墨肖像 favicon**（`viewBox="0 0 64 64"`，clipPath 圆角 12，嵌上半身特写 PNG，整体图片 fill 区域 + 浅灰描边）。
+- [删除] `console/public/hanbao-logo.jpg`（243 KB，8/17 旧 logo jpg，无任何引用，是孤儿；用 `rm + git add -u` 删除，按铁律不用 `git rm`）。
+- **React 端零改动**：`Header.tsx:250` 与 `Login/index.tsx:103` 仍引用 `/logo-light.svg` 与 `/logo-dark.svg`，`index.html` 仍引用 `/hanbao-icon.svg`，路径与文件名全部不变。
+- **品牌红线（Mikas 头像）**：未触碰 `console/public/online.svg`、未动 `Chat/index.tsx:2534` 与 `OptionsPanel/defaultConfig.ts:30` 的 `"/online.svg"` 引用。Mikas 仍是聊天头像/app 图标。
+- **未 commit**（铁律：改完即 commit；本次含 7 个新文件 + 3 svg 重写 + 1 jpg 删除，工作树待提交。镜像重建视用户后续指令走「测一下」）。
+- **遗留/待办（更新 2026-08-20 午后）**：① ~~亮色主题下登录页蓝灰渐变 + 水墨肖像 + `#FF8C42` 按钮的"水墨+暖橘"组合~~ —— 已被下方 T6 全量水墨化解决（登录页改水墨意境背景、按钮改朱砂红）；② ~~T6 时把 patch 米白/暗色页背景带入水墨风格做整体场景化~~ —— 已实现；③ Mikas 聊天头像在新品牌基线下"古典少女陪现代 AI" 是否违和——目前按红线不动，等用户反馈再议。
+
+### 界面全量水墨化（T6+T7，2026-08-20，已实现，待 commit）
+
+背景：用户要求「内部整体界面还是 qwenpaw 的样子，大改界面样式、具 hanbao 特色，直接就都偏水墨风」。排查根因：`App.tsx` 视觉基底是 `@agentscope-ai/design` 的 `bailianTheme/bailianDarkTheme`（上游百炼设计系统），此前 T5 只是在上面贴了 `#FF8C42` 主色膏药；大量组件/页面 `.module.less` 仍残留上游 qwenpaw 硬编码暖橙/暖棕/蓝/冷灰。本次从根上重做（详见上文「方向二次调整」的拍板：墨黑 + 朱砂红、关键面子页加水墨装饰）。
+
+- [修改] `console/src/App.tsx` — antd `ConfigProvider` token 全套重写为水墨 seed：`colorPrimary` 朱砂红（亮 `#9E2B25`/暗 `#C0392B`）、`colorLink` 同红系、`colorTextBase` 墨黑 `#1F1F1F`（暗 `#ECE9E3`）、`colorBgBase` 宣纸米白 `#F7F4ED`（暗墨灰 `#1A1A1A`）、`colorBgLayout` `#F2EEE4`（暗 `#161616`）、`colorBgContainer`/`colorBgElevated`、`colorBorder` 墨/白细分、`borderRadius 8`、`colorPrimaryBg/BgHover/Border` 朱砂浅底、`colorError` 朱砂红。**这是全站（含后台 T7 全部表单页）自动染水墨的杠杆点**。
+- [修改] `console/src/styles/layout.css`（全局样式层）— 亮色 `body`/`.hanbao-layout`/`.ant-layout*`/`.page-content` 背景统一宣纸米白 `#F2EEE4`（带极淡墨晕 radial-gradient），暗色 `#141414` → 墨灰 `#161616`；16 处暗色强调 `#FF8C42` → 朱砂红 `#C0392B`；亮色菜单选中暖棕 → 朱砂浅底；追加水墨工具类（`.ink-title` 书法衬线标题 / `.ink-divider` 墨线 / `.ink-card` 宣纸卡片 / `.ink-seal` 朱砂印）；末尾新增**全局品牌变量桥接** `:root{--colorPrimary:#9E2B25}` + `html.dark-mode{--colorPrimary:#C0392B}`——组件里 `var(--colorPrimary,…)` 自动随明暗切红。
+- [修改] `console/src/pages/Login/index.tsx` — 背景从上游蓝灰渐变（暗 `#0f0c29→#302b63` / 亮 `#f5f7fa→#c3cfe2`）→ **水墨意境**：亮色宣纸米白 + 双层淡墨晕 radial-gradient，暗色墨灰 + 顶部淡白晕；卡片白底细墨边；标题挂 `.ink-title` 书法体。
+- [修改] `console/src/layouts/index.module.less`（侧边栏/顶栏）— qwenpaw 暖橙/暖棕（`#FF8C42`、`rgba(255,127,22,…)`、`rgba(43,18,0,…)`、`#f9f8f4`、`#d45b0a` 等）批量替换为水墨色系（朱砂红 `#C0392B`、墨灰 `#161616`、宣纸 `#F2EEE4`）。
+- [修改] 全仓 **46 个组件/页面文件**（`.module.less`/`.tsx`/`.ts`）— [新增] `scripts/_inkwash_rebrand_colors.py`（`[hanbao modification]`，二进制读写保换行符）统一映射 **195 处**：`#FF8C42→#C0392B`、`rgba(255,127,22,*)→rgba(192,57,43,*)`、`rgba(43,18,0,*)→rgba(31,31,31,*)`（暖棕→墨色）、`#f9f8f4/#f9f7f3→#F2EEE4`、`#1a1a1a→#161616`、`#1677ff/#3b82f6→#5C6B73`（qwenpaw 蓝→石板灰，图表 canvas 安全）、`#d45b0a→#9E2B25`；测试期望（`channelIcons.test.ts`）同步更新。残留冷蓝灰 `#f5f7fa`/`#f7f8fc`（ApprovalCard、Models）手工换宣纸 `#F2EEE4`。
+- **保留不动**：`@agentscope-ai/*` 组件库 import、外部文档 URL（`qwenpaw.agentscope.io`、PyPI——合规 R2「外部 URL/历史文档保留」）、中性灰（`#f5f5f5`/`#fafafa`/`#f0f0f0` 等 antd border/fill 回退值，水墨兼容）；**Mikasa 头像 `online.svg` 红线零碰触**。
+- **复验**：全仓品牌色 grep **零残留**（`#FF8C42/#FF7F16/#1677ff/#3b82f6/#f5f7fa/#f7f8fc/rgba(255,127,22,…)/rgba(43,18,0,…)` 全部归零）。
+- **未 commit**（按铁律改完即 commit；本次含 T5b logo 二次品牌化 + T6/T7 全量水墨化，工作树待提交；镜像重建视用户「测一下」指令执行）。
+
 ### 待做（T6~T9，2026-08-19 排期）
 
-- [T6] 关键页面品牌化（登录页/侧边栏/聊天页/首页控制台/设置页）做可爱治愈风重做（注入品牌色 + 圆角 + 插画/空态/按钮风格），保留功能。
-- [T7] 后台页（Agent 配置/MCP/技能/工具/工作区、Control 渠道/定时任务）保留上游布局，仅套用 A 方案配色 token，清残留旧橙/蓝硬值。
-- [T8] **时间感知 P0（2026-08-20 已实现，未提交）**：① 新增 `_annotate_memory_dates()`（`reme_light_memory_manager.py`，扫描答案中 `YYYY-MM-DD`，取自每日笔记 `YYYY-MM-DD.md` 路径）前置「记忆关联日期 + N天前，属历史记忆」提示，注入 `auto_memory_search`（:560）与 `memory_search` 工具（:489）——直接治「跨天还说我现在感冒」；② `build_env_context`（:185）日期行改为独立醒目块 + 时间感知指引（「旧记忆属历史不代表当前状态」）；默认时区 `UTC`→`Asia/Shanghai`（修 UTC+8 深夜「今天」差一天）。
-- [T9] **时间感知 P1（2026-08-20 已实现，未提交）**：① 写入端 as-of 日期 + 临时状态 TTL 指令通过 `dream`（:518）/ `summarize`（:603）的 `hint`/`memory_hint` 参数喂入 ReMe（`_MEMORY_TIME_HINT` 常量：临时身体状态默认有效期≤7天）；② 记忆指引加时间提示——`agents/memory/prompts.py` MEMORY_GUIDANCE 中/英模板新增「🕒 时间感知」小节（引用用户当前状态前先确认记忆是否近期）。⚠️ P1 写入端能否真正生效取决于 ReMe 内部是否消费 `hint`/`memory_hint`（ReMe 为外部 pip 包，其 prompt 不可在本仓改）；检索端 T8 已提供稳健兜底。
+- [x] **[T6] 关键页面品牌化（2026-08-20 已实现，待 commit）**——登录页/侧边栏/顶栏/全局底色全面水墨化 + 水墨工具类（详见上方「界面全量水墨化（T6+T7）」）；聊天页/控制台剩余深度装饰（空态插画/气泡质感微调）可随用户「测一下」后的视觉反馈再打磨。
+- [x] **[T7] 后台页统一换色（2026-08-20 已实现，待 commit）**——Agent 配置/MCP/技能/工具/工作区、Control 渠道/定时任务等全部保留上游布局，仅靠 antd token 自动染水墨色 + 46 文件硬编码色批量替换清残留（详见上方）。
+- [x] **[T8] 时间感知 P0（2026-08-20 已实现，commit d838618）**：① 新增 `_annotate_memory_dates()`（`reme_light_memory_manager.py`，扫描答案中 `YYYY-MM-DD`，取自每日笔记 `YYYY-MM-DD.md` 路径）前置「记忆关联日期 + N天前，属历史记忆」提示，注入 `auto_memory_search`（:560）与 `memory_search` 工具（:489）——直接治「跨天还说我现在感冒」；② `build_env_context`（:185）日期行改为独立醒目块 + 时间感知指引（「旧记忆属历史不代表当前状态」）；默认时区 `UTC`→`Asia/Shanghai`（修 UTC+8 深夜「今天」差一天）。
+- [x] **[T9] 时间感知 P1（2026-08-20 已实现，commit d838618）**：① 写入端 as-of 日期 + 临时状态 TTL 指令通过 `dream`（:518）/ `summarize`（:603）的 `hint`/`memory_hint` 参数喂入 ReMe（`_MEMORY_TIME_HINT` 常量：临时身体状态默认有效期≤7天）；② 记忆指引加时间提示——`agents/memory/prompts.py` MEMORY_GUIDANCE 中/英模板新增「🕒 时间感知」小节（引用用户当前状态前先确认记忆是否近期）。⚠️ P1 写入端能否真正生效取决于 ReMe 内部是否消费 `hint`/`memory_hint`（ReMe 为外部 pip 包，其 prompt 不可在本仓改）；检索端 T8 已提供稳健兜底。
 - 加法延伸（待定）：文档改/创建能力（I-019 关联，需 python-docx/openpyxl 自研简化版）按用户后续需求评估。
 
 ---

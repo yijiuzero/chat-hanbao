@@ -252,7 +252,7 @@ export default function InboxPage() {
           <Bell size={16} />
           {t("inbox.tabPushMessages")}
           {summary.pushMessages.unread > 0 && (
-            <Badge count={summary.pushMessages.unread} color="#FF8C42" />
+            <Badge count={summary.pushMessages.unread} color="#C0392B" />
           )}
         </span>
       ),

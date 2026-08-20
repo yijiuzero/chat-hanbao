@@ -769,7 +769,7 @@ export default function ModelSelector() {
             )}
           >
             {saving && (
-              <LoadingOutlined style={{ fontSize: 11, color: "#FF8C42" }} />
+              <LoadingOutlined style={{ fontSize: 11, color: "#C0392B" }} />
             )}
             {showActiveProviderIcon && activeProviderId && (
               <ProviderIcon providerId={activeProviderId} size={16} />

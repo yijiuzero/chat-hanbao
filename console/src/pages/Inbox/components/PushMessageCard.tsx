@@ -41,7 +41,7 @@ const CHANNEL_COLORS = {
   email: "#EA4335",
   memory: "#7C3AED",
   heartbeat: "#5865F2",
-  skill: "#1677ff",
+  skill: "#5C6B73",
 };
 
 const normalizeCronTaskName = (title: string): string =>
