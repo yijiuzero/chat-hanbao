@@ -256,7 +256,7 @@ export default function Header() {
           {version && (
             <Badge
               dot={!!hasUpdate && !isReady && !isBackgroundActive}
-              color="rgba(255, 157, 77, 1)"
+              color="rgba(192, 57, 43, 1)"
               offset={[4, 28]}
             >
               <span
@@ -281,7 +281,7 @@ export default function Header() {
                 style={{
                   marginLeft: 6,
                   fontSize: 14,
-                  color: "rgba(255, 157, 77, 1)",
+                  color: "rgba(192, 57, 43, 1)",
                 }}
               />
             </Tooltip>

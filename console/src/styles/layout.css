@@ -1240,3 +1240,30 @@ html.dark-mode .ink-seal {
 html.dark-mode {
   --colorPrimary: #C0392B;
 }
+
+/* ─── [hanbao modification] 去 Spark 百炼空态插画 ───────────────────────────
+   Spark Empty 从阿里 CDN（gw.alicdn.com）加载插画 SVG 并按 token 染色，
+   属上游百炼设计系统的视觉味道，且引入外部网络依赖。隐藏插画区，
+   空态保留纯文字，走极简水墨留白。 */
+.hanbao-empty-image {
+  display: none !important;
+}
+.hanbao-empty-description,
+.ant-empty-description {
+  color: rgba(31, 31, 31, 0.45) !important;
+  font-size: 13px !important;
+}
+html.dark-mode .hanbao-empty-description,
+html.dark-mode .ant-empty-description {
+  color: rgba(255, 255, 255, 0.45) !important;
+}
+
+/* 亮色卡片 hover 轻墨影，去 bailian 阴影味、增水墨层次 */
+.hanbao-card:hover,
+.ant-card:hover {
+  box-shadow: 0 2px 12px rgba(31, 31, 31, 0.06) !important;
+}
+html.dark-mode .hanbao-card:hover,
+html.dark-mode .ant-card:hover {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.40) !important;
+}
