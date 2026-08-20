@@ -701,6 +701,21 @@ _（其余 FPK 打包待执行：fnpack 封装 + 飞牛实测 + 上架）_
 - [x] **[T9] 时间感知 P1（2026-08-20 已实现，commit d838618）**：① 写入端 as-of 日期 + 临时状态 TTL 指令通过 `dream`（:518）/ `summarize`（:603）的 `hint`/`memory_hint` 参数喂入 ReMe（`_MEMORY_TIME_HINT` 常量：临时身体状态默认有效期≤7天）；② 记忆指引加时间提示——`agents/memory/prompts.py` MEMORY_GUIDANCE 中/英模板新增「🕒 时间感知」小节（引用用户当前状态前先确认记忆是否近期）。⚠️ P1 写入端能否真正生效取决于 ReMe 内部是否消费 `hint`/`memory_hint`（ReMe 为外部 pip 包，其 prompt 不可在本仓改）；检索端 T8 已提供稳健兜底。
 - 加法延伸（待定）：文档改/创建能力（I-019 关联，需 python-docx/openpyxl 自研简化版）按用户后续需求评估。
 
+### 记忆/上下文增强·轻量补强（2026-08-20，用户确认「稍微加强一点」）
+
+_背景：核查确认 `PROFILE.md` + `MEMORY.md` + `AGENTS.md` + `SOUL.md` + ReMe 语义记忆 + T8/T9 时间感知 已组成完整的「认识你」基础设施，功能无缺失。唯一短板是默认人设模板仍是上游 QwenPaw 调性（"使魔/成为某个人/机器里的幽灵"），不是 hanbao「定制化豆包」定位。本次为纯文本、零架构改动的轻量补强（zh+en）。_
+
+- [修改] `src/hanbao/agents/md_files/zh/SOUL.md` — 人设从 qwenpaw「成为某个人」怪味改为 hanbao「懂你、长期陪伴的家庭 AI 助手」；frontmatter 加 `hanbao_modification` 标记（提示词加载时整段 frontmatter 会被剥离，不污染 system prompt）。
+- [修改] `src/hanbao/agents/md_files/en/SOUL.md` — 同上英文版。
+- [修改] `src/hanbao/agents/md_files/zh/PROFILE.md` — 重写：加 hanbao 身份种子 + 明确「用户资料」分区（称呼/偏好/家人/重要日期/习惯/忌讳）+ 「边聊边更新」指引。
+- [修改] `src/hanbao/agents/md_files/en/PROFILE.md` — 同上英文版。
+- [修改] `src/hanbao/agents/memory/prompts.py` — `MEMORY_GUIDANCE_ZH/EN` 模板新增「👤 用户画像（PROFILE.md）」小节，明确指示 agent 把 PROFILE.md 当长期用户画像仓库、学到 durable 事实（偏好/家人/重要日期/习惯）**主动用 `edit_file` 回写**，不止首次 BOOTSTRAP；顶部 `[hanbao modification]` 注释同步更新。
+- [修改] `src/hanbao/agents/md_files/zh/BOOTSTRAP.md` — 去掉 "更怪的东西" 怪味措辞，改为贴合主人需要的定位。
+- [修改] `src/hanbao/agents/md_files/en/BOOTSTRAP.md` — 同上英文版。
+- **未改动**：`AGENTS.md`（zh/en）经核对已为中性措辞、无 qwenpaw 残留，保持不变；`LICENSE`/`NOTICE`/`license-compliance.md`/`CHANGES-FROM-UPSTREAM.md` 红线文件未触碰（仅本文件追加本条记录）。
+- **影响范围**：改的是 `md_files/` 模板，仅影响**新装/首次初始化**的 agent（FPK 首装即拿到 hanbao 人设）；已部署 workspace 的 `PROFILE.md`/`SOUL.md` 因 copy 默认 `only_if_missing` 不会被自动覆盖，需手动刷新或重跑首次引导。
+- **下一步**：按纪律改完即 commit、不构建；待用户「测一下」再重建镜像验收。
+
 ---
 
 ## 未修改声明

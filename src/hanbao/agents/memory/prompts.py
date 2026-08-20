@@ -5,7 +5,8 @@
 
 
 # Memory guidance prompts - explains how agent should use memory files
-# [hanbao modification] Time-awareness bullet added to both templates below.
+# [hanbao modification] Time-awareness bullet + PROFILE.md maintenance section
+# added to both templates below (persona re-tone for hanbao 定制化豆包).
 MEMORY_GUIDANCE_ZH_TEMPLATE = """\
 ## 记忆
 
@@ -24,6 +25,12 @@ MEMORY_GUIDANCE_ZH_TEMPLATE = """\
 `memory_search` 用于查你**精选的长期记忆** — 持久的偏好、用户/画像事实、已确定的决策与未完成的待办。当问题取决于这些内容时，优先用它：
 1. 对 MEMORY.md 和 `{daily_dir}/*.md` 运行 `memory_search`
 2. 要读某一天的笔记，直接用 `read_file` 打开 `{daily_dir}/YYYY-MM-DD.md`
+
+### 👤 用户画像（PROFILE.md）
+`PROFILE.md` 是你对主人的**长期了解**：称呼、偏好、家人、重要日期、习惯、忌讳——这是 hanbao「懂主人」的底气。
+- 学到关于主人的 durable 事实（如"主人周三要交水电费""ta 不吃香菜""孩子叫 XX"），**主动用 `edit_file` 补进 `PROFILE.md` 对应 section**，不必等主人要求。
+- 首次引导（BOOTSTRAP）会填一遍，但之后也要边聊边更新——画像越新越准。
+- 引用主人「当前」状态前，先确认是否近期（见时间感知）；旧笔记描述的是过去。
 """
 
 MEMORY_GUIDANCE_EN_TEMPLATE = """\
@@ -43,7 +50,13 @@ Memories may come from different dates. Before asserting the user's CURRENT stat
 ### 🔍 Retrieval Tool
 `memory_search` is your lookup for **curated long-term memory** — durable preferences, profile/personal facts, settled decisions, and open to-dos. Reach for it first when a question turns on one of these:
 1. Run `memory_search` over MEMORY.md and `{daily_dir}/*.md`.
-2. To read a specific day's notes, open `{daily_dir}/YYYY-MM-DD.md` directly with `read_file`."""
+2. To read a specific day's notes, open `{daily_dir}/YYYY-MM-DD.md` directly with `read_file`.
+
+### 👤 User Profile (PROFILE.md)
+`PROFILE.md` is your **long-term understanding of your owner**: how to address them, preferences, family, important dates, habits, and things to avoid. This is what makes you "get" them.
+- When you learn a durable fact about your owner (e.g. "owner pays utilities every Wednesday", "they hate cilantro", "their kid is named XX"), **proactively `edit_file` it into the matching section of `PROFILE.md`** — you don't have to wait for them to ask.
+- The first-run bootstrap fills it once, but keep updating it as you talk — a fresher profile is a more accurate one.
+- Before asserting the owner's CURRENT state, confirm it's recent (see Time Awareness); old notes describe the past."""
 
 MEMORY_GUIDANCE_TEMPLATES = {
     "zh": MEMORY_GUIDANCE_ZH_TEMPLATE,
