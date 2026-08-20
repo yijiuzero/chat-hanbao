@@ -11,6 +11,7 @@
   align-items: center;
   justify-content: space-between;
   background: #F2EEE4;
+  border-bottom: 1px solid rgba(31, 31, 31, 0.08); /* [hanbao modification] 亮色下与暗色对称的分割线，避免"一片平" */
 
   :global {
     .hanbao-space-item {
@@ -55,6 +56,7 @@
 // ─── Sidebar ─────────────────────────────────────────────────────────────────
 .sider {
   background: #F2EEE4 !important;
+  border-right: 1px solid rgba(31, 31, 31, 0.08); /* [hanbao modification] 亮色下侧边栏与内容区细墨分界 */
   overflow: auto;
   height: calc(100vh - 64px) !important;
   padding: 0 16px;

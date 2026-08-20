@@ -914,11 +914,11 @@ html.dark-mode
 }
 
 .hanbao-chat-anywhere-input {
-  background: #fff !important;
+  background: #FDFCF9 !important; /* [hanbao modification] 宣纸白，与米白底协调而非纯白 */
 }
 
 .hanbao-chat-anywhere-message-list-welcome {
-  background: #fff !important;
+  background: #FDFCF9 !important; /* [hanbao modification] 宣纸白 */
 }
 
 /* Chat bubble list max-width override */
@@ -956,6 +956,12 @@ html.dark-mode .hanbao-sender-content {
 .ant-menu-item-selected {
   background: rgba(158, 43, 37, 0.10) !important;
   color: #9E2B25 !important;
+}
+
+/* Menu hover in light mode — [hanbao modification] 极淡朱砂 hover，与水墨基调一致 */
+.hanbao-menu-item:not(.hanbao-menu-item-selected):hover,
+.ant-menu-item:not(.ant-menu-item-selected):hover {
+  background: rgba(158, 43, 37, 0.05) !important;
 }
 
 /* Hide submenu arrow in light mode */

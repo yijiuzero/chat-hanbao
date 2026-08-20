@@ -92,7 +92,9 @@ export default function LoginPage() {
           width: 400,
           padding: 32,
           borderRadius: 12,
-          background: isDark ? "#242424" : "#fff",
+          background: isDark
+            ? "#242424"
+            : "linear-gradient(180deg, #FFFFFF 0%, #FBF8F1 100%)", // [hanbao modification] 亮色微宣纸渐变
           border: isDark
             ? "1px solid rgba(255,255,255,0.10)"
             : "1px solid rgba(31,31,31,0.10)",
@@ -105,7 +107,11 @@ export default function LoginPage() {
           <img
             src={isDark ? "/logo-dark.svg" : "/logo-light.svg"}
             alt="hanbao"
-            style={{ height: 48, marginBottom: 12 }}
+            style={{
+              height: 48,
+              marginBottom: 12,
+              filter: "drop-shadow(0 2px 6px rgba(31,31,31,0.15))", // [hanbao modification] 白底肖像卡片在亮背景上立体化
+            }}
           />
           <h2 className="ink-title" style={{ margin: 0, fontWeight: 600, fontSize: 20 }}>
             {isRegister ? t("login.registerTitle") : t("login.title")}
