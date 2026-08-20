@@ -142,7 +142,10 @@ def build_env_context(
     parts.append(
         "- Docs: https://qwenpaw.agentscope.io/",
     )
-    user_tz = load_config().user_timezone or "UTC"
+    # [hanbao modification] Default to Asia/Shanghai for the target
+    # Chinese family-user audience, consistent with ReMe's own timezone
+    # default. Avoids an off-by-one "today" for UTC+8 users at night.
+    user_tz = load_config().user_timezone or "Asia/Shanghai"
     try:
         now = datetime.now(ZoneInfo(user_tz))
     except (ZoneInfoNotFoundError, KeyError):
@@ -179,9 +182,24 @@ def build_env_context(
             )
     elif working_dir is not None:
         parts.append(f"- Working directory: {working_dir}")
+    # [hanbao modification] Make "today" prominent and tell the model that
+    # older memories are historical, not the user's current state.
+    parts.append(
+        "------------------------------------------------------------",
+    )
     parts.append(
         f"- Current date: {now.strftime('%Y-%m-%d')} "
-        f"{user_tz} ({now.strftime('%A')})",
+        f"({now.strftime('%A')}), timezone: {user_tz}.",
+    )
+    parts.append(
+        "- IMPORTANT: The date above is TODAY. Memories from previous "
+        "days (daily notes / MEMORY.md) are historical context and do "
+        "NOT necessarily reflect the user's CURRENT state (health, "
+        "mood, location, etc.). Before asserting the user's current "
+        "state, verify the memory is recent.",
+    )
+    parts.append(
+        "------------------------------------------------------------",
     )
 
     if add_hint:

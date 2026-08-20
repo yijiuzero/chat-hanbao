@@ -8,6 +8,7 @@ ReMe's application/job framework.
 
 import asyncio
 import base64
+import datetime
 import hashlib
 import logging
 import os
@@ -52,6 +53,70 @@ _WINDOWS_RESERVED_FILENAMES = {
     *(f"COM{i}" for i in range(1, 10)),
     *(f"LPT{i}" for i in range(1, 10)),
 }
+
+# [hanbao modification] Time-awareness: stamp retrieved memory with its
+# source date so the model can distinguish historical facts from the
+# user's current state (e.g. "user had a cold last week" vs "user is
+# sick now"). Daily notes are stored as YYYY-MM-DD.md, so dates appear
+# in search result file paths.
+_DATE_RE = re.compile(r"(\d{4})-(\d{2})-(\d{2})")
+
+# P1 write-side guidance injected into ReMe consolidation jobs via their
+# hint/memory_hint parameters. Whether ReMe honors it depends on its
+# internal prompt; the retrieval-side annotation below already provides
+# the robust fix for stale "current state" claims.
+_MEMORY_TIME_HINT = (
+    "时间感知要求：提炼事实时给每条事实标注采集日期(as-of)。"
+    "用户临时身体状态(如感冒/发烧/疲劳)默认短期，标注采集日期并"
+    "默认有效期不超过7天；超期事实不应当作当前状态。仅长期偏好/"
+    "身份事实才持久保留。"
+)
+
+
+def _annotate_memory_dates(text: str) -> str:
+    """Prepend a time-awareness note to memory search results.
+
+    Scans for YYYY-MM-DD date tokens (typically from daily-note file
+    paths like daily/2026-08-12.md) and tells the model how old the
+    retrieved memory is, so it won't treat stale facts as the user's
+    current state.
+    """
+    if not text:
+        return text
+    today = datetime.date.today()
+    found: set[datetime.date] = set()
+    for y, m, d in _DATE_RE.findall(text):
+        try:
+            found.add(datetime.date(int(y), int(m), int(d)))
+        except ValueError:
+            continue
+    if not found:
+        return (
+            "\n[记忆时间提示] 以下为检索到的历史记忆。引用用户当前状态"
+            "(健康/情绪/位置等)前，请先确认该记忆是否仍为近期。\n" + text
+        )
+    newest = max(found)
+    days_ago = (today - newest).days
+    if days_ago <= 0:
+        age = "今天"
+    elif days_ago == 1:
+        age = "昨天"
+    else:
+        age = f"约 {days_ago} 天前"
+    dates_str = "、".join(sorted(d.strftime("%Y-%m-%d") for d in found))
+    return (
+        f"\n[记忆时间提示] 以下记忆关联日期：{dates_str}"
+        f"（最新为{age}，属历史记忆，不代表用户此刻状态）。"
+        "引用用户当前状态前请先确认是否仍为近期。\n" + text
+    )
+
+
+def _merge_memory_hint(existing: str, extra: str) -> str:
+    """Append time-awareness guidance to an existing ReMe hint once."""
+    existing = (existing or "").strip()
+    if not extra or extra in existing:
+        return existing
+    return f"{existing} {extra}".strip()
 
 
 def _to_reme_session_id(session_id: str) -> str:
@@ -421,6 +486,7 @@ class ReMeLightMemoryManager(BaseMemoryManager):
         answer = str(response.answer or "").strip()
         if not answer:
             answer = NO_MEMORY_RESULTS
+        answer = _annotate_memory_dates(answer)  # [hanbao modification]
         return _tool_chunk(answer, ok=response.success)
 
     async def summarize(
@@ -447,7 +513,10 @@ class ReMeLightMemoryManager(BaseMemoryManager):
             needs_llm=True,
             messages=[msg.model_dump(mode="json") for msg in messages],
             session_id=_to_reme_session_id(session_id),
-            memory_hint=str(kwargs.get("memory_hint") or ""),
+            memory_hint=_merge_memory_hint(
+                str(kwargs.get("memory_hint") or ""),
+                _MEMORY_TIME_HINT,  # [hanbao modification] P1 time-aware write
+            ),
         )
         if response is None:
             return ""
@@ -488,6 +557,8 @@ class ReMeLightMemoryManager(BaseMemoryManager):
         if not text:
             return None
 
+        text = _annotate_memory_dates(text)  # [hanbao modification]
+
         assistant_msg = self._build_auto_memory_search_msg(
             query=query,
             max_results=max_results,
@@ -527,11 +598,15 @@ class ReMeLightMemoryManager(BaseMemoryManager):
 
     async def dream(self, **kwargs: Any) -> None:
         """Run one ReMe auto-dream pass."""
+        hint = _merge_memory_hint(
+            str(kwargs.get("hint") or ""),
+            _MEMORY_TIME_HINT,  # [hanbao modification] P1 time-aware write
+        )
         response = await self._run_reme_job(
             "auto_dream",
             needs_llm=True,
             date=str(kwargs.get("date") or ""),
-            hint=str(kwargs.get("hint") or ""),
+            hint=hint,
         )
         if response is not None and not response.success:
             raise RuntimeError(str(response.answer))

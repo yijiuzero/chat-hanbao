@@ -642,8 +642,8 @@ _（其余 FPK 打包待执行：fnpack 封装 + 飞牛实测 + 上架）_
 
 - [T6] 关键页面品牌化（登录页/侧边栏/聊天页/首页控制台/设置页）做可爱治愈风重做（注入品牌色 + 圆角 + 插画/空态/按钮风格），保留功能。
 - [T7] 后台页（Agent 配置/MCP/技能/工具/工作区、Control 渠道/定时任务）保留上游布局，仅套用 A 方案配色 token，清残留旧橙/蓝硬值。
-- [T8] 时间感知 P0：① `auto_memory_search` 注入结果附来源日期（`reme_light_memory_manager.py:456` / `base_memory_manager.py:145` 把命中 `YYYY-MM-DD.md` 文件名前置为「[来自 2026-08-12 的每日笔记]」）；② 强化 `build_env_context` 日期行（`app/chats/utils.py:182` + `runtime/builder.py:328` 长会话按请求刷新当前日期，含中文星期 + 「旧笔记属历史不代表当前状态」提示）。直接消除「跨天还说我现在感冒」。
-- [T9] 时间感知 P1：① 写入打 as-of 日期（`reme_light_memory_manager.py:426 summarize` / `:528 dream`）；② 临时身体状态 TTL（prompt 要求感冒等临时状态带有效期，超 N 天失效）；③ 记忆指引加时间提示（`agents/memory/prompts.py:8-39`「引用记忆断言用户当前状态时先确认日期是否近期」）。
+- [T8] **时间感知 P0（2026-08-20 已实现，未提交）**：① 新增 `_annotate_memory_dates()`（`reme_light_memory_manager.py`，扫描答案中 `YYYY-MM-DD`，取自每日笔记 `YYYY-MM-DD.md` 路径）前置「记忆关联日期 + N天前，属历史记忆」提示，注入 `auto_memory_search`（:560）与 `memory_search` 工具（:489）——直接治「跨天还说我现在感冒」；② `build_env_context`（:185）日期行改为独立醒目块 + 时间感知指引（「旧记忆属历史不代表当前状态」）；默认时区 `UTC`→`Asia/Shanghai`（修 UTC+8 深夜「今天」差一天）。
+- [T9] **时间感知 P1（2026-08-20 已实现，未提交）**：① 写入端 as-of 日期 + 临时状态 TTL 指令通过 `dream`（:518）/ `summarize`（:603）的 `hint`/`memory_hint` 参数喂入 ReMe（`_MEMORY_TIME_HINT` 常量：临时身体状态默认有效期≤7天）；② 记忆指引加时间提示——`agents/memory/prompts.py` MEMORY_GUIDANCE 中/英模板新增「🕒 时间感知」小节（引用用户当前状态前先确认记忆是否近期）。⚠️ P1 写入端能否真正生效取决于 ReMe 内部是否消费 `hint`/`memory_hint`（ReMe 为外部 pip 包，其 prompt 不可在本仓改）；检索端 T8 已提供稳健兜底。
 - 加法延伸（待定）：文档改/创建能力（I-019 关联，需 python-docx/openpyxl 自研简化版）按用户后续需求评估。
 
 ---

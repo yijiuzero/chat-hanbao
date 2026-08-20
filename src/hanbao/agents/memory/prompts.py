@@ -5,6 +5,7 @@
 
 
 # Memory guidance prompts - explains how agent should use memory files
+# [hanbao modification] Time-awareness bullet added to both templates below.
 MEMORY_GUIDANCE_ZH_TEMPLATE = """\
 ## 记忆
 
@@ -15,6 +16,9 @@ MEMORY_GUIDANCE_ZH_TEMPLATE = """\
 - **重要：** 避免覆盖 — 先 `read_file`，再用 `write_file` / `edit_file`。除非用户明确要求，否则不要记录敏感信息。
 
 因此你通常不必手动维护 MEMORY.md。只有当用户明确要求你记住某事，或形成了值得长期保留的决策或偏好时，才直接编辑它。
+
+### 🕒 时间感知
+记忆可能来自不同日期。引用用户「当前」状态（健康、情绪、位置、正在做的事）前，先确认该记忆是否足够近期；旧每日笔记描述的是过去，不要据此推断用户此刻的状况。检索结果开头若标注了「记忆关联日期」，请以它为准。
 
 ### 🔍 检索工具
 `memory_search` 用于查你**精选的长期记忆** — 持久的偏好、用户/画像事实、已确定的决策与未完成的待办。当问题取决于这些内容时，优先用它：
@@ -32,6 +36,9 @@ Each session is fresh; the working-directory files are your memory continuity.
 - **Important:** Avoid overwriting — `read_file` first, then `write_file` / `edit_file`. Unless the user explicitly asks, do not record sensitive information.
 
 So you usually don't need to maintain MEMORY.md by hand. Edit it directly only when the user explicitly asks you to remember something, or a decision or preference worth keeping long-term is settled.
+
+### 🕒 Time Awareness
+Memories may come from different dates. Before asserting the user's CURRENT state (health, mood, location, what they are doing), confirm the memory is recent; old daily notes describe the past and must not be used to infer the user's present condition. If a search result begins with a "[记忆时间提示] 关联日期" note, trust that date.
 
 ### 🔍 Retrieval Tool
 `memory_search` is your lookup for **curated long-term memory** — durable preferences, profile/personal facts, settled decisions, and open to-dos. Reach for it first when a question turns on one of these:
