@@ -1,6 +1,6 @@
 # hanbao 已知问题与踩坑追踪
 
-> 本文件记录移植 Hanbao 过程中发现的**必须处理但当前阶段尚未处理**的问题。
+> 本文件记录移植 QwenPaw 过程中发现的**必须处理但当前阶段尚未处理**的问题。
 > 每项都有明确的「必须处理时机」，到达对应阶段时**必须逐项核对**，未处理不得进入下一阶段。
 >
 > 状态取值：`🔴 待处理` / `🟡 处理中` / `🟢 已解决` / `⚪ 已确认无需处理`
@@ -83,7 +83,7 @@ git status --ignored --porcelain | grep "^!!"   # 被忽略的具体文件
 照原样构建出的镜像内部**不含许可文件**。
 
 ### 为什么上游没事而我们有事
-| | 上游 Hanbao | hanbao |
+| | 上游 QwenPaw | hanbao |
 |---|---|---|
 | 身份 | **版权方本人** | **再分发者（派生作品）** |
 | 义务 | 自己的作品，随附与否自便 | Apache-2.0 §4(a)(b)(d) 强制随附 |
@@ -101,7 +101,7 @@ COPY docs/CHANGES-FROM-UPSTREAM.md /app/docs/
 ```dockerfile
 LABEL org.opencontainers.image.licenses="Apache-2.0"
 LABEL org.opencontainers.image.source="https://github.com/agentscope-ai/QwenPaw"
-LABEL org.opencontainers.image.description="hanbao (函包), derived from Hanbao v2.0.1"
+LABEL org.opencontainers.image.description="hanbao (函包), derived from QwenPaw v2.0.1"
 ```
 
 ### 验收
@@ -334,7 +334,7 @@ hanbao 将**分发给第三方用户**（飞牛应用中心下载）。让用户
 - [修改] `src/hanbao/app/_app.py` — 移除启动时的自动上报调用
 - [修改] `src/hanbao/cli/init_cmd.py` — 移除遥测代码块 + `TELEMETRY_INFO` 文案 + `_echo_telemetry_info_box`
 - [确认] 前端 console 无遥测（grep 无 analytics/posthog/sentry 依赖与上报端点）
-- 结果：hanbao 不再向 Hanbao 官方上报任何数据，全链路零上报
+- 结果：hanbao 不再向 QwenPaw 官方上报任何数据，全链路零上报
 
 ---
 
@@ -344,7 +344,7 @@ hanbao 将**分发给第三方用户**（飞牛应用中心下载）。让用户
 **严重度**：🟠 中 &nbsp;|&nbsp; **状态**：🟢 已解决（deploy/entrypoint.sh + Dockerfile 默认 `HANBAO_AUTH_ENABLED=true`，用户可 `-e HANBAO_AUTH_ENABLED=false` 关闭） &nbsp;|&nbsp; **必须处理时机**：阶段 5 FPK 打包（镜像层已落地）
 
 ### 现象
-Hanbao Web Console（8088）默认不开启认证，设计假设是"个人本地使用"。
+上游 QwenPaw Web Console（8088）默认不开启认证，设计假设是"个人本地使用"。
 
 ### 为什么必须处理
 飞牛 NAS 常有公网映射 / 内网多用户场景。若用户把 8088 暴露到公网，**任何人都能直接操作其 AI 助手、读写其文件、消耗其 API 额度**。
@@ -355,7 +355,7 @@ Hanbao Web Console（8088）默认不开启认证，设计假设是"个人本地
 
 ### 调研结论（2026-08-17）：认证系统已完整存在，I-007 实为「默认关闭」而非「缺失」
 
-经代码核查，上游 Hanbao **已内置完整 Web 登录认证**，hanbao 原样继承、未破坏：
+经代码核查，上游 QwenPaw **已内置完整 Web 登录认证**，hanbao 原样继承、未破坏：
 
 - **后端**：`src/hanbao/app/auth.py` — 盐化 SHA-256 口令哈希 + HMAC-SHA256 自签 token（无额外依赖）；`AuthMiddleware`（`BaseHTTPMiddleware`）在 `_app.py:603` 挂载；启动时 `_app.py:111` 调用 `auto_register_from_env()` 从环境变量建管理员。
 - **开关**：`is_auth_enabled()` 读 `HANBAO_AUTH_ENABLED`（true/1/yes 即开）。关时中间件放行（当前默认行为）。
@@ -672,14 +672,14 @@ WSL2 后端的 Docker 数据盘路径由 `AppData\Local\Docker\wsl\disk\docker_d
 **严重度**：🔥 高 &nbsp;|&nbsp; **状态**：🟢 已解决 &nbsp;|&nbsp; **必须处理时机**：上架前
 
 ### 现象
-上游 Hanbao 内置的 4 个文档处理技能 `docx`/`pdf`/`pptx`/`xlsx`，其 `LICENSE.txt` 为 **Anthropic 专有许可**（`© 2025 Anthropic, PBC. All rights reserved.`），明确禁止「分发 / 复制 / 衍生作品 / 销售」。Anthropic 官方仓库也确认这 4 个文档技能是 **source-available, not open source**（源码可见但非开源）。
+上游 QwenPaw 内置的 4 个文档处理技能 `docx`/`pdf`/`pptx`/`xlsx`，其 `LICENSE.txt` 为 **Anthropic 专有许可**（`© 2025 Anthropic, PBC. All rights reserved.`），明确禁止「分发 / 复制 / 衍生作品 / 销售」。Anthropic 官方仓库也确认这 4 个文档技能是 **source-available, not open source**（源码可见但非开源）。
 
-函包作为 fork Hanbao 的再分发者，把这 4 个技能打包进 FPK 上架飞牛 = **著作权侵权**，比商标红线（R2）更严重。
+函包作为 fork QwenPaw 的再分发者，把这 4 个技能打包进 FPK 上架飞牛 = **著作权侵权**，比商标红线（R2）更严重。
 
 ### 已确认事实
 - 4 个侵权技能：`docx` / `pdf` / `pptx` / `xlsx`（含 SKILL.md + scripts + LICENSE.txt，全 Anthropic 专有）
 - 其余 7 个内置技能：无 license 字段，继承 Apache-2.0，安全
-- 上游 Hanbao 自己把这些技能标 `Proprietary` 并附 Anthropic LICENSE.txt（知情）
+- 上游 QwenPaw 自己把这些技能标 `Proprietary` 并附 Anthropic LICENSE.txt（知情）
 
 ### 决策（2026-08-13 泽零拍板）
 - **方案 A**：接受「只能读不能改/创建」，暂时放弃文档创建/编辑能力
@@ -716,7 +716,7 @@ GPL 是 copyleft 传染性许可，与 Apache-2.0 闭源分发目标冲突，违
 - 删除 `_new_html2text()` 函数（原 html2text 转换器）
 
 ### 教训
-上游 Hanbao 虽然整体 Apache-2.0，但**依赖树里可能藏 GPL 库**（html2text 是 Aaron Swartz 的老牌 GPL 项目）。fork 项目必须做一次**全依赖 license 审计**，不能只看顶层许可证。
+上游 QwenPaw 虽然整体 Apache-2.0，但**依赖树里可能藏 GPL 库**（html2text 是 Aaron Swartz 的老牌 GPL 项目）。fork 项目必须做一次**全依赖 license 审计**，不能只看顶层许可证。
 
 ---
 
@@ -857,5 +857,7 @@ GPL 是 copyleft 传染性许可，与 Apache-2.0 闭源分发目标冲突，违
 | 2026-08-19 | I-015 **包名全量改名 qwenpaw→hanbao 落地**：`src/qwenpaw`→`src/hanbao`（`git mv`）、`pyproject.toml` `name="hanbao"`、入口 `hanbao=hanbao.cli.main:cli`；四档大小写映射改写 902 文本文件，`QWENPAW_*`→`HANBAO_*`；R2 四文件零改动、8 个 plugin.json 上游署名保留、外部 URL/历史文档保留。改名后 FPK 向导注入凭据须用 `HANBAO_AUTH_USERNAME/PASSWORD`（接 I-007 默认开认证）。已知文档 I-012/013/014/015/016 状态统一为 🟢 |
 | 2026-08-19 | **界面品牌化启动（阶段6）**：用户要求「加法 + 大改界面有品牌特点」。T5 品牌基础完成——配色 A 蜜橘暖暖 `#FF8C42`（App.tsx token + 全仓旧橙/蓝硬编码统一）、图形化「函包」logo（logo-dark/light.svg）、favicon 新建 hanbao-icon.svg。品牌红线：Mikasa 肖像（online.svg）是既定 hanbao 图标，保持不换。`vite build` 成功（2m43s）+ `vite preview :4173` 本地预览验证。待 T6~T9（关键页重做 / 时间感知 P0+P1）。踩坑：npm install 被 10min Bash 超时打断致 `@agentscope-ai/icons` 解压不全，单独补包修复 |
 | 2026-08-20 | **时间感知 P0+P1 实现（阶段6 线1，未提交）**：根治「用户感冒跨天被当当前事实」。① `_annotate_memory_dates()` 扫描检索答案中 `YYYY-MM-DD`（每日笔记路径自带）前置「记忆关联日期+N天前属历史」提示，注入 `auto_memory_search`(:560) 与 `memory_search`(:489)；② `build_env_context`(:185) 日期独立醒目块+时间感知指引，默认时区 `UTC`→`Asia/Shanghai`（修 UTC+8 深夜差一天）；③ `prompts.py` MEMORY_GUIDANCE 中/英加「🕒 时间感知」小节；④ P1 写入端经 `dream`(:518)/`summarize`(:603) 的 `hint`/`memory_hint` 喂 `as-of+TTL≤7天` 指令（能否生效取决于 ReMe 是否消费该 hint，检索端已兜底）。涉及 `app/chats/utils.py` / `agents/memory/reme_light_memory_manager.py` / `agents/memory/prompts.py`，均加 `[hanbao modification]`，py_compile 通过。改动未提交（铁律：用户说「提交」才提交） |
-| 2026-08-20 | **Logo 二次品牌化（T5b，阶段6 线2，未提交）**：用户上传一张 1024×1024 水墨古典肖像（黑发东方女性 + 龙纹旗袍 + 流苏耳坠），要求把 logo/favicon 全切到此图，**品牌基调整体从「可爱治愈」改为「水墨古风」**。Mikas 聊天头像 `online.svg` **红线保留不动**（不改）。`logo-light.svg`/`logo-dark.svg`（605B→103KB）替换为白底水墨肖像卡片+宋体 wordmark「hanbao」，React 端零改动（路径/文件名不变）；`hanbao-icon.svg`（454B→104KB）换为水墨肖像 favicon；新增 `hanbao-portrait-{source,logo,favicon}.png` + `scripts/_make_hanbao_{portrait,logos}.py`（PIL+base64，写入 `[hanbao modification]`）；删除孤儿 `hanbao-logo.jpg`（243KB，无引用，`rm + git add -u` 按铁律不用 `git rm`）。doc/CHANGES/MEMORY 已同步；docker 镜像重建 + 容器实测 T1 待「测一下」。
-| 2026-08-20 | **T6+T7 界面全量水墨化（阶段6 线2，待 commit）**：用户要求「内部整体界面还是 qwenpaw 的样子，大改界面、直接就都偏水墨风」。根因：`App.tsx` 视觉基底是 `@agentscope-ai/design` 的 bailianTheme（上游百炼设计系统），T5 只贴了主色膏药，大量 `.module.less` 仍残留上游暖橙/暖棕/蓝/冷灰硬编码。用户拍板：**主色从暖橘 `#FF8C42` 切换为墨黑+朱砂红**（亮 `#9E2B25`/暗 `#C0392B`，暖橘仅 logo 保留）、关键面子页加水墨装饰。改动：① `App.tsx` antd token 全套水墨 seed（全站含后台自动变色）；② `layout.css` 亮/暗底色换宣纸米白 `#F2EEE4`/墨灰 `#161616`、16 处暗色强调→朱砂红、追加 `.ink-title/.ink-divider/.ink-card/.ink-seal` 工具类 + `--colorPrimary` 全局变量桥接（`var(--colorPrimary,…)` 随明暗切红）；③ `Login/index.tsx` 蓝灰渐变→水墨意境背景+书法标题；④ `layouts/index.module.less` 侧边栏/顶栏暖色批量换水墨；⑤ **46 文件 195 处**硬编码色经 `scripts/_inkwash_rebrand_colors.py`（`[hanbao modification]`，二进制读写保换行符）批量映射：`#FF8C42→#C0392B`、`rgba(255,127,22,*)→rgba(192,57,43,*)`、`rgba(43,18,0,*)→rgba(31,31,31,*)`、`#1677ff/#3b82f6→#5C6B73`（图表 canvas 安全）等；`channelIcons.test.ts` 期望同步。**保留不动**：`@agentscope-ai/*` import、外部 qwenpaw.agentscope.io/PyPI URL（合规 R2）、中性灰 antd 回退值、Mikasa 头像红线。复验全仓品牌色 grep **零残留**。docker 镜像重建 + 容器实测 T1 待「测一下」。 |
+| 2026-08-20 | **Logo 二次品牌化（T5b，阶段6 线2，已提交 45ebdd8）**：用户上传一张 1024×1024 水墨古典肖像（黑发东方女性 + 龙纹旗袍 + 流苏耳坠），要求把 logo/favicon 全切到此图，**品牌基调整体从「可爱治愈」改为「水墨古风」**。Mikas 聊天头像 `online.svg` **红线保留不动**（不改）。`logo-light.svg`/`logo-dark.svg`（605B→103KB）替换为白底水墨肖像卡片+宋体 wordmark「hanbao」，React 端零改动（路径/文件名不变）；`hanbao-icon.svg`（454B→104KB）换为水墨肖像 favicon；新增 `hanbao-portrait-{source,logo,favicon}.png` + `scripts/_make_hanbao_{portrait,logos}.py`（PIL+base64，写入 `[hanbao modification]`）；删除孤儿 `hanbao-logo.jpg`（243KB，无引用，`rm + git add -u` 按铁律不用 `git rm`）。doc/CHANGES/MEMORY 已同步；已提交 `45ebdd8`；docker 镜像重建 + 容器实测 T1 见下条。 |
+| 2026-08-20 | **T6+T7 界面全量水墨化（阶段6 线2，已提交 45ebdd8）**：用户要求「内部整体界面还是 qwenpaw 的样子，大改界面、直接就都偏水墨风」。根因：`App.tsx` 视觉基底是 `@agentscope-ai/design` 的 bailianTheme（上游百炼设计系统），T5 只贴了主色膏药，大量 `.module.less` 仍残留上游暖橙/暖棕/蓝/冷灰硬编码。用户拍板：**主色从暖橘 `#FF8C42` 切换为墨黑+朱砂红**（亮 `#9E2B25`/暗 `#C0392B`，暖橘仅 logo 保留）、关键面子页加水墨装饰。改动：① `App.tsx` antd token 全套水墨 seed（全站含后台自动变色）；② `layout.css` 亮/暗底色换宣纸米白 `#F2EEE4`/墨灰 `#161616`、16 处暗色强调→朱砂红、追加 `.ink-title/.ink-divider/.ink-card/.ink-seal` 工具类 + `--colorPrimary` 全局变量桥接（`var(--colorPrimary,…)` 随明暗切红）；③ `Login/index.tsx` 蓝灰渐变→水墨意境背景+书法标题；④ `layouts/index.module.less` 侧边栏/顶栏暖色批量换水墨；⑤ **46 文件 195 处**硬编码色经 `scripts/_inkwash_rebrand_colors.py`（`[hanbao modification]`，二进制读写保换行符）批量映射：`#FF8C42→#C0392B`、`rgba(255,127,22,*)→rgba(192,57,43,*)`、`rgba(43,18,0,*)→rgba(31,31,31,*)`、`#1677ff/#3b82f6→#5C6B73`（图表 canvas 安全）等；`channelIcons.test.ts` 期望同步。**保留不动**：`@agentscope-ai/*` import、外部 qwenpaw.agentscope.io/PyPI URL（合规 R2）、中性灰 antd 回退值、Mikasa 头像红线。复验全仓品牌色 grep **零残留**。已提交 `45ebdd8`（62 文件 +632/−324，含 T5b logo + T6/T7 + 文档）；镜像重建 + 容器实测 T1 见本表下一条。 |
+| 2026-08-20 | **合规修正（R2 上游署名）**：维护 md 时发现改名映射（`QwenPaw→Hanbao` 四档之一）误伤了**指上游的署名语境**——docs 里 "fork 自 Hanbao v2.0.1"/"上游基线：Hanbao v2.0.1"/"基于 Hanbao 修改"、`deploy/Dockerfile` LABEL "derived from Hanbao v2.0.1" 把上游 QwenPaw 写成 Hanbao。**核实 R2 红线未触发**：`LICENSE` 版权行 `Copyright 2025 The QwenPaw Authors` 完好、`NOTICE` 上游归属完整、README 已留"基于 QwenPaw 开发"出处；`.py` 无逐文件版权头（合规规范已确认）。已修复：`deploy/Dockerfile` LABEL + `docs/{handoff,project-plan,lifecycle-management,feasibility-analysis,known-issues}.md` 共约 20 处指上游语境改回 `QwenPaw`（保留项：用户下载目录路径 `Hanbao-2.0.1`、I-012 `window.Hanbao` 技术标识、改名映射历史记录）。plugins/website 产品文档里的 "Hanbao" 属**有意产品改名**（README/LICENSE/NOTICE 出处已保留），不改。 |
+| 2026-08-20 | **T1 镜像重建 + 干净容器验收全绿（用户「测一下」触发）**：`DOCKER_BUILDKIT=0` 48/48 步构建成功，新镜像 `c52b22bb54e8`/`hanbao:latest`（1.79GB；console-builder 因 console/src 改动重编前端，后端层全缓存）。干净容器 `hanbao_verify`（不挂宿主 src）实测：等 ~60s 起、curl :8088 body `<title>hanbao Console</title>`（真实页非错误 JSON）、`/api/auth/status`=`{"enabled":true,"has_users":false}`、`/var/log/app.err.log` 无 traceback/FATAL/ERROR（计数 0）。**验收全绿**；容器保留运行中供预览（http://localhost:8088，`docker rm -f hanbao_verify` 可停）。⚠️ 本次镜像 LABEL 仍为旧文案 "derived from Hanbao v2.0.1"（构建读旧 Dockerfile），LABEL 已修复为 QwenPaw 下次重建生效（仅元数据）。 |

@@ -106,7 +106,7 @@ COPY docs/CHANGES-FROM-UPSTREAM.md /app/docs/
 
 LABEL org.opencontainers.image.licenses="Apache-2.0"
 LABEL org.opencontainers.image.source="https://github.com/agentscope-ai/QwenPaw"
-LABEL org.opencontainers.image.description="hanbao (函包), derived from Hanbao v2.0.1"
+LABEL org.opencontainers.image.description="hanbao (函包), derived from QwenPaw v2.0.1"
 
 # [hanbao modification] Brand display name in comment
 # hanbao app port (default 8088). Override at runtime with -e HANBAO_PORT=3000.

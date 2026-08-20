@@ -655,7 +655,7 @@ _（其余 FPK 打包待执行：fnpack 封装 + 飞牛实测 + 上架）_
 - **未 commit**（铁律：改完即 commit；本次含 7 个新文件 + 3 svg 重写 + 1 jpg 删除，工作树待提交。镜像重建视用户后续指令走「测一下」）。
 - **遗留/待办（更新 2026-08-20 午后）**：① ~~亮色主题下登录页蓝灰渐变 + 水墨肖像 + `#FF8C42` 按钮的"水墨+暖橘"组合~~ —— 已被下方 T6 全量水墨化解决（登录页改水墨意境背景、按钮改朱砂红）；② ~~T6 时把 patch 米白/暗色页背景带入水墨风格做整体场景化~~ —— 已实现；③ Mikas 聊天头像在新品牌基线下"古典少女陪现代 AI" 是否违和——目前按红线不动，等用户反馈再议。
 
-### 界面全量水墨化（T6+T7，2026-08-20，已实现，待 commit）
+### 界面全量水墨化（T6+T7，2026-08-20，已实现并提交 45ebdd8）
 
 背景：用户要求「内部整体界面还是 qwenpaw 的样子，大改界面样式、具 hanbao 特色，直接就都偏水墨风」。排查根因：`App.tsx` 视觉基底是 `@agentscope-ai/design` 的 `bailianTheme/bailianDarkTheme`（上游百炼设计系统），此前 T5 只是在上面贴了 `#FF8C42` 主色膏药；大量组件/页面 `.module.less` 仍残留上游 qwenpaw 硬编码暖橙/暖棕/蓝/冷灰。本次从根上重做（详见上文「方向二次调整」的拍板：墨黑 + 朱砂红、关键面子页加水墨装饰）。
 
@@ -666,12 +666,19 @@ _（其余 FPK 打包待执行：fnpack 封装 + 飞牛实测 + 上架）_
 - [修改] 全仓 **46 个组件/页面文件**（`.module.less`/`.tsx`/`.ts`）— [新增] `scripts/_inkwash_rebrand_colors.py`（`[hanbao modification]`，二进制读写保换行符）统一映射 **195 处**：`#FF8C42→#C0392B`、`rgba(255,127,22,*)→rgba(192,57,43,*)`、`rgba(43,18,0,*)→rgba(31,31,31,*)`（暖棕→墨色）、`#f9f8f4/#f9f7f3→#F2EEE4`、`#1a1a1a→#161616`、`#1677ff/#3b82f6→#5C6B73`（qwenpaw 蓝→石板灰，图表 canvas 安全）、`#d45b0a→#9E2B25`；测试期望（`channelIcons.test.ts`）同步更新。残留冷蓝灰 `#f5f7fa`/`#f7f8fc`（ApprovalCard、Models）手工换宣纸 `#F2EEE4`。
 - **保留不动**：`@agentscope-ai/*` 组件库 import、外部文档 URL（`qwenpaw.agentscope.io`、PyPI——合规 R2「外部 URL/历史文档保留」）、中性灰（`#f5f5f5`/`#fafafa`/`#f0f0f0` 等 antd border/fill 回退值，水墨兼容）；**Mikasa 头像 `online.svg` 红线零碰触**。
 - **复验**：全仓品牌色 grep **零残留**（`#FF8C42/#FF7F16/#1677ff/#3b82f6/#f5f7fa/#f7f8fc/rgba(255,127,22,…)/rgba(43,18,0,…)` 全部归零）。
-- **未 commit**（按铁律改完即 commit；本次含 T5b logo 二次品牌化 + T6/T7 全量水墨化，工作树待提交；镜像重建视用户「测一下」指令执行）。
+- **已提交（2026-08-20，commit 45ebdd8，62 文件 +632/−324）**：含 T5b logo 二次品牌化 + T6/T7 全量水墨化 + 文档同步。镜像重建（T1）按用户「测一下」指令于同日执行，见下方「镜像重建与容器验收（T1，2026-08-20）」。
+
+### 镜像重建与容器验收（T1，2026-08-20，用户「测一下」触发）
+
+- 环境：Docker daemon 29.6.2 在跑；`DOCKER_BUILDKIT=0` 直连构建（基础镜像层缓存命中 + 无代理 npm 直连），**48/48 步成功**，新镜像 `c52b22bb54e8` / `hanbao:latest`（1.79GB，前端 dist 重编 + 后端层全缓存）。
+- console-builder 阶段**重新构建前端**（console/src 在 45ebdd8 改动 → npm ci + tsc + vite build 重跑，输出正常），新 dist 已 COPY 进镜像。
+- 干净容器验收（`hanbao_verify`，**不挂宿主 src**）：等 ~60s 启动完成 → `curl :8088` body 含 `<title>hanbao Console</title>`（真实前端页，非错误 JSON）；`/api/auth/status` = `{"enabled":true,"has_users":false}`（I-007 认证默认开）；`/var/log/app.err.log` 无 traceback/FATAL/ERROR（计数 0，正常 INFO 日志含 "Background startup completed"）。**验收全绿**。
+- ⚠️ 本次构建的镜像 LABEL 仍为旧文案 "derived from Hanbao v2.0.1"（构建读的是启动时旧 Dockerfile）；LABEL 已修复为 "derived from QwenPaw v2.0.1"（合规修正，见 known-issues 变更历史），**下次重建生效**，仅元数据差异不影响功能。
 
 ### 待做（T6~T9，2026-08-19 排期）
 
-- [x] **[T6] 关键页面品牌化（2026-08-20 已实现，待 commit）**——登录页/侧边栏/顶栏/全局底色全面水墨化 + 水墨工具类（详见上方「界面全量水墨化（T6+T7）」）；聊天页/控制台剩余深度装饰（空态插画/气泡质感微调）可随用户「测一下」后的视觉反馈再打磨。
-- [x] **[T7] 后台页统一换色（2026-08-20 已实现，待 commit）**——Agent 配置/MCP/技能/工具/工作区、Control 渠道/定时任务等全部保留上游布局，仅靠 antd token 自动染水墨色 + 46 文件硬编码色批量替换清残留（详见上方）。
+- [x] **[T6] 关键页面品牌化（2026-08-20 已实现并提交 45ebdd8）**——登录页/侧边栏/顶栏/全局底色全面水墨化 + 水墨工具类（详见上方「界面全量水墨化（T6+T7）」）；聊天页/控制台剩余深度装饰（空态插画/气泡质感微调）可随镜像实测后的视觉反馈再打磨。
+- [x] **[T7] 后台页统一换色（2026-08-20 已实现并提交 45ebdd8）**——Agent 配置/MCP/技能/工具/工作区、Control 渠道/定时任务等全部保留上游布局，仅靠 antd token 自动染水墨色 + 46 文件硬编码色批量替换清残留（详见上方）。
 - [x] **[T8] 时间感知 P0（2026-08-20 已实现，commit d838618）**：① 新增 `_annotate_memory_dates()`（`reme_light_memory_manager.py`，扫描答案中 `YYYY-MM-DD`，取自每日笔记 `YYYY-MM-DD.md` 路径）前置「记忆关联日期 + N天前，属历史记忆」提示，注入 `auto_memory_search`（:560）与 `memory_search` 工具（:489）——直接治「跨天还说我现在感冒」；② `build_env_context`（:185）日期行改为独立醒目块 + 时间感知指引（「旧记忆属历史不代表当前状态」）；默认时区 `UTC`→`Asia/Shanghai`（修 UTC+8 深夜「今天」差一天）。
 - [x] **[T9] 时间感知 P1（2026-08-20 已实现，commit d838618）**：① 写入端 as-of 日期 + 临时状态 TTL 指令通过 `dream`（:518）/ `summarize`（:603）的 `hint`/`memory_hint` 参数喂入 ReMe（`_MEMORY_TIME_HINT` 常量：临时身体状态默认有效期≤7天）；② 记忆指引加时间提示——`agents/memory/prompts.py` MEMORY_GUIDANCE 中/英模板新增「🕒 时间感知」小节（引用用户当前状态前先确认记忆是否近期）。⚠️ P1 写入端能否真正生效取决于 ReMe 内部是否消费 `hint`/`memory_hint`（ReMe 为外部 pip 包，其 prompt 不可在本仓改）；检索端 T8 已提供稳健兜底。
 - 加法延伸（待定）：文档改/创建能力（I-019 关联，需 python-docx/openpyxl 自研简化版）按用户后续需求评估。

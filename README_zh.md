@@ -44,12 +44,12 @@ docker run -d --name hanbao -p 8088:8088 -v hanbao-working:/app/working hanbao:l
 | 品牌改造 & 中英双语 | ✅ |
 | 删减定制 | ✅ |
 | 镜像瘦身 | ✅（1.78GB） |
-| 界面品牌化 | 🟡（T5 品牌基础完成，T6~T9 进行中） |
+| 界面品牌化 | ✅（水墨古典基调：logo/favicon 水墨肖像 + 墨黑朱砂红主题 + 全站水墨化，2026-08-20） |
 | FPK 打包 | ✅（脚手架已按官方规范建，待 fnOS 实测） |
 | 飞牛上架 | ⬜ |
 
 ## 许可
 
-hanbao 基于 Hanbao v2.0.1，遵循 [Apache License 2.0](LICENSE)。
+hanbao 基于 QwenPaw v2.0.1（fork）并移植 v2.1.0 安全修复，遵循 [Apache License 2.0](LICENSE)。
 
 原始项目：[QwenPaw](https://github.com/agentscope-ai/QwenPaw) — Copyright 2025 The QwenPaw Authors

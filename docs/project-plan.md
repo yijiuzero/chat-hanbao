@@ -1,13 +1,13 @@
 # chat-hanbao（hanbao）项目规划
 
 > 文档版本：v0.2 · 日期：2026-08-14 · 状态：进行中（阶段 2/3 主体完成 + v2.1.0 修复移植全清；阶段 3 收尾进行中，阶段 4 容器化待开始）
-> 上游基线：Hanbao v2.0.1（Apache-2.0）
+> 上游基线：QwenPaw v2.0.1（Apache-2.0）
 
 ---
 
 ## 1. 目标与定位
 
-**hanbao** = 基于 Hanbao v2.0.1（Apache-2.0）fork 改造的个人 AI 聊天软件。
+**hanbao** = 基于 QwenPaw v2.0.1（Apache-2.0）fork 改造的个人 AI 聊天软件。
 
 - 面向**飞牛 NAS（fnOS）**用户；
 - 以 **FPK 应用包**形式上架飞牛应用中心，用户一键安装即用；
@@ -43,7 +43,7 @@
     ├── config/             # 权限 / 资源声明
     ├── ICON.PNG            # 64x64 + 256x256
     └── app/docker/docker-compose.yaml
-        └── service: hanbao   # 基于 Hanbao 2.0.1 的自建镜像
+        └── service: hanbao   # 基于 QwenPaw 2.0.1 的自建镜像
             ├── ports: 8088
             └── volumes:
                 ├── hanbao-data     → /app/working
@@ -102,7 +102,7 @@
 
 - **开发**：Python 3.11–3.13、Node.js（前端构建）、Docker Desktop（已装）、fnpack CLI
 - **运行**：飞牛 NAS（x86_64 / arm64），内存 ≥4GB，支持 Docker
-- **上游锁定**：Hanbao v2.0.1（`agentscope==2.0.4.post1`）
+- **上游锁定**：QwenPaw v2.0.1（`agentscope==2.0.4.post1`）
 
 ---
 
@@ -111,7 +111,7 @@
 | 阶段 | 内容 | 产出 | 状态 |
 | --- | --- | --- | --- |
 | 阶段0 准备 | 源码就位（本地路径）、建 git 仓库、锁定 v2.0.1 | 工程骨架 | ✅ 已完成 |
-| 阶段1 构建跑通原版 | 本机 Docker 完整构建并跑通上游原版 Hanbao | 镜像 `hanbao:0.0.1-upstream`（4.02GB）+ 8088 可访问 | ✅ 已完成 |
+| 阶段1 构建跑通原版 | 本机 Docker 完整构建并跑通上游原版 QwenPaw | 镜像 `hanbao:0.0.1-upstream`（4.02GB）+ 8088 可访问 | ✅ 已完成 |
 | 阶段2 品牌改造 | 改前端/CLI 别名/数据目录/遥测/文档 | 品牌层替换完成 | 🟡 主体完成（品牌残留 I-012~I-016 待评估） |
 | 阶段3 删减定制 | 按清单裁剪，跑通测试 | 裁剪后代码可运行 | 🟡 主体完成 + 收尾（I-024 Monaco 已清；审批 UI 死代码暂不删） |
 | v2.1.0 修复移植 | 采纳上游 v2.1.0 P0/P1 修复 | P0 全清 + P1 重点全清（15 项） | ✅ 已完成（2026-08-14，见 adoption.md） |

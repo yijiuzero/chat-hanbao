@@ -1,15 +1,15 @@
 # hanbao 项目续跑基准（会话交接）
 
 > 本文档是当前会话交付给后续会话的**唯一权威基准**。新会话须严格遵循，不重复返工已确认内容；与原设计冲突的技术决策，须先说明原因并征得确认后再实施。
-> 最后更新：2026-08-14 · 状态：阶段 2/3 主体完成 + v2.1.0 修复移植全清；阶段 3 收尾进行中（I-024 Monaco 已清），阶段 4 容器化待开始
+> 最后更新：2026-08-20 · 状态：阶段0~4 全清（容器化 1.78GB 验收全绿）、包名全量改名落地、阶段5 FPK 脚手架按官方规范建好（剩 `fnpack build` + fnOS 实测）；阶段6 界面品牌化（T5/T5b/T6/T7 水墨古风）+ 时间感知（T8/T9）已实现，T1 镜像重建验收全绿；待 fnOS 实测 → 上架
 
 ---
 
 ## 一、项目定位（一句话）
 
-hanbao（中文"函包"）是 fork 自 **Hanbao v2.0.1（Apache-2.0）** 的个人 AI 聊天软件二次开发，目标是打包成**飞牛 NAS FPK 应用包**上架应用中心。单用户、本地数据主权、**渠道（微信等）聊天为主**（2026-08-13 泽零明确修正）。
+hanbao（中文"函包"）是 fork 自 **QwenPaw v2.0.1（Apache-2.0）** 的个人 AI 聊天软件二次开发，目标是打包成**飞牛 NAS FPK 应用包**上架应用中心。单用户、本地数据主权、**渠道（微信等）聊天为主**（2026-08-13 泽零明确修正）。
 
-- 上游：Hanbao v2.0.1（2026-07-24），基于 AgentScope 2.0（`agentscope==2.0.4.post1`）
+- 上游：QwenPaw v2.0.1（2026-07-24），基于 AgentScope 2.0（`agentscope==2.0.4.post1`）
 - 技术栈：Python 包 `hanbao` + uvicorn(ASGI) + React console，Web Console 端口 **8088**
 - 源码本地路径：`E:\浏览器下载\Hanbao-2.0.1\Hanbao-2.0.1`（用户已下载，**勿自行从网络拉取**）
 
@@ -58,7 +58,7 @@ hanbao（中文"函包"）是 fork 自 **Hanbao v2.0.1（Apache-2.0）** 的个�
 
 ## 五、接口 / 架构约定
 
-- **对外接口以 Hanbao v2.0.1 上游架构为准**：Web Console 端口 8088（uvicorn/ASGI）、`hanbao` Python 包结构、三个数据 volume（working / working.secret / working.backups）。
+- **对外接口以 QwenPaw v2.0.1 上游架构为准**：Web Console 端口 8088（uvicorn/ASGI）、`hanbao` Python 包结构、三个数据 volume（working / working.secret / working.backups）。
 - 阶段 1 为原版未改，**无自定义接口文档**。
 - 若新会话需新增功能 / 定义新接口：须在理解上游架构基础上进行；**与原设计冲突时先说明原因并征得确认**，不擅自推翻。
 
@@ -84,7 +84,7 @@ hanbao（中文"函包"）是 fork 自 **Hanbao v2.0.1（Apache-2.0）** 的个�
 
 1. **发现问题必记录**：任何隐患/坑/待办，立刻写 `docs/known-issues.md`（新增 `## I-xxx` + 索引表补行），不只在对话里。
 2. **改动前评估依赖、敢于谏言**：删除功能 = 高危，必做影响分析（谁 import/调用、配置/入口/路由是否引用、删了会否悬空或崩溃）；可基于判断说"不行/必须连带改 X"，不盲从指令。遇合规红线/稳定性/下游完整性风险主动指出并给替代方案。
-3. **合规红线 R2 永不触碰**：品牌批量替换禁止波及 `LICENSE` / `NOTICE` / `docs/license-compliance.md` / `docs/CHANGES-FROM-UPSTREAM.md`；全仓库 `sed -i 's/Hanbao/hanbao/g'` 即违约。
+3. **合规红线 R2 永不触碰**：品牌批量替换禁止波及 `LICENSE` / `NOTICE` / `docs/license-compliance.md` / `docs/CHANGES-FROM-UPSTREAM.md`；全仓库 `sed -i 's/QwenPaw/hanbao/g'` 即违约。
 4. **每次改动同步**：加 `[hanbao modification]` 标注 + 更新 `CHANGES-FROM-UPSTREAM.md`。
 5. **外网**：基本不需碰 GitHub/外网（源码已本地化）。若某步确需外网被墙，立即停手告知用户开代理，不静默重试。
 6. **破坏性文件删除**：本环境禁止程序化永久删除（PowerShell 守卫 / Bash 策略 / COM 拦截三道墙），只能由用户手动清。**`git rm` 也高危**（2026-08-14 触发过整个 `console/` 553 文件消失，`git restore` 可救回）——删文件一律「清空占位 + 留孤儿」，物理删除交用户。
