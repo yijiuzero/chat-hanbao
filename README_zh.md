@@ -22,31 +22,30 @@ hanbao 是一个运行在你自己的 NAS 上的 AI 助手。打开浏览器就�
 
 ## 快速开始
 
+### 飞牛 NAS 一键安装（推荐）
+1. 从飞牛应用中心安装 `hanbao` 应用（`.fpk` 包，镜像已内置离线分发，无需外部仓库）
+2. 安装向导设置管理员账号密码（默认开启登录认证，消除局域网抢注窗口）
+3. 浏览器打开 `http://<飞牛IP>:8088` 即可聊天
+
+### 手动 Docker 部署（开发者）
+镜像需自行构建，不提供外部 registry：
 ```bash
-# 拉取镜像
-docker pull yijiuzero/chat-hanbao
-
-# 启动
-docker run -d \
-  --name hanbao \
-  -p 8088:8088 \
-  -v hanbao-working:/app/working \
-  yijiuzero/chat-hanbao:latest
-
-# 浏览器打开
-# http://localhost:8088
+docker build -t hanbao:latest .
+docker run -d --name hanbao -p 8088:8088 -v hanbao-working:/app/working hanbao:latest
 ```
 
-## 项目状态
+> 💡 **Web Console 默认开启登录认证**：首次打开页面会进入注册页，请设置管理员密码
+> （环境变量 `HANBAO_AUTH_ENABLED=false` 可显式关闭，不推荐）。
 
-处于早期开发阶段。当前已完成上游 Hanbao v2.0.1 的品牌改造和基础定制，后续将逐步精简、优化镜像体积、打包 FPK。
+## 项目状态
 
 | 阶段 | 状态 |
 |---|---|
 | 品牌改造 & 中英双语 | ✅ |
-| 删减定制 | 🚧 |
-| 镜像瘦身 | ⬜ |
-| FPK 打包 | ⬜ |
+| 删减定制 | ✅ |
+| 镜像瘦身 | ✅（1.78GB） |
+| 界面品牌化 | 🟡（T5 品牌基础完成，T6~T9 进行中） |
+| FPK 打包 | ✅（脚手架已按官方规范建，待 fnOS 实测） |
 | 飞牛上架 | ⬜ |
 
 ## 许可

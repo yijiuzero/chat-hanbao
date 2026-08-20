@@ -611,6 +611,43 @@ _（其余 FPK 打包待执行：fnpack 封装 + 飞牛实测 + 上架）_
 
 ---
 
+---
+
+## 阶段 6 · 界面品牌化（前端视觉重做 + 加法，2026-08-19 起）
+
+**背景**：用户要求「针对 hanbao 做一次加法，并且界面大改、有品牌特点」。接手核查发现：代码层产品名已是 `hanbao`、主色沿用 qwenpaw 同款橙 `#FF7F16`，但视觉骨架（logo/布局/组件/插画）仍是上游模板，仅换了名字未做差异化。故启动「界面品牌化 + 时间感知加法」双线。
+
+**方向拍板（2026-08-19 用户）**：
+- 界面品牌化**先做**（线2），时间感知**P0+P1 一次做全**（线1）。
+- 配色 **A 蜜橘暖暖 `#FF8C42`** + 图形化「函包」logo + 可爱治愈风。
+- 加法核心：解决「用户说感冒，跨天后还被当当前事实」痛点（根因：长期记忆 `MEMORY.md` 无时间戳/无 TTL，system prompt 日期注入显著性低）。
+
+### 品牌基础（T5，2026-08-19，已完成）
+
+- [修改] `console/src/App.tsx` — antd `ConfigProvider` token：`colorPrimary "#FF7F16"` → `"#FF8C42"`（脱离 qwenpaw 同款橙）+ `borderRadius: 10` + 辅助色 token（`colorPrimaryBg`/`colorPrimaryBorder`/`colorPrimaryLink` 统一为 A 方案暖橙梯度）。
+- [修改] `console/src/**/*.{ts,tsx,less,css}` — 全仓散落硬编码品牌色统一为 A 方案：旧橙 `#ff7f16`/`#FF7F16`、蓝残留 `#1677ff` fallback、辅助 `#ff9d4d`/`#fff7e6` 全部替换为 `#FF8C42`/对应暖橙梯度（Python 脚本二进制读写保换行符，不污染图表数据系列色）。
+- [修改] `console/public/logo-dark.svg` + `logo-light.svg` — 占位文字 logo → **图形化「函包」**（圆角信封/包裹抽象 + 暖橙高光，可爱治愈风，暗/亮双版）。
+- [新增] `console/public/hanbao-icon.svg` — 函包图形 favicon；`console/index.html` `<link rel="icon">` 由 `/online.svg` 改为 `/hanbao-icon.svg`。
+- **关键发现 + 品牌红线（用户拍板）**：`console/public/online.svg` 实为 0.3MB base64 **Mikasa 肖像**，是项目早就定的 **hanbao 图标（聊天头像/app 图标）**，注释 `[hanbao modification]`，被 `Chat/index.tsx` 与 `OptionsPanel/defaultConfig.ts` 引用。**保持 Mikasa 头像不换成函包图形**；后续任何品牌化不得擅自覆盖 `online.svg` 的 Mikasa 身份。favicon 是否也改回 Mikasa 待定（当前用函包图形）。
+
+### 构建验证（2026-08-19，前端本地预览）
+
+- console 依赖此前未安装；`npm install` 被本环境 10 分钟 Bash 超时打断，导致 `node_modules/@agentscope-ai/icons` 解压不全（`vite build` 报 `Could not resolve "./src/js/SparkEcommerceProductLine.js"`）。
+- 修法：`rm -rf node_modules/@agentscope-ai/icons && npm install --prefer-offline --no-audit --no-fund`（缓存命中，约 1min 补齐缺失包）。
+- `npx vite build`（跳过 `tsc` 全量类型检查，避免上游无关类型告警卡住）成功，耗时 2m43s，`dist/` 产出；`npx vite preview --port 4173` 起本地预览服务（HTTP 200，`<title>hanbao Console</title>`，favicon=hanbao-icon.svg）供查看品牌化效果。
+- ⚠️ 该预览为纯前端（未接后端），仅能看到登录页/外壳品牌化；完整 UI（聊天页 Mikasa 头像等）需后端 + 认证，走 T1 镜像重建后在容器实测。
+- 改动**未提交**（本次仅构建预览验证，尚未 commit；按铁律 docker 镜像重建 T1 待用户开 daemon+代理后执行）。
+
+### 待做（T6~T9，2026-08-19 排期）
+
+- [T6] 关键页面品牌化（登录页/侧边栏/聊天页/首页控制台/设置页）做可爱治愈风重做（注入品牌色 + 圆角 + 插画/空态/按钮风格），保留功能。
+- [T7] 后台页（Agent 配置/MCP/技能/工具/工作区、Control 渠道/定时任务）保留上游布局，仅套用 A 方案配色 token，清残留旧橙/蓝硬值。
+- [T8] 时间感知 P0：① `auto_memory_search` 注入结果附来源日期（`reme_light_memory_manager.py:456` / `base_memory_manager.py:145` 把命中 `YYYY-MM-DD.md` 文件名前置为「[来自 2026-08-12 的每日笔记]」）；② 强化 `build_env_context` 日期行（`app/chats/utils.py:182` + `runtime/builder.py:328` 长会话按请求刷新当前日期，含中文星期 + 「旧笔记属历史不代表当前状态」提示）。直接消除「跨天还说我现在感冒」。
+- [T9] 时间感知 P1：① 写入打 as-of 日期（`reme_light_memory_manager.py:426 summarize` / `:528 dream`）；② 临时身体状态 TTL（prompt 要求感冒等临时状态带有效期，超 N 天失效）；③ 记忆指引加时间提示（`agents/memory/prompts.py:8-39`「引用记忆断言用户当前状态时先确认日期是否近期」）。
+- 加法延伸（待定）：文档改/创建能力（I-019 关联，需 python-docx/openpyxl 自研简化版）按用户后续需求评估。
+
+---
+
 ## 未修改声明
 
 除本文件记录的改动外，hanbao 中其余代码均来自上游 QwenPaw v2.0.1，其著作权归 The QwenPaw Authors 所有，按 Apache License 2.0 条款授权使用。

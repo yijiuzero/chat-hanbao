@@ -1,8 +1,7 @@
-<!-- [hanbao modification] Brand logo: Hanbao → hanbao -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 60" width="300" height="60">
-  <text x="10" y="45" font-family="system-ui, -apple-system, sans-serif" font-size="36" font-weight="700" fill="#FFFFFF">hanbao</text>
-  <circle cx="282" cy="18" r="8" fill="#FF7F16"/>
-  <circle cx="292" cy="28" r="6" fill="#FF7F16" opacity="0.7"/>
-  <circle cx="276" cy="30" r="5" fill="#FF7F16" opacity="0.5"/>
-  <circle cx="286" cy="38" r="4" fill="#FF7F16" opacity="0.3"/>
+  <!-- [hanbao modification] 图形化「函包」品牌 logo：圆角信封/包裹抽象 + hanbao wordmark，可爱治愈风 -->
+  <rect x="6" y="10" width="40" height="40" rx="11" fill="#FFA066"/>
+  <path d="M6 19 L26 32 L46 19" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="38" cy="15" r="3.2" fill="#FFD8A8"/>
+  <text x="58" y="40" font-family="system-ui, -apple-system, sans-serif" font-size="30" font-weight="700" fill="#FFFFFF">hanbao</text>
 </svg>

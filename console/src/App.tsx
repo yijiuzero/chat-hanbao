@@ -202,7 +202,14 @@ function AppInner() {
             ? antdTheme.darkAlgorithm
             : antdTheme.defaultAlgorithm,
           token: {
-            colorPrimary: "#FF7F16",
+            // [hanbao modification] Brand color A "蜜橘暖暖": #FF8C42 primary + 可爱治愈圆角/辅助色
+            colorPrimary: "#FF8C42",
+            borderRadius: 10,
+            colorPrimaryBg: "#FFF3E9",
+            colorPrimaryBgHover: "#FFE6D2",
+            colorPrimaryBorder: "#FFD8A8",
+            colorLink: "#FF8C42",
+            colorLinkHover: "#FFA066",
           },
         }}
       >

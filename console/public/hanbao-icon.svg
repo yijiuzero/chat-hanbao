@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <!-- [hanbao modification] 品牌 favicon/头像图形：函包（圆角信封/包裹抽象），可爱治愈风 -->
+  <rect x="4" y="8" width="40" height="34" rx="11" fill="#FF8C42"/>
+  <path d="M4 17 L24 29 L44 17" fill="none" stroke="#FFF3E9" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="36" cy="14" r="3" fill="#FFD8A8"/>
+</svg>

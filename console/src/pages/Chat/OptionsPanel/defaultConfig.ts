@@ -2,7 +2,7 @@ import type { TFunction } from "i18next";
 
 const defaultConfig = {
   theme: {
-    colorPrimary: "#FF7F16",
+    colorPrimary: "#FF8C42",
     darkMode: false,
     prefix: "hanbao",
     leftHeader: {
