@@ -1,7 +1,33 @@
 # hanbao 项目续跑基准（会话交接）
 
 > 本文档是当前会话交付给后续会话的**唯一权威基准**。新会话须严格遵循，不重复返工已确认内容；与原设计冲突的技术决策，须先说明原因并征得确认后再实施。
-> 最后更新：2026-08-20 · 状态：阶段0~4 全清（容器化 1.78GB 验收全绿）、包名全量改名落地、阶段5 FPK 脚手架按官方规范建好（剩 `fnpack build` + fnOS 实测）；阶段6 界面品牌化（T5/T5b/T6/T7 水墨古风）+ 时间感知（T8/T9）已实现，T1 镜像重建验收全绿；待 fnOS 实测 → 上架
+> 最后更新：2026-08-20 傍晚 · 状态：阶段0~4 全清、包名全量改名落地、阶段5 FPK 脚手架完成（剩 `fnpack build` + fnOS 实测）；阶段6 界面品牌化（T5/T5b/T6/T7 水墨古风 + **全站去 qwenpaw 味**）+ 时间感知（T8/T9）已实现，镜像两次重建（c52b22bb54e8→c9d492804176）验收全绿；**待办：运行配置（Agent Config）代码逻辑改动（泽零单独说需求）、fnpack build + fnOS 实测**。⚠️ 见下方「〇、当前环境实况」——欢迎语改动（a788cdf）未入最新镜像，下次重建才生效
+
+---
+
+## 〇、当前环境实况（2026-08-20 傍晚交接时刻，新会话必读）
+
+**Git**
+- HEAD = `5b0f54e`，工作树干净；24+ commit 未推送（本地演进，正常）
+- 今日提交链：`45ebdd8`(T5b+T6/T7 水墨) → `55e2819`(docs+合规 R2 署名) → `f2e3468`(界面打磨) → `2d5973d`(去味 v1：token 全量化+空态插画) → `297cc80`(百炼紫 46 处) → `3b28257`(Dockerfile 去 microhei) → `a788cdf`(欢迎语 hanbao 化) → `5b0f54e`(docs 收尾)
+
+**Docker 实况**
+- daemon 29.6.2 在跑；**`hanbao:latest` = `c9d492804176`**（1.78GB，T1b 重建，验收全绿：`:8088` `<title>hanbao Console</title>`、auth/status 正常、err.log 异常 0）
+- **验收容器 `hanbao_verify` 运行中** → http://localhost:8088 可预览；`docker rm -f hanbao_verify` 停
+- **⚠️ `a788cdf`（聊天页欢迎语 hanbao 化）在 c9d492804176 构建之后提交 → 最新镜像里的欢迎语仍是旧 qwenpaw 版（"你好，我今天能帮你做什么？"）！下次「测一下」重建才生效**
+- 构建日志：`/tmp/build_20260820e.log`（T1b 成功）；改 Dockerfile 任意指令会断 legacy builder 的 apt/RUN 缓存链，可能暴露从未真跑的环境问题（I-025，已踩）
+
+**待办（下轮优先）**
+1. **运行配置（侧边栏 Agent →「运行配置」nav.agentConfig）代码逻辑改动**——泽零会单独说需求；注意该页 UI 文案零品牌味（已查），要改的是逻辑
+2. 聊天页欢迎语已改（a788cdf）待重建验证
+3. 阶段5 `fnpack build` + fnOS 实测（界面这摊已告一段落）
+
+**铁律速查**（详见 .workbuddy/memory/MEMORY.md）
+- 仅用户说「测一下/构建验证」才构建；改完即 commit
+- 验证容器**绝不挂宿主 src**；看 body `<title>` 不看 HTTP 状态码
+- 后台 build 勿依赖 task_id（会话中断会回收），看 `docker images -a` 中间层 CreatedSince
+- 删 tracked 用 `rm` + `git add -u`，绝不用 `git rm`；批量替换脚本二进制读写
+- 合规 R2：LICENSE/NOTICE/README 出处完好已核实；品牌替换禁波及 LICENSE/NOTICE/license-compliance/CHANGES
 
 ---
 
