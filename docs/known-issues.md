@@ -33,6 +33,8 @@
 | [I-022](#i-022) | web_search 用 Tavily keyless（免费限速），上架后重度使用会撞限速 | 🟡 低 | 上架后可优化 | 🔴 待处理 |
 | [I-023](#i-023) | patch 累积 diff 的提交依赖（原「基线偏离」为误判，本地基线=官方 v2.0.1） | 🟡 低 | 移植靠后提交前先识别前置依赖 | 🟢 已澄清 |
 | [I-024](#i-024) | Monaco 编辑器残留（Coding Mode 砍不干净） | 🟢 极低 | 阶段 3 收尾 | 🟢 已解决（依赖移除+占位符） |
+| [I-025](#i-025) | 改 Dockerfile 触发 apt 层缓存失效，暴露 fonts-wqy-microhei 已从 Debian 源移除 → 构建失败 | 🟠 中 | 环境教训（已修复） | 🟢 已解决（移除 microhei，3b28257） |
+| [I-026](#i-026) | 品牌色批量替换漏网：Spark 百炼紫 #615ced（50+ 处）与暖橘 rgba(255,157,77) 形式 | 🟠 中 | 去 qwenpaw 味专项（已修复） | 🟢 已解决（2d5973d/297cc80） |
 
 ---
 
@@ -861,3 +863,19 @@ GPL 是 copyleft 传染性许可，与 Apache-2.0 闭源分发目标冲突，违
 | 2026-08-20 | **T6+T7 界面全量水墨化（阶段6 线2，已提交 45ebdd8）**：用户要求「内部整体界面还是 qwenpaw 的样子，大改界面、直接就都偏水墨风」。根因：`App.tsx` 视觉基底是 `@agentscope-ai/design` 的 bailianTheme（上游百炼设计系统），T5 只贴了主色膏药，大量 `.module.less` 仍残留上游暖橙/暖棕/蓝/冷灰硬编码。用户拍板：**主色从暖橘 `#FF8C42` 切换为墨黑+朱砂红**（亮 `#9E2B25`/暗 `#C0392B`，暖橘仅 logo 保留）、关键面子页加水墨装饰。改动：① `App.tsx` antd token 全套水墨 seed（全站含后台自动变色）；② `layout.css` 亮/暗底色换宣纸米白 `#F2EEE4`/墨灰 `#161616`、16 处暗色强调→朱砂红、追加 `.ink-title/.ink-divider/.ink-card/.ink-seal` 工具类 + `--colorPrimary` 全局变量桥接（`var(--colorPrimary,…)` 随明暗切红）；③ `Login/index.tsx` 蓝灰渐变→水墨意境背景+书法标题；④ `layouts/index.module.less` 侧边栏/顶栏暖色批量换水墨；⑤ **46 文件 195 处**硬编码色经 `scripts/_inkwash_rebrand_colors.py`（`[hanbao modification]`，二进制读写保换行符）批量映射：`#FF8C42→#C0392B`、`rgba(255,127,22,*)→rgba(192,57,43,*)`、`rgba(43,18,0,*)→rgba(31,31,31,*)`、`#1677ff/#3b82f6→#5C6B73`（图表 canvas 安全）等；`channelIcons.test.ts` 期望同步。**保留不动**：`@agentscope-ai/*` import、外部 qwenpaw.agentscope.io/PyPI URL（合规 R2）、中性灰 antd 回退值、Mikasa 头像红线。复验全仓品牌色 grep **零残留**。已提交 `45ebdd8`（62 文件 +632/−324，含 T5b logo + T6/T7 + 文档）；镜像重建 + 容器实测 T1 见本表下一条。 |
 | 2026-08-20 | **合规修正（R2 上游署名）**：维护 md 时发现改名映射（`QwenPaw→Hanbao` 四档之一）误伤了**指上游的署名语境**——docs 里 "fork 自 Hanbao v2.0.1"/"上游基线：Hanbao v2.0.1"/"基于 Hanbao 修改"、`deploy/Dockerfile` LABEL "derived from Hanbao v2.0.1" 把上游 QwenPaw 写成 Hanbao。**核实 R2 红线未触发**：`LICENSE` 版权行 `Copyright 2025 The QwenPaw Authors` 完好、`NOTICE` 上游归属完整、README 已留"基于 QwenPaw 开发"出处；`.py` 无逐文件版权头（合规规范已确认）。已修复：`deploy/Dockerfile` LABEL + `docs/{handoff,project-plan,lifecycle-management,feasibility-analysis,known-issues}.md` 共约 20 处指上游语境改回 `QwenPaw`（保留项：用户下载目录路径 `Hanbao-2.0.1`、I-012 `window.Hanbao` 技术标识、改名映射历史记录）。plugins/website 产品文档里的 "Hanbao" 属**有意产品改名**（README/LICENSE/NOTICE 出处已保留），不改。 |
 | 2026-08-20 | **T1 镜像重建 + 干净容器验收全绿（用户「测一下」触发）**：`DOCKER_BUILDKIT=0` 48/48 步构建成功，新镜像 `c52b22bb54e8`/`hanbao:latest`（1.79GB；console-builder 因 console/src 改动重编前端，后端层全缓存）。干净容器 `hanbao_verify`（不挂宿主 src）实测：等 ~60s 起、curl :8088 body `<title>hanbao Console</title>`（真实页非错误 JSON）、`/api/auth/status`=`{"enabled":true,"has_users":false}`、`/var/log/app.err.log` 无 traceback/FATAL/ERROR（计数 0）。**验收全绿**；容器保留运行中供预览（http://localhost:8088，`docker rm -f hanbao_verify` 可停）。⚠️ 本次镜像 LABEL 仍为旧文案 "derived from Hanbao v2.0.1"（构建读旧 Dockerfile），LABEL 已修复为 QwenPaw 下次重建生效（仅元数据）。 |
+| 2026-08-20 | **去 qwenpaw 味重构（已提交 f2e3468/2d5973d/297cc80/a788cdf）**：用户镜像实测后要求「全部页面尽量重构、不要有 qwenpaw 味道」。根因：`@agentscope-ai/design`（Spark Design）= 上游 UI 库，bailianTheme 注入默认 token + Spark 组件（antd 薄封装）+ 阿里 CDN 空态插画 + 百炼紫 `#615ced`。改动：① `App.tsx` token 全量化覆盖 bailian 默认（colorPrimary 系/灰阶/fill/语义色/boxShadow 全套）；② 隐藏 Spark Empty CDN 插画（断 gw.alicdn.com 依赖）+ 空态文字水墨化 + 卡片 hover 墨影；③ 清百炼紫 9 文件 46 处→朱砂红 + 暖橘 rgba(255,157,77) 6 处；④ 聊天页欢迎语 hanbao 化（"你好，我是 hanbao。"，去"旅程/问技能"腔，中英 locale + fallback）。保留：Spark 图标（40+ 种，替换风险大）、聊天气泡 SDK 深层样式、外部 qwenpaw URL（合规）。全仓品牌色 + locale 品牌名**零残留**。 |
+| 2026-08-20 | **T1b 镜像二次重建 + 验收全绿（提交 3b28257）**：改 Dockerfile LABEL 触发 apt 层缓存失效真跑，暴露 `E: Unable to locate package fonts-wqy-microhei`（Debian 源已移除该包）→ 移除 microhei 重建成功（`c9d492804176`/1.78GB，apt+前端+uv 全重跑）。干净容器验收全绿：`:8088` `<title>hanbao Console</title>`、auth/status 正常、err.log 异常 0。容器保留供预览。 |
+
+## I-025 · 改 Dockerfile 触发 apt 层缓存失效，暴露 fonts-wqy-microhei 已从 Debian 源移除
+
+- **现象**：`DOCKER_BUILDKIT=0` 重建时 Step 23 `apt-get install` 报 `E: Unable to locate package fonts-wqy-microhei`，exit 100。
+- **根因**：此前 Dockerfile 长期未变，apt 层一直缓存命中从未真跑；55e2819 改了 Dockerfile（LABEL），legacy builder 缓存链失效 → apt 真跑 → 暴露 Debian 源已无 fonts-wqy-microhei 包。
+- **修复**：移除 `fonts-wqy-microhei`（保留 `fonts-wqy-zenhei` 文泉驿正黑，已覆盖中文字体渲染），提交 3b28257。
+- **教训**：改 Dockerfile 任意指令（哪怕后段 LABEL/注释）会使后续 RUN 层缓存失效真跑，可能暴露从未真跑过的环境问题（源变更/包移除）。**改 Dockerfile 后的构建要格外留意 apt/系统层**。
+
+## I-026 · 品牌色批量替换漏网：Spark 百炼紫 #615ced 与暖橘 rgba 形式
+
+- **现象**：用户反馈"还有 qwenpaw 味道"后全量扫描，发现 **百炼紫 `#615ced`/`rgba(97,92,237,*)` 9 文件 46 处**（ThemeToggleButton 选中、ModelSelector 激活、Agent/Skills、ImportHubModal 等）+ 暖橘 **`rgba(255,157,77,1)` 6 处**（=#FF9D4D 的 rgba 形式，Header/Sidebar 小红点）。
+- **根因**：① 前两轮批量替换只覆盖"qwenpaw 品牌橙/蓝"，**漏了 Spark 设计系统主题色百炼紫**（最典型的 qwenpaw 色）；② T5 映射过 `#ff9d4d` hex 但**漏了其 rgba 形式**。
+- **修复**：`_inkwash_rebrand_colors.py` 追加百炼紫两条规则 + 手工替换暖橘 rgba，提交 2d5973d/297cc80；全仓品牌色 15 色系 grep 零残留。
+- **教训**：品牌色批量替换要**穷举上游设计系统的全部主题色**（含 hex + rgba 两种形式），不能只处理印象中的"品牌色"；去味专项应系统性扫描 `@agentscope-ai/design` 的 theme JSON（如 bailianTheme.json 的 token 值）逐项核对。

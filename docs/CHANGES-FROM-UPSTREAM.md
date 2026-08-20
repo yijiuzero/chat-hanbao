@@ -675,6 +675,24 @@ _（其余 FPK 打包待执行：fnpack 封装 + 飞牛实测 + 上架）_
 - 干净容器验收（`hanbao_verify`，**不挂宿主 src**）：等 ~60s 启动完成 → `curl :8088` body 含 `<title>hanbao Console</title>`（真实前端页，非错误 JSON）；`/api/auth/status` = `{"enabled":true,"has_users":false}`（I-007 认证默认开）；`/var/log/app.err.log` 无 traceback/FATAL/ERROR（计数 0，正常 INFO 日志含 "Background startup completed"）。**验收全绿**。
 - ⚠️ 本次构建的镜像 LABEL 仍为旧文案 "derived from Hanbao v2.0.1"（构建读的是启动时旧 Dockerfile）；LABEL 已修复为 "derived from QwenPaw v2.0.1"（合规修正，见 known-issues 变更历史），**下次重建生效**，仅元数据差异不影响功能。
 
+### 去 qwenpaw 味重构（2026-08-20，f2e3468 ~ a788cdf，已提交）
+
+背景：用户镜像实测后反馈「界面视觉差不多了，但全部页面尽量重构、不要有 qwenpaw 味道」。排查根因：`@agentscope-ai/design`（AgentScope Spark Design，MIT）= 上游 qwenpaw 的 UI 库，经 `bailianTheme` 注入大量 Spark 默认 token + Spark 自研组件（antd 薄封装，视觉由 antd token 控）+ 阿里 CDN 空态插画 + Spark 图标 + **百炼紫 `#615ced`**（Spark 主题主色，两轮批量替换均漏网）。
+
+- [f2e3468] 界面细节打磨 6 处：亮色 header/sider 加细墨分割线（解决同色"一片平"）、登录页 logo drop-shadow + 卡片微宣纸渐变、聊天输入区/欢迎区纯白→宣纸白 `#FDFCF9`、菜单 hover 极淡朱砂底。
+- [2d5973d] **全站去味 v1**：① `App.tsx` antd token **全量化覆盖 bailianTheme 默认值**（补全 colorPrimaryHover/Active/Text 系、colorText 灰阶、colorFill 系、colorBgSpotlight/Mask、colorInfo/Success/Warning/Error 语义色、boxShadow 系、borderRadiusSM）——antd/Spark 组件形态全面脱离百炼默认，全站生效；② `layout.css` 隐藏 Spark Empty 阿里 CDN 插画（`hanbao-empty-image`，断外网依赖）+ 空态文字水墨化 + 亮色卡片 hover 墨影；③ 清漏网旧暖橘 `rgba(255,157,77,1)` 6 处（Header/Sidebar 小红点、激活指示、SkillPool Badge）→ 朱砂红。
+- [297cc80] **百炼紫清理**：`#615ced`/`rgba(97,92,237,*)` **9 文件 46 处** → 朱砂红（ThemeToggleButton 主题切换选中、ModelSelector 模型激活、Agent/Skills/Workspace、Settings/Agents/Models、ImportHubModal、Control/Sessions、layout.css 选中/激活指示）；`scripts/_inkwash_rebrand_colors.py` 追加百炼紫两条规则（幂等可重跑）。
+- [a788cdf] **聊天页欢迎语 hanbao 化**：`locales/zh.json`+`en.json`+`OptionsPanel/defaultConfig.ts` fallback——greeting "你好，我今天能帮你做什么？"→"你好，我是 hanbao。"、description 去"智能助手"腔→函包人设（陪伴+记忆+工具能力）、prompt1/prompt2 去"旅程/问技能"腔→"跟我聊聊今天怎么样？"/"看看我能帮你做什么？"。Mikasa 头像 `/online.svg` 红线未动。
+- **保留项（决策）**：Spark 图标库（40+ 种遍布全站，线条图标较中性，替换 antd 映射风险大收益低）；聊天气泡 SDK 深层样式（CSS-in-JS 哈希类名+动态渐变，覆盖风险高）；`@agentscope-ai/design` import（组件即 antd 封装，token 已控）；外部 qwenpaw 文档 URL（合规 R2）。
+- **复验**：全仓品牌色 grep **零残留**（暖橘/百炼蓝/百炼紫/暖棕/冷灰 15 种色系全无）；locale 品牌名残留 0。
+
+### 镜像二次重建与容器验收（T1b，2026-08-20，用户「测一下」触发）
+
+- [3b28257] **踩坑修复**：Dockerfile 的 LABEL 修复（55e2819）触发 legacy builder apt 层缓存失效真跑，暴露 `E: Unable to locate package fonts-wqy-microhei`（**Debian 源已移除该包**，此前一直靠缓存未真跑）→ 移除 microhei（保留 zenhei 文泉驿正黑已够中文字体）。
+- **重建成功**：`DOCKER_BUILDKIT=0` 48/48 步，新镜像 `c9d492804176`/`hanbao:latest` **1.78GB**（apt 真跑成功 + console-builder 重编去味前端 + uv 全依赖真装）。
+- **干净容器验收全绿**（`hanbao_verify`，不挂宿主 src）：等 ~60s → `:8088` `<title>hanbao Console</title>`、`/api/auth/status`=`{"enabled":true,"has_users":false}`、`/var/log/app.err.log` 异常计数 0。容器保留运行中供预览。
+- **教训**：改 Dockerfile 任意指令（哪怕后段 LABEL）会使 legacy builder 后续 apt/RUN 层缓存失效真跑，可能暴露此前从未真跑的环境问题——改 Dockerfile 后的构建要格外留意系统层。
+
 ### 待做（T6~T9，2026-08-19 排期）
 
 - [x] **[T6] 关键页面品牌化（2026-08-20 已实现并提交 45ebdd8）**——登录页/侧边栏/顶栏/全局底色全面水墨化 + 水墨工具类（详见上方「界面全量水墨化（T6+T7）」）；聊天页/控制台剩余深度装饰（空态插画/气泡质感微调）可随镜像实测后的视觉反馈再打磨。

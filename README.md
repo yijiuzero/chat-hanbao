@@ -44,7 +44,7 @@ docker run -d --name hanbao -p 8088:8088 -v hanbao-working:/app/working hanbao:l
 | 品牌改造 & 中英双语 | ✅ |
 | 删减定制 | ✅ |
 | 镜像瘦身 | ✅（1.78GB） |
-| 界面品牌化 | ✅（水墨古典基调：logo/favicon 水墨肖像 + 墨黑朱砂红主题 + 全站水墨化，2026-08-20） |
+| 界面品牌化 | ✅（水墨古典基调 + 全站去 qwenpaw 味：token 全量化/空态/欢迎语 hanbao 化，2026-08-20） |
 | FPK 打包 | ✅（脚手架已按官方规范建，待 fnOS 实测） |
 | 飞牛上架 | ⬜ |
 
