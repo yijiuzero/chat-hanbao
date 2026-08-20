@@ -29,13 +29,10 @@ function AgentConfigPage() {
     loading,
     saving,
     error,
-    language,
-    savingLang,
     timezone,
     savingTimezone,
     fetchConfig,
     handleSave,
-    handleLanguageChange,
     handleTimezoneChange,
   } = useAgentConfig();
 
@@ -107,9 +104,6 @@ function AgentConfigPage() {
         children: (
           <div className={styles.tabContent}>
             <ReactAgentCard
-              language={language}
-              savingLang={savingLang}
-              onLanguageChange={handleLanguageChange}
               timezone={timezone}
               savingTimezone={savingTimezone}
               onTimezoneChange={handleTimezoneChange}
@@ -197,11 +191,8 @@ function AgentConfigPage() {
     return baseTabs;
   }, [
     t,
-    language,
-    savingLang,
     timezone,
     savingTimezone,
-    handleLanguageChange,
     handleTimezoneChange,
     llmRetryEnabled,
     maxInputLength,

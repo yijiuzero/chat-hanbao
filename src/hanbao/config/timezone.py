@@ -105,7 +105,10 @@ def _detect_system_timezone_inner() -> str:
                 "Probe returned invalid timezone %r, skipping",
                 raw,
             )
-    return "UTC"
+    # [hanbao modification] Default to Asia/Shanghai (China Standard Time)
+    # for hanbao's target audience instead of UTC when no system timezone
+    # can be detected (common in containers / Feiniu NAS).
+    return "Asia/Shanghai"
 
 
 def _probe_python() -> Optional[str]:

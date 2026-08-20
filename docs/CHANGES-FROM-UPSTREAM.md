@@ -718,6 +718,19 @@ _背景：核查确认 `PROFILE.md` + `MEMORY.md` + `AGENTS.md` + `SOUL.md` + Re
 
 ---
 
+### 运行配置界面精简·reactAgent TAB（2026-08-20）
+
+_背景：用户要求「运行配置」6 个 TAB 中，reactAgent 只保留用户时区、其余按默认不展示；其余 5 个 TAB 后续单独确认。_
+
+- [修改] `console/src/pages/Agent/Config/components/ReactAgentCard.tsx` — 仅保留用户时区 Form.Item；删除语言选择器、shell 命令超时/可执行文件、自动生成会话标题开关、context/memory backend 选择器及 backendRestart 警告；清理无用 import（`Input`/`InputNumber`/`Switch`/`Alert`/`LANGUAGE_OPTIONS`/backend 选项常量）与 props（仅留 `timezone`/`savingTimezone`/`onTimezoneChange`）。顶部加 `[hanbao modification]` 注释。
+- [修改] `console/src/pages/Agent/Config/index.tsx` — 移除 `ReactAgentCard` 的 `language`/`savingLang`/`onLanguageChange` 传参，以及 `useAgentConfig` 解构与 `dynamicTabs` 依赖项中的对应项。
+- [修改] `console/src/pages/Agent/Config/useAgentConfig.tsx` — 移除已无 UI 的 `shell_command_timeout`/`shell_command_executable` 的 `setFieldsValue`；其余字段（loop/llm_*/backend/嵌套 config）由 `handleSave` 的 `...original` 兜底，保存时不丢失默认值。语言获取/切换逻辑保留未删（仅不再在 UI 暴露），避免破坏既有测试。
+- [修改] `src/hanbao/config/timezone.py` — `detect_system_timezone()` 在无系统时区可检测时回落值由 `UTC` 改为 `Asia/Shanghai`（[hanbao modification]），新装 hanbao 默认中国标准时间；已显式设置时区的 config.json 不受影响。
+- **未改动**：其余 5 个 TAB（agentLoop/llmRetry/llmRateLimiter/lightContext/remeLightMemory）本次未动，待用户后续指示；`LICENSE`/`NOTICE`/`license-compliance.md` 红线文件未触碰。
+- **下一步**：改完即 commit、不构建；待用户「测一下」一并重建镜像验收。
+
+---
+
 ## 未修改声明
 
 除本文件记录的改动外，hanbao 中其余代码均来自上游 QwenPaw v2.0.1，其著作权归 The QwenPaw Authors 所有，按 Apache License 2.0 条款授权使用。

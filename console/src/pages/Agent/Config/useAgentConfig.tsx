@@ -46,8 +46,6 @@ export function useAgentConfig() {
           ? config.memory_manager_backend
           : "remelight";
       form.setFieldsValue({
-        shell_command_timeout: config.shell_command_timeout ?? 60.0,
-        shell_command_executable: config.shell_command_executable ?? "",
         loop: {
           ...config.loop,
           iteration: {

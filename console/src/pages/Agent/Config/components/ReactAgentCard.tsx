@@ -1,38 +1,19 @@
-import {
-  Form,
-  Input,
-  InputNumber,
-  Select,
-  Card,
-  Alert,
-  Switch,
-} from "@agentscope-ai/design";
+import { Form, Select, Card } from "@agentscope-ai/design";
 import { useTranslation } from "react-i18next";
 import { useTimezoneOptions } from "../../../../hooks/useTimezoneOptions";
-import {
-  CONTEXT_MANAGER_BACKEND_OPTIONS,
-  MEMORY_MANAGER_BACKEND_OPTIONS,
-} from "../../../../constants/backendMappings";
 import styles from "../index.module.less";
 
-const LANGUAGE_OPTIONS = [
-  { value: "zh", label: "中文" },
-  { value: "en", label: "English" },
-];
-
+// [hanbao modification] Simplified reactAgent tab: only the user timezone is
+// exposed. All other fields keep their existing defaults and are no longer
+// shown in the UI (per "运行配置" simplification request). Preserved on save
+// via the `...original` fallback in useAgentConfig.handleSave.
 interface ReactAgentCardProps {
-  language: string;
-  savingLang: boolean;
-  onLanguageChange: (value: string) => void;
   timezone: string;
   savingTimezone: boolean;
   onTimezoneChange: (value: string) => void;
 }
 
 export function ReactAgentCard({
-  language,
-  savingLang,
-  onLanguageChange,
   timezone,
   savingTimezone,
   onTimezoneChange,
@@ -41,144 +22,26 @@ export function ReactAgentCard({
 
   return (
     <Card className={styles.formCard} title={t("agentConfig.reactAgentTitle")}>
-      <div className={styles.reactAgentRow}>
-        <Form.Item
-          label={t("agentConfig.language")}
-          tooltip={t("agentConfig.languageTooltip")}
-          className={styles.reactAgentField}
-        >
-          <Select
-            value={language}
-            options={LANGUAGE_OPTIONS}
-            onChange={onLanguageChange}
-            loading={savingLang}
-            disabled={savingLang}
-            style={{ width: "100%" }}
-          />
-        </Form.Item>
-
-        <Form.Item
-          label={t("agentConfig.timezone")}
-          tooltip={t("agentConfig.timezoneTooltip")}
-          className={styles.reactAgentField}
-        >
-          <Select
-            showSearch
-            value={timezone}
-            placeholder={t("agentConfig.selectTimezone")}
-            filterOption={(input, option) =>
-              (option?.label?.toString() || "")
-                .toLowerCase()
-                .includes(input.toLowerCase())
-            }
-            options={useTimezoneOptions()}
-            onChange={onTimezoneChange}
-            loading={savingTimezone}
-            disabled={savingTimezone}
-            style={{ width: "100%" }}
-          />
-        </Form.Item>
-
-        <Form.Item
-          label={t("agentConfig.shellCommandTimeout")}
-          name="shell_command_timeout"
-          rules={[
-            {
-              required: true,
-              message: t("agentConfig.shellCommandTimeoutRequired"),
-            },
-            {
-              type: "number",
-              min: 1,
-              message: t("agentConfig.shellCommandTimeoutMin"),
-            },
-          ]}
-          tooltip={t("agentConfig.shellCommandTimeoutTooltip")}
-          className={styles.reactAgentField}
-        >
-          <InputNumber
-            style={{ width: "100%" }}
-            min={1}
-            step={10}
-            placeholder={t("agentConfig.shellCommandTimeoutPlaceholder")}
-          />
-        </Form.Item>
-
-        <Form.Item
-          label={t("agentConfig.shellCommandExecutable")}
-          name="shell_command_executable"
-          tooltip={t("agentConfig.shellCommandExecutableTooltip")}
-          className={styles.reactAgentField}
-        >
-          <Input
-            style={{ width: "100%" }}
-            placeholder={t("agentConfig.shellCommandExecutablePlaceholder")}
-            allowClear
-          />
-        </Form.Item>
-      </div>
-
       <Form.Item
-        label={t("agentConfig.autoGenerateSessionTitle")}
-        name={["auto_title_config", "enabled"]}
-        valuePropName="checked"
-        tooltip={t("agentConfig.autoGenerateSessionTitleTooltip")}
+        label={t("agentConfig.timezone")}
+        tooltip={t("agentConfig.timezoneTooltip")}
       >
-        <Switch />
+        <Select
+          showSearch
+          value={timezone}
+          placeholder={t("agentConfig.selectTimezone")}
+          filterOption={(input, option) =>
+            (option?.label?.toString() || "")
+              .toLowerCase()
+              .includes(input.toLowerCase())
+          }
+          options={useTimezoneOptions()}
+          onChange={onTimezoneChange}
+          loading={savingTimezone}
+          disabled={savingTimezone}
+          style={{ width: "100%" }}
+        />
       </Form.Item>
-
-      <div className={styles.reactAgentRow}>
-        <Form.Item
-          label={t("agentConfig.contextManagerBackend")}
-          name="context_manager_backend"
-          tooltip={t("agentConfig.contextManagerBackendTooltip")}
-          className={styles.reactAgentField}
-        >
-          <Select
-            options={CONTEXT_MANAGER_BACKEND_OPTIONS}
-            style={{ width: "100%" }}
-          />
-        </Form.Item>
-
-        <Form.Item
-          label={t("agentConfig.contextStrategy")}
-          name={["light_context_config", "strategy"]}
-          tooltip={t("agentConfig.contextStrategyTooltip")}
-          className={styles.reactAgentField}
-        >
-          <Select
-            options={[
-              {
-                value: "scroll",
-                label: t("agentConfig.contextStrategyScroll"),
-              },
-              {
-                value: "native",
-                label: t("agentConfig.contextStrategyNative"),
-              },
-            ]}
-            style={{ width: "100%" }}
-          />
-        </Form.Item>
-
-        <Form.Item
-          label={t("agentConfig.memoryManagerBackend")}
-          name="memory_manager_backend"
-          tooltip={t("agentConfig.memoryManagerBackendTooltip")}
-          className={styles.reactAgentField}
-        >
-          <Select
-            options={MEMORY_MANAGER_BACKEND_OPTIONS}
-            style={{ width: "100%" }}
-          />
-        </Form.Item>
-      </div>
-      <Alert
-        type="warning"
-        showIcon
-        message={t("agentConfig.backendRestartWarning")}
-        style={{ marginBottom: 16 }}
-      />
     </Card>
   );
 }
