@@ -731,6 +731,17 @@ _背景：用户要求「运行配置」6 个 TAB 中，reactAgent 只保留用�
 
 ---
 
+### 运行配置界面精简·agentLoop TAB（2026-08-21）
+
+_背景：用户确认 agentLoop TAB（循环工程：防呆/迭代上限/烂尾检查 + Goal/Mission/Custom 高级编排）对家庭非技术用户既无必要、也该避免误操作，要求整页隐藏。_
+
+- [修改] `console/src/pages/Agent/Config/index.tsx` — 从 `baseTabs` 移除 `key: "agentLoop"` 整个 tab 段；移除 `import AgentLoopCard`。TAB 不再展示；`AgentLoopCard.tsx` 文件、`components/index.ts` 中的导出、相关 i18n 文案、既有测试文件均**保留未删**（死代码无害，符合「只隐藏不删文件」保守策略）。
+- [未改动] 后端 `LoopConfig` schema（`config.py:1288`）各子项 `default_factory` 默认值齐全；前端 `handleSave` 用 `...original` 兜底，隐藏字段保存时默认值不丢——循环行为（含 Default 模式防呆/迭代上限/烂尾检查等安全护栏）保持出厂默认，家庭用户无法误操作。
+- **未改动**：`LICENSE`/`NOTICE`/`license-compliance.md` 红线文件未触碰；reactAgent/llmRetry/llmRateLimiter/lightContext/remeLightMemory 各 TAB 不受影响。
+- **下一步**：改完即 commit、不构建；待用户「测一下」一并重建镜像验收。
+
+---
+
 ## 未修改声明
 
 除本文件记录的改动外，hanbao 中其余代码均来自上游 QwenPaw v2.0.1，其著作权归 The QwenPaw Authors 所有，按 Apache License 2.0 条款授权使用。
