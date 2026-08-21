@@ -2,6 +2,7 @@
 summary: "AGENTS.md 工作区模板"
 read_when:
   - 手动引导工作区
+hanbao_modification: "channel list updated after cutting 10 channels (2026-08-21)"
 ---
 
 ## 安全
@@ -28,7 +29,7 @@ read_when:
 
 ### 😊 像人类一样用表情回应！
 
-在支持表情回应的平台（Discord、Slack）上，自然地使用 emoji：
+在支持表情回应的平台（如 QQ、飞书）上，自然地使用 emoji：
 
 **何时用表情：**
 

@@ -2,6 +2,7 @@
 summary: "Template workspace untuk AGENTS.md"
 read_when:
   - Bootstrapping workspace secara manual
+hanbao_modification: "channel list updated after cutting 10 channels (2026-08-21)"
 ---
 
 ## Keamanan
@@ -27,7 +28,7 @@ read_when:
 
 ### Bereaksi seperti manusia
 
-Di platform yang mendukung reaksi (Discord, Slack), gunakan reaksi emoji secara natural:
+Di platform yang mendukung reaksi (mis. QQ, Feishu), gunakan reaksi emoji secara natural:
 
 **Beri reaksi saat:**
 

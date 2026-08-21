@@ -821,6 +821,24 @@ _背景：hanbao 定位为飞牛 NAS 家庭单用户本地聊天（微信+控制
 
 ---
 
+### 频道砍除跟进·pyproject 依赖清理 + md 文件频道残留（2026-08-21）
+
+_背景：上一轮砍 10 个频道后复查发现两处遗漏——① `pyproject.toml` 仍挂着被砍频道的 SDK 依赖（不改镜像体积不降、且 python-telegram-bot 的 LGPL 直接依赖不消除）；② 运行时 md 模板（AGENTS.md 四语言、channel_message 技能）仍提及被砍频道。本轮一并清理。_
+
+- [修改] `pyproject.toml` —
+  - 移除 6 个被砍频道 SDK：`discord-py`/`python-telegram-bot`/`slack-bolt`/`paho-mqtt`/`matrix-nio`/`twilio`（删除前确认 `src/` 与 `plugins/`/`e2e/` 零 import）。
+  - 移除 `sip` / `sip-livekit` 两个 optional extras（`pyVoIP`/`dashscope`/`dashscope-realtime`/`audioop-lts`/`livekit`/`livekit-api`）；`full` extra 保留（仍含 local+whisper）。已核对 `scripts/pack` 仅引用 `hanbao[full]`，无断裂。
+  - package-data 移除 `app/channels/yuanbao/proto/**`（yuanbao 目录已删）。
+  - description 更新：渠道列表 "DingTalk, Feishu, QQ, Discord, iMessage" → "DingTalk, Feishu, QQ, WeChat, iMessage"。
+- [修改] `src/hanbao/agents/md_files/{zh,en,id,ru}/AGENTS.md` — 表情回应示例 "Discord, Slack" → "QQ、飞书"（四语言），frontmatter 补 `hanbao_modification` 标记。
+- [修改] `src/hanbao/agents/skills/channel_message-{zh,en}/SKILL.md` — `--channel` 参数示例更新为保留频道（console/dingtalk/feishu/qq/wechat/...）。
+- [修改] `docs/known-issues.md` — 「渠道 SDK 死重」段更新为 08-21 状态（10 频道 SDK 已移除、保留渠道 SDK 清单）；I-021 状态追加「python-telegram-bot 已随 Telegram 频道砍除从依赖移除，LGPL 直接依赖清零」。
+- [未改动] `NOTICE`/`LICENSE`/`license-compliance.md` 红线文件：NOTICE 中既有 LGPL 声明**保留不删**（多余声明无害、合规更保守）。
+- [验证] 删除前 grep 确认 `src/` 对 discord/telegram/slack_bolt/twilio/paho/matrix_nio/livekit/pyVoIP/dashscope 零 import；`tomllib` 解析 `pyproject.toml` 通过；`src/hanbao/agents/` 下 md 文件被砍频道词零残留。
+- **下一步**：改完即 commit、不构建；本次依赖瘦身叠加频道砍除，镜像重建后体积预期明显下降（-100MB+ 量级）。
+
+---
+
 ## 未修改声明
 
 除本文件记录的改动外，hanbao 中其余代码均来自上游 QwenPaw v2.0.1，其著作权归 The QwenPaw Authors 所有，按 Apache License 2.0 条款授权使用。

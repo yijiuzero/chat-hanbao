@@ -228,7 +228,7 @@ hanbao channels list --agent-id <your_agent>
 
 **Required parameters** (5):
 - `--agent-id`: sender agent ID
-- `--channel`: target channel (console/dingtalk/feishu/discord/imessage/qq/...)
+- `--channel`: target channel (console/dingtalk/feishu/qq/wechat/...)
 - `--target-user`: target user ID (obtained from `hanbao chats list`)
 - `--target-session`: target session ID (obtained from `hanbao chats list`)
 - `--text`: message content

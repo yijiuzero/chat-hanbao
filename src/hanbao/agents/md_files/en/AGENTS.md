@@ -2,6 +2,7 @@
 summary: "Workspace template for AGENTS.md"
 read_when:
   - Bootstrapping a workspace manually
+hanbao_modification: "channel list updated after cutting 10 channels (2026-08-21)"
 ---
 
 ## Safety
@@ -28,7 +29,7 @@ read_when:
 
 ### 😊 React Like a Human!
 
-On platforms that support reactions (Discord, Slack), use emoji reactions naturally:
+On platforms that support reactions (e.g. QQ, Feishu), use emoji reactions naturally:
 
 **React when:**
 

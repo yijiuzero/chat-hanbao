@@ -1,14 +1,13 @@
 [project]
 name = "hanbao"
 dynamic = ["version"]
-description = "hanbao is a **personal assistant** that runs in your own environment. It talks to you over multiple channels (DingTalk, Feishu, QQ, Discord, iMessage, etc.) and runs scheduled tasks according to your configuration. **What it can do is driven by Skills — the possibilities are open-ended.** Built-in skills include cron, PDF/Office handling, news digest, file reading, and more; you can add custom skills. All data and tasks run on your machine; no third-party hosting."
+description = "hanbao is a **personal assistant** that runs in your own environment. It talks to you over multiple channels (DingTalk, Feishu, QQ, WeChat, iMessage, etc.) and runs scheduled tasks according to your configuration. **What it can do is driven by Skills — the possibilities are open-ended.** Built-in skills include cron, PDF/Office handling, news digest, file reading, and more; you can add custom skills. All data and tasks run on your machine; no third-party hosting."
 readme = "README.md"
 requires-python = ">=3.11,<3.14"
 dependencies = [
     "agentscope==2.0.4.post1",
     "httpx>=0.27.0",
     "packaging>=24.0",
-    "discord-py>=2.3",
     "dingtalk-stream>=0.24.3",
     "alibabacloud-dingtalk>=2.2.42",
     "alibabacloud-tea-openapi>=0.4.4",
@@ -26,13 +25,8 @@ dependencies = [
     "python-socks>=2.5.3",
     "onnxruntime<1.24",
     "lark-oapi>=1.5.3",
-    "python-telegram-bot>=20.0",
-    "slack-bolt>=1.22.0",
-    "twilio>=9.10.2",
     "aiofiles>=24.1.0",
-    "paho-mqtt>=2.0.0",
     "wecom-aibot-python-sdk==1.0.2",
-    "matrix-nio>=0.25.0",
     "shortuuid>=1.0.0",
     "google-genai>=1.67.0",
     "tzdata>=2024.1",
@@ -90,7 +84,6 @@ include-package-data = true
     "security/skill_scanner/rules/**",
     "security/skill_scanner/data/**",
     "docs/*.md",
-    "app/channels/yuanbao/proto/**",
 ]
 
 [build-system]
@@ -127,17 +120,6 @@ whisper = [
 ]
 full = [
     "hanbao[local,whisper]",
-]
-sip = [
-    "pyVoIP>=1.6.0",
-    "dashscope>=1.0.0",
-    "dashscope-realtime>=0.1.0",
-    "audioop-lts; python_version >= '3.13'",
-]
-sip-livekit = [
-    "hanbao[sip]",
-    "livekit>=1.0.0",
-    "livekit-api>=0.6.0",
 ]
 
 [tool.pytest.ini_options]

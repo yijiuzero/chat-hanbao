@@ -29,7 +29,7 @@
 | [I-018](#i-018) | git checkout 导致 gitignored 文件从磁盘消失 | 🔥 高 | 阶段 3 删减定制 | 🟢 已解决（gitignore 硬化） |
 | [I-019](#i-019) | 文档处理能力降级：Anthropic 技能侵权，只能读不能改/创建 | 🔥 高 | 上架前必须解决 | 🟢 已解决（markitdown 已接 file_io；改/创建按计划放弃） |
 | [I-020](#i-020) | html2text 为 GPL-3.0 传染性依赖，违反 R5 红线 | 🔥 高 | 上架前必须解决 | 🟢 已解决（换 markdownify MIT） |
-| [I-021](#i-021) | 依赖审计：4 个 LGPL 弱传染依赖（telegram-bot/rope/pytoolconfig/docstring-to-markdown） | 🟠 中 | 上架前备案 | 🟢 已备案（NOTICE 已补 + rope/pytoolconfig 已消除） |
+| [I-021](#i-021) | 依赖审计：4 个 LGPL 弱传染依赖（telegram-bot/rope/pytoolconfig/docstring-to-markdown） | 🟠 中 | 上架前备案 | 🟢 已备案 + 2026-08-21 telegram-bot 随 Telegram 频道砍除从依赖移除（LGPL 直接依赖清零） |
 | [I-022](#i-022) | web_search 用 Tavily keyless（免费限速），上架后重度使用会撞限速 | 🟡 低 | 上架后可优化 | 🔴 待处理 |
 | [I-023](#i-023) | patch 累积 diff 的提交依赖（原「基线偏离」为误判，本地基线=官方 v2.0.1） | 🟡 低 | 移植靠后提交前先识别前置依赖 | 🟢 已澄清 |
 | [I-024](#i-024) | Monaco 编辑器残留（Coding Mode 砍不干净） | 🟢 极低 | 阶段 3 收尾 | 🟢 已解决（依赖移除+占位符） |
@@ -239,10 +239,9 @@ docker run --rm hanbao:0.0.1-slim sh -c "which chromium xvfb-run startxfce4 2>/d
 > - **结果**：镜像 **1.93GB → 1.78GB**（-150MB，含连带依赖），venv 746M→629M；干净容器验收全绿（认证默认开 `enabled:true`、18 渠道注册完整、markitdown CLI 实测可用）
 > - 渠道 SDK（钉钉/飞书/短信等）**按用户拍板保留**（保持多渠道能力）
 
-**渠道 SDK 死重（已关闭渠道，hanbao 仅用微信+OneBot）**：
-- `lark_oapi` 50M（飞书）+ `alibabacloud_dingtalk` 42M + `dingtalk_stream`/`tea-openapi`/`credentials`/`tea-util`（钉钉全家桶）→ 实测 `get_channel_registry()`（`channels/registry.py`）对每个内置渠道**独立 `importlib.import_module()` + try/except**，除 `console`（必加载）外失败仅 `continue` 静默跳过 → **SDK 缺失不会导致启动崩溃**，渠道不可用时自动缺席。且 `channels/__init__.py` 已对 `ChannelManager` 惰性加载（注释明示"avoid pulling feishu/lark_oapi on CLI"）。⚠️ 移除后该渠道在镜像内不可用，如需启用须重装依赖并重建镜像——功能取舍，须用户拍板
-- `twilio` 25M（短信渠道，hanbao 不需要）
-- `discord-py`/`python-telegram-bot`/`slack-bolt`/`paho-mqtt`/`matrix-nio`/`wecom-aibot-python-sdk`（各 ~1-5M，已关闭渠道；registry 容错同上）
+**渠道 SDK（2026-08-21 更新：10 个频道已砍，其 SDK 已从 `pyproject.toml` 移除）**：
+- ✅ 已移除：`discord-py` / `python-telegram-bot` / `slack-bolt` / `paho-mqtt` / `matrix-nio` / `twilio`，以及 SIP extras（`pyVoIP` / `dashscope` / `dashscope-realtime` / `livekit`）——对应 10 个被砍频道（Discord/Telegram/Slack/MQTT/Matrix/语音/OneBot/元宝/SIP/Mattermost），删除前已确认 src 零 import；镜像重建后体积进一步下降（python-telegram-bot 的 LGPL 直接依赖也随之消除，见 I-021）
+- 保留（家庭场景渠道）：`lark_oapi`（飞书）+ 钉钉全家桶 + `wecom-aibot-python-sdk`（企业微信）+ `dingtalk-stream`——按用户拍板保留多渠道能力；registry 独立 import + try/except 容错，SDK 缺失不崩
 
 **本地模型残留（本地 LLM 已砍，纯云 API；src 零 import，纯依赖残留）**：
 - `transformers` 54M + `modelscope` 33M + `huggingface_hub` → pyproject 主依赖声明，但 `src` 无任何直接/动态 import（`market/providers/modelscope.py` 仅 HTTP provider 名字撞包名，非包引用）；`google_genai` 依赖 transformers 仅 `extra == "local-tokenizer"`（未启用）
@@ -747,6 +746,7 @@ GPL 是 copyleft 传染性许可，与 Apache-2.0 闭源分发目标冲突，违
 - [x] `NOTICE` 补 LGPL 声明（4 个 LGPL 依赖 + license 文本链接）—— ✅ 2026-08-13
 - [x] 删编码工具 + `python-lsp-server`/`ast-grep-cli` 依赖 → rope/pytoolconfig 两个 LGPL 传递依赖随之消除 —— ✅ 2026-08-13
 - ✅ **备案完成（2026-08-13）**：`NOTICE` 含全部 LGPL 依赖 license 文本链接；仅剩 `python-telegram-bot`（直接依赖，保留并声明）+ `docstring-to-markdown`（pylint 传递，保留）。上架合规材料齐备，I-021 关闭。
+- ✅ **2026-08-21 跟进**：Telegram 频道已砍除，`python-telegram-bot` 已从 `pyproject.toml` 依赖移除（src 零 import 确认）→ **LGPL 直接依赖清零**，仅剩 `docstring-to-markdown`（pylint 传递，弱传染）。NOTICE 中既有 LGPL 声明保留不删（多余声明无害，合规更保守）。
 
 ---
 
