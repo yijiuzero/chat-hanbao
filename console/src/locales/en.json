@@ -122,7 +122,6 @@
     "newVersion": "New version available: v{{version}}, click to upgrade",
     "updateModal": {
       "title": "New version available: v{{version}}",
-      "viewReleases": "View Releases",
       "installDesktopUpdate": "Update Now",
       "desktopInstallHint": "hanbao Desktop {{version}} is ready to install. The app will restart after the update.",
       "checking": "Checking for updates…",

@@ -864,6 +864,15 @@ _背景：上一轮清完频道抽屉的 QwenPaw 文档按钮后，用户要求�
 - [未改动] `LICENSE`/`NOTICE`/`license-compliance.md` 红线文件未触碰。
 - [验证] 全仓 grep `qwenpaw.agentscope.io` 在应用代码中仅剩 `openExternalLink.test.ts` 测试夹具；`getReleaseNotesUrl`/`getDocsUrl`/`getFaqUrl`/`getFeatureDemosUrl` 零引用。未做构建/镜像验证（纪律：改完即 commit，待用户「测一下」）。
 
+### 死代码清理·viewReleases locale key（2026-08-21）
+
+_背景：上一轮移除更新弹窗 web 端 "view releases" 按钮（走 `getReleaseNotesUrl`）后，其对应 locale key `sidebar.updateModal.viewReleases` 成为死 key。本次清理，严守上游 Apache-2.0 约定。_
+
+- [删除] `console/src/locales/zh.json` / `en.json` — 移除 `sidebar.updateModal.viewReleases` 死 key（按钮已删，全仓 `t(...)` 零引用）。两文件均经 `JSON.parse` 校验合法。
+- [保留·纠正] `.updateViewReleasesBtn` CSS 类（Header 的 `index.module.less`）**未删**：复查发现 desktop 端 "install" 按钮（onDesktop 分支）仍使用该类，删之会导致桌面安装按钮丢样式——此前误判为死代码，本次纠正。
+- [未改动·合规] `LICENSE`/`NOTICE`/`license-compliance.md`/`CHANGES-FROM-UPSTREAM.md` 红线文件未触碰（R2 严禁 blanket 替换波及）。JSON 无法嵌注释，修改标注由本文件 + `git diff` 承担，符合 license-compliance.md §6 简化策略（§4(b) "prominent notices" 未强制逐文件头部）。`PYPI_URL`（`pypi.org/pypi/qwenpaw/json`）仍处禁用态且有 `constants.test.ts` 对应断言，暂保留不碰。
+- [验证] 全仓 grep `viewReleases` 零残留；两 locale 文件 `JSON.parse` 通过。未做构建/镜像验证（纪律：改完即 commit，待用户「测一下」）。
+
 ---
 
 ## 未修改声明
