@@ -851,6 +851,19 @@ _背景：上一轮砍 10 频道后，ChannelDrawer 抽屉标题里仍保留"Doc
 - [未改动] `LICENSE`/`NOTICE`/`license-compliance.md` 红线文件未触碰。
 - [验证] 全仓 grep `CHANNEL_DOC_`/`TWILIO_CONSOLE_URL`/`currentLang`/`openExternalLink`/`LinkOutlined`/`dingtalkDocBtn` 在 Channels 目录下零残留；`Button` 仍在 footer 使用。未做构建/镜像验证（纪律：改完即 commit，待用户「测一下」）。
 
+### 顶栏/侧边栏上游文档链接清除（2026-08-21）
+
+_背景：上一轮清完频道抽屉的 QwenPaw 文档按钮后，用户要求把顶栏 FAQ 与更新弹窗里仍残留的 `qwenpaw.agentscope.io` 链接一并清掉。_
+
+- [删除] `console/src/layouts/constants.ts` — 移除 4 个指向 `qwenpaw.agentscope.io` 的 URL 函数：`getDocsUrl`（`/docs/intro`）、`getFaqUrl`（`/docs/faq`）、`getReleaseNotesUrl`（`/release-notes`）、`getFeatureDemosUrl`（`/docs/functiondemo`）。`getWebsiteLang` 通用 helper 保留。
+- [删除] `console/src/layouts/constants.test.ts` — 移除上述 3 个函数（getDocsUrl/getFaqUrl/getReleaseNotesUrl）的测试用例与 import；顶部注释同步更新。
+- [修改] `console/src/layouts/Header.tsx` —
+  - `handleOpenUpdateModal` 里拉取上游 `qwenpaw.agentscope.io/docs/faq.{lang}.md` 提取"如何更新"的逻辑，改为直接使用本地 `UPDATE_MD`（原本就是兜底内容，功能不变、去掉上游网络请求）。加 `[hanbao modification]` 注释。
+  - 更新弹窗 web 端的 "view releases" 按钮（调用 `getReleaseNotesUrl`）整体移除（仓库此前已将 `PYPI_URL` 标 `Disabled — no release channel yet`，方向一致）。移除 `getReleaseNotesUrl` import。
+- [保留·说明] `getWebsiteLang` 仍被自身测试覆盖；`styles.updateViewReleasesBtn` CSS 类与 `t("sidebar.updateModal.viewReleases")` locale key 变为未引用（非编译错误，死代码未清理）。`utils/openExternalLink.test.ts` 中 `qwenpaw.agentscope.io` 是 URL 净化器的**测试夹具**（非应用链接），未改动。
+- [未改动] `LICENSE`/`NOTICE`/`license-compliance.md` 红线文件未触碰。
+- [验证] 全仓 grep `qwenpaw.agentscope.io` 在应用代码中仅剩 `openExternalLink.test.ts` 测试夹具；`getReleaseNotesUrl`/`getDocsUrl`/`getFaqUrl`/`getFeatureDemosUrl` 零引用。未做构建/镜像验证（纪律：改完即 commit，待用户「测一下」）。
+
 ---
 
 ## 未修改声明

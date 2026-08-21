@@ -2,10 +2,9 @@
  * Tests for layouts/constants.
  *
  * Covers:
- * - URL constants
+ * - URL constants (PYPI_URL, GITHUB_URL)
  * - ONE_HOUR_MS value
  * - getWebsiteLang()
- * - getDocsUrl(), getFaqUrl(), getReleaseNotesUrl()
  * - isStableVersion()
  * - compareVersions()
  * - UPDATE_MD structure
@@ -16,9 +15,6 @@ import {
   GITHUB_URL,
   ONE_HOUR_MS,
   getWebsiteLang,
-  getDocsUrl,
-  getFaqUrl,
-  getReleaseNotesUrl,
   isStableVersion,
   compareVersions,
   UPDATE_MD,
@@ -52,30 +48,6 @@ describe("getWebsiteLang", () => {
     ["ru", "en"],
   ])("returns %s for input %s", (input, expected) => {
     expect(getWebsiteLang(input)).toBe(expected);
-  });
-});
-
-describe("getDocsUrl", () => {
-  it("includes lang param", () => {
-    const url = getDocsUrl("zh");
-    expect(url).toContain("lang=zh");
-    expect(url).toContain("/docs/intro");
-  });
-});
-
-describe("getFaqUrl", () => {
-  it("includes lang param", () => {
-    const url = getFaqUrl("en");
-    expect(url).toContain("lang=en");
-    expect(url).toContain("/docs/faq");
-  });
-});
-
-describe("getReleaseNotesUrl", () => {
-  it("includes lang param", () => {
-    const url = getReleaseNotesUrl("zh");
-    expect(url).toContain("lang=zh");
-    expect(url).toContain("/release-notes");
   });
 });
 

@@ -13,20 +13,6 @@ export const ONE_HOUR_MS = 60 * 60 * 1000;
 export const getWebsiteLang = (lang: string): string =>
   lang.startsWith("zh") ? "zh" : "en";
 
-export const getDocsUrl = (lang: string): string =>
-  `https://qwenpaw.agentscope.io/docs/intro?lang=${getWebsiteLang(lang)}`;
-
-export const getFaqUrl = (lang: string): string =>
-  `https://qwenpaw.agentscope.io/docs/faq?lang=${getWebsiteLang(lang)}`;
-
-export const getReleaseNotesUrl = (lang: string): string =>
-  `https://qwenpaw.agentscope.io/release-notes?lang=${getWebsiteLang(lang)}`;
-
-export const getFeatureDemosUrl = (lang: string): string =>
-  `https://qwenpaw.agentscope.io/docs/functiondemo?lang=${getWebsiteLang(
-    lang,
-  )}`;
-
 // ── Version helpers ────────────────────────────────────────────────────────
 
 // Filter out pre-release versions; post-releases are treated as stable.

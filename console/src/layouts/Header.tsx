@@ -20,7 +20,6 @@ import { openExternalLink } from "../utils/openExternalLink";
 import { ExternalMarkdownLink } from "../components/Markdown/externalLinkComponents";
 import {
   GITHUB_URL,
-  getReleaseNotesUrl,
   // [hanbao modification] Disabled — no release channel yet.
   // PYPI_URL,
   // ONE_HOUR_MS,
@@ -174,23 +173,9 @@ export default function Header() {
       return;
     }
 
-    const faqLang = lang === "zh" ? "zh" : "en";
-    const url = `https://qwenpaw.agentscope.io/docs/faq.${faqLang}.md`;
-    fetch(url, { cache: "no-cache" })
-      .then((res) => (res.ok ? res.text() : Promise.reject()))
-      .then((text) => {
-        const zhPattern = /###\s*Hanbao如何更新[\s\S]*?(?=\n###|$)/;
-        const enPattern = /###\s*How to update Hanbao[\s\S]*?(?=\n###|$)/;
-        const match = text.match(faqLang === "zh" ? zhPattern : enPattern);
-        setUpdateMarkdown(
-          match && lang !== "ru"
-            ? match[0].trim()
-            : UPDATE_MD[lang] ?? UPDATE_MD.en,
-        );
-      })
-      .catch(() => {
-        setUpdateMarkdown(UPDATE_MD[lang] ?? UPDATE_MD.en);
-      });
+    // [hanbao modification] use local UPDATE_MD instead of fetching the
+    // upstream QwenPaw FAQ markdown for update instructions.
+    setUpdateMarkdown(UPDATE_MD[lang] ?? UPDATE_MD.en);
   };
 
   const handleStartInstall = () => {
@@ -385,16 +370,7 @@ export default function Header() {
             >
               {t("sidebar.updateModal.installDesktopUpdate")}
             </Button>
-          ) : (
-            <Button
-              key="releases"
-              type="primary"
-              className={styles.updateViewReleasesBtn}
-              onClick={() => handleNavClick(getReleaseNotesUrl(i18n.language))}
-            >
-              {t("sidebar.updateModal.viewReleases")}
-            </Button>
-          ),
+          ) : null,
         ].filter(Boolean)}
         width={960}
         className={styles.updateModal}
