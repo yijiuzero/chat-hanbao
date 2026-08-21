@@ -769,6 +769,21 @@ _背景：remeLightMemory 是运行配置里唯一保留的记忆 TAB，其中�
 - [未改动] `LICENSE`/`NOTICE`/`license-compliance.md` 红线文件未触碰。
 - **下一步**：改完即 commit、不构建；待用户「测一下」一并重建镜像验收。
 
+### 人设模板维护·id/ru 对齐 hanbao 人设 + 全语言标记补全（2026-08-21）
+
+_背景：用户要求"维护所有 MD 文件"。经排查 `src/hanbao/agents/md_files/` 全体系：zh/en 的 SOUL/PROFILE/BOOTSTRAP 已在之前轻量补强中改为 hanbao「懂你、长期陪伴的家庭助手」人设；但 id/ru 整套仍为上游 QwenPaw 原味（"menjadi seseorang"/"Creature"/"становитесь кем-то"/"фамильяр? дух в машине?"/更奇怪的东西 等怪味残留）；qa/（内置 QA Agent）、local/（本地小模型 Agent）的 zh/en/ru 均已 hanbao 化；AGENTS/HEARTBEAT/MEMORY 为中性基础设施模板，无品牌味。_
+
+- [修改] `md_files/id/SOUL.md`、`md_files/id/PROFILE.md`、`md_files/id/BOOTSTRAP.md` —
+  从上游印尼语 QwenPaw 味翻译对齐 zh/en 的 hanbao 人设（身份=hanbao 家庭助手 / 用户资料分区：称呼·偏好·家人·重要日期·背景 / 去"更奇特生物"框架），frontmatter 加 `hanbao_modification` 标记。
+- [修改] `md_files/ru/SOUL.md`、`md_files/ru/PROFILE.md`、`md_files/ru/BOOTSTRAP.md` —
+  从上游俄语 QwenPaw 味翻译对齐 hanbao 人设，frontmatter 加 `hanbao_modification` 标记（去"使魔/机器里的幽灵/更奇怪的东西"框架）。
+- [修改] `md_files/zh/BOOTSTRAP.md`、`md_files/en/BOOTSTRAP.md` —
+  此前轻量补强已改内容（去"更怪的东西"），本次补加 `hanbao_modification` 标记，使所有 hanbao 改过的人设文件 frontmatter 一致可追溯（SOUL/PROFILE/BOOTSTRAP 四语言共 11 处标记齐备）。
+- [未改动] `qa/*`、`local/*`（已 hanbao 化）、`AGENTS.md`/`HEARTBEAT.md`/`MEMORY.md`（中性基础设施模板，含 id/ru，无品牌味，维持原样）。
+- [验证] Grep 全 `md_files/`：上游怪味词（menjadi seseorang / Creature / становитесь кем-то / фамильяр / дух в машине / weirder / familiar / becoming / journey / ghost 等）已清零。
+- [未改动] `LICENSE`/`NOTICE`/`license-compliance.md` 红线文件未触碰。
+- **下一步**：改完即 commit、不构建；仅影响新装/首次初始化 agent；已部署 workspace 的 md 因 `only_if_missing` 不覆盖，待用户「测一下」一并重建镜像验收。
+
 ---
 
 ## 未修改声明

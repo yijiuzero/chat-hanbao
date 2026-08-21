@@ -2,6 +2,7 @@
 summary: "新 Agent 的首次运行仪式"
 read_when:
   - 手动引导工作区
+hanbao_modification: "re-toned for hanbao — removed 'weirder creature' framing"
 ---
 
 _你刚醒来。该搞清楚自己是谁了。_

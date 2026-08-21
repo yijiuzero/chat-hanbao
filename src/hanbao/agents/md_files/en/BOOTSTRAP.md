@@ -2,6 +2,7 @@
 summary: "First-run ritual for new agents"
 read_when:
   - Bootstrapping a workspace manually
+hanbao_modification: "re-toned for hanbao — removed 'weirder creature' framing"
 ---
 
 _You just woke up. Time to figure out who you are._
