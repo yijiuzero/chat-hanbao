@@ -9,7 +9,6 @@ import {
 } from "@agentscope-ai/design";
 import { useAppMessage } from "../../../../hooks/useAppMessage";
 import { Alert, ConfigProvider } from "antd";
-import { LinkOutlined } from "@ant-design/icons";
 import { useTranslation } from "react-i18next";
 import { useEffect } from "react";
 import type { FormInstance } from "antd";
@@ -18,7 +17,6 @@ import { QrcodeAuthBlock } from "./QrcodeAuthBlock";
 import type { ChannelSchema } from "../../../../api/modules/channel";
 import styles from "../index.module.less";
 import { useAgentStore } from "../../../../stores/agentStore";
-import { openExternalLink } from "../../../../utils/openExternalLink";
 
 // [hanbao modification] removed discord/telegram/mattermost/matrix/onebot/
 // mqtt/yuanbao/slack from access-control list
@@ -31,37 +29,6 @@ const CHANNELS_WITH_ACCESS_CONTROL: ChannelKey[] = [
   "qq",
   "xiaoyi",
 ];
-
-// Doc EN URLs per channel (anchors on https://qwenpaw.agentscope.io/docs/channels)
-const CHANNEL_DOC_EN_URLS: Partial<Record<ChannelKey, string>> = {
-  dingtalk:
-    "https://qwenpaw.agentscope.io/docs/channels/?lang=en#DingTalk-recommended",
-  feishu: "https://qwenpaw.agentscope.io/docs/channels/?lang=en#Feishu-Lark",
-  imessage:
-    "https://qwenpaw.agentscope.io/docs/channels/?lang=en#iMessage-macOS-only",
-  qq: "https://qwenpaw.agentscope.io/docs/channels/?lang=en#QQ",
-  wecom:
-    "https://qwenpaw.agentscope.io/docs/channels/?lang=en#WeCom-WeChat-Work",
-  wechat:
-    "https://qwenpaw.agentscope.io/docs/channels/?lang=en#WeChat-Personal-iLink",
-  xiaoyi:
-    "https://developer.huawei.com/consumer/cn/doc/service/openclaw-0000002518410344",
-};
-
-// Doc ZH URLs per channel (anchors on https://qwenpaw.agentscope.io/docs/channels)
-const CHANNEL_DOC_ZH_URLS: Partial<Record<ChannelKey, string>> = {
-  dingtalk: "https://qwenpaw.agentscope.io/docs/channels/?lang=zh#钉钉推荐",
-  feishu: "https://qwenpaw.agentscope.io/docs/channels/?lang=zh#飞书",
-  imessage:
-    "https://qwenpaw.agentscope.io/docs/channels/?lang=zh#iMessage仅-macOS",
-  qq: "https://qwenpaw.agentscope.io/docs/channels/?lang=zh#QQ",
-  wecom: "https://qwenpaw.agentscope.io/docs/channels/?lang=zh#企业微信",
-  wechat: "https://qwenpaw.agentscope.io/docs/channels/?lang=zh#微信个人iLink",
-  xiaoyi:
-    "https://developer.huawei.com/consumer/cn/doc/service/openclaw-0000002518410344",
-};
-
-const TWILIO_CONSOLE_URL = "https://console.twilio.com";
 
 const BASE_FIELDS = [
   "enabled",
@@ -143,7 +110,6 @@ export function ChannelDrawer({
   const defaultMediaDir = currentAgent?.workspace_dir
     ? `${currentAgent.workspace_dir}/media`
     : "~/.hanbao/media";
-  const currentLang = i18n.language?.startsWith("zh") ? "zh" : "en";
   const label = activeKey ? getChannelLabel(activeKey, t) : activeLabel;
   const { message } = useAppMessage();
   const matrixAuthMethod = Form.useWatch("auth_method", form);
@@ -1510,6 +1476,9 @@ export function ChannelDrawer({
   };
 
   // ── Drawer title ─────────────────────────────────────────────────────────
+  // [hanbao modification] removed the per-channel "Doc" buttons (built-in doc
+  // URLs, plugin schema.doc_url, and the voice/Twilio link) that jumped to
+  // upstream QwenPaw doc pages.
 
   const drawerTitle = (
     <div className={styles.drawerTitle}>
@@ -1518,66 +1487,6 @@ export function ChannelDrawer({
           ? `${label} ${t("channels.settings")}`
           : t("channels.channelSettings")}
       </span>
-      {activeKey &&
-        CHANNEL_DOC_EN_URLS[activeKey] &&
-        CHANNEL_DOC_ZH_URLS[activeKey] && (
-          <Button
-            type="text"
-            size="small"
-            icon={<LinkOutlined />}
-            onClick={() => {
-              const url =
-                CHANNEL_DOC_EN_URLS[activeKey]! ||
-                CHANNEL_DOC_ZH_URLS[activeKey]!;
-              const isHanbaoDoc = url.includes(
-                "hanbao.agentscope.io/docs/channels/",
-              );
-              const finalUrl =
-                isHanbaoDoc && currentLang === "zh"
-                  ? CHANNEL_DOC_ZH_URLS[activeKey]!
-                  : CHANNEL_DOC_EN_URLS[activeKey]!;
-              openExternalLink(finalUrl);
-            }}
-            className={styles.dingtalkDocBtn}
-            style={{ color: "#C0392B" }}
-          >
-            {label} Doc
-          </Button>
-        )}
-      {/* Plugin channels: doc button driven by schema.doc_url.
-          Guarded so built-in channels (present in the maps above) never
-          reach this branch, keeping their behavior byte-for-byte. */}
-      {(() => {
-        if (!activeKey) return null;
-        if (CHANNEL_DOC_EN_URLS[activeKey] || CHANNEL_DOC_ZH_URLS[activeKey])
-          return null;
-        const url = resolveLocalized(channelSchema?.doc_url, i18n.language);
-        if (!/^https?:\/\//i.test(url)) return null;
-        return (
-          <Button
-            type="text"
-            size="small"
-            icon={<LinkOutlined />}
-            onClick={() => openExternalLink(url)}
-            className={styles.dingtalkDocBtn}
-            style={{ color: "#C0392B" }}
-          >
-            {label} Doc
-          </Button>
-        );
-      })()}
-      {activeKey === "voice" && (
-        <Button
-          type="text"
-          size="small"
-          icon={<LinkOutlined />}
-          onClick={() => openExternalLink(TWILIO_CONSOLE_URL)}
-          className={styles.dingtalkDocBtn}
-          style={{ color: "#C0392B" }}
-        >
-          {t("channels.voiceSetupLink")}
-        </Button>
-      )}
     </div>
   );
 

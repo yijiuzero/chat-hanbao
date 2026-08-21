@@ -837,6 +837,20 @@ _背景：上一轮砍 10 个频道后复查发现两处遗漏——① `pyproje
 - [验证] 删除前 grep 确认 `src/` 对 discord/telegram/slack_bolt/twilio/paho/matrix_nio/livekit/pyVoIP/dashscope 零 import；`tomllib` 解析 `pyproject.toml` 通过；`src/hanbao/agents/` 下 md 文件被砍频道词零残留。
 - **下一步**：改完即 commit、不构建；本次依赖瘦身叠加频道砍除，镜像重建后体积预期明显下降（-100MB+ 量级）。
 
+### 频道设置抽屉·上游文档按钮清除（2026-08-21）
+
+_背景：上一轮砍 10 频道后，ChannelDrawer 抽屉标题里仍保留"Doc"按钮（class `dingtalkDocBtn` / `spark-button`），点击会跳转到上游 `qwenpaw.agentscope.io/docs/channels` 文档页。用户要求把这些按钮全部清除。_
+
+- [删除] `console/src/pages/Control/Channels/components/ChannelDrawer.tsx` —
+  - 抽屉标题三处外部文档按钮全部移除：① 内置频道 `CHANNEL_DOC_EN_URLS`/`CHANNEL_DOC_ZH_URLS` 驱动的"Doc"按钮；② 插件频道 `schema.doc_url` 驱动的"Doc"按钮（IIFE 分支）；③ `voice` 频道的 Twilio 控制台链接按钮。
+  - 连带移除仅被这些按钮使用的符号，避免 `noUnusedLocals` 构建报错：`CHANNEL_DOC_EN_URLS`/`CHANNEL_DOC_ZH_URLS`/`TWILIO_CONSOLE_URL` 三个常量（含指向 `qwenpaw.agentscope.io` 的 URL）、`const currentLang`、`import { LinkOutlined }`（`@ant-design/icons`）、`import { openExternalLink }`（`utils/openExternalLink`）。
+  - 抽屉标题现仅保留渠道名 + 设置文案。
+  - 加 `[hanbao modification]` 注释标注本次移除。
+- [删除] `console/src/pages/Control/Channels/index.module.less` — 移除仅被上述按钮使用的 `.dingtalkDocBtn` 样式类。
+- [保留·说明] `channelSchema`/`resolveLocalized`/`i18n`/`Button` 等在表单渲染中仍使用，保留。`t("channels.voiceSetupLink")` 等 locale key 变为未引用（非编译错误，属死文案，未清理）。
+- [未改动] `LICENSE`/`NOTICE`/`license-compliance.md` 红线文件未触碰。
+- [验证] 全仓 grep `CHANNEL_DOC_`/`TWILIO_CONSOLE_URL`/`currentLang`/`openExternalLink`/`LinkOutlined`/`dingtalkDocBtn` 在 Channels 目录下零残留；`Button` 仍在 footer 使用。未做构建/镜像验证（纪律：改完即 commit，待用户「测一下」）。
+
 ---
 
 ## 未修改声明
