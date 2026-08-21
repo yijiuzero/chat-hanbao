@@ -742,6 +742,21 @@ _背景：用户确认 agentLoop TAB（循环工程：防呆/迭代上限/烂尾
 
 ---
 
+### 运行配置界面精简·llmRetry/llmRateLimiter/lightContext TAB（2026-08-21）
+
+_背景：用户确认 llmRetry（重试退避）、llmRateLimiter（并发/QPM/429 暂停）、lightContext（上下文压缩阈值/工具结果裁剪/历史留存天数）对家庭非技术用户偏底层、无需暴露，要求整页隐藏；remeLightMemory（记忆配置，关联「认识你」体验）保留展示。_
+
+- [修改] `console/src/pages/Agent/Config/index.tsx` —
+  - 从 `baseTabs` 移除 `key:"llmRetry"`、`key:"llmRateLimiter"` 两个固定 tab 段；移除对应 `import LlmRetryCard`/`LlmRateLimiterCard`。
+  - 移除 `contextMapping` 动态推送块（lightContext 由 contextBackend 映射），仅保留 `memoryMapping`（remeLightMemory）。
+  - 清理仅服务于 lightContext 的死代码：`maxInputLength`/`refreshEffectiveContextWindow`/两个 `useEffect`/`selectedAgent`/`api`/`useAgentStore`/`contextBackend`/`llmRetryEnabled`，以及 `useCallback`、`CONTEXT_MANAGER_BACKEND_MAPPINGS` 导入——避免 noUnusedLocals 下次构建报错。
+- [保留] `LlmRetryCard.tsx`/`LlmRateLimiterCard.tsx`/`LightContextCard.tsx` 文件、其在 `components/index.ts` 的导出、相关 i18n 文案、既有测试均保留未删（只隐藏不删文件，死代码无害）。
+- [未改动] 后端各 schema 默认值齐全；前端 `handleSave ...original` 兜底，隐藏字段保存时默认值不丢——重试/限流/上下文压缩保持出厂默认，家庭用户无法误操作；remeLightMemory 仍正常展示。
+- **未改动**：`LICENSE`/`NOTICE`/`license-compliance.md` 红线文件未触碰。
+- **下一步**：改完即 commit、不构建；待用户「测一下」一并重建镜像验收。
+
+---
+
 ## 未修改声明
 
 除本文件记录的改动外，hanbao 中其余代码均来自上游 QwenPaw v2.0.1，其著作权归 The QwenPaw Authors 所有，按 Apache License 2.0 条款授权使用。
