@@ -755,6 +755,20 @@ _背景：用户确认 llmRetry（重试退避）、llmRateLimiter（并发/QPM/
 - **未改动**：`LICENSE`/`NOTICE`/`license-compliance.md` 红线文件未触碰。
 - **下一步**：改完即 commit、不构建；待用户「测一下」一并重建镜像验收。
 
+### 记忆增强·自动记忆搜索默认开启 + 默认 Embedding 占位（2026-08-21）
+
+_背景：remeLightMemory 是运行配置里唯一保留的记忆 TAB，其中「自动记忆搜索(Beta)」默认关闭。该功能让 agent 每轮对话自动语义检索长期记忆并注入上下文（"越用越懂你"的核心体感）。经核查 embedder 完全独立读取 `embedding_model_config`、不复用主 LLM provider 凭证，且 api_key 为私有无法硬编码；故采用"默认开启 + 通用 embedding 占位 + 前端引导"的减法式方案。_
+
+- [修改] `src/hanbao/config/config.py` —
+  - `AutoMemorySearchConfig.enabled` 默认 `False`→`True`（[hanbao modification]），新装 hanbao 默认开启自动记忆搜索。
+  - `EmbeddingModelConfig.model_name` 默认 `""`→`"BAAI/bge-m3"`（[hanbao modification]，backend 已为 `openai`）；api_key 留空（用户私有，无法硬编码）。新装即带通用 OpenAI 兼容 embedding 起点，硅基流动等"一个 key 通 LLM+Embedding"服务开箱即用。
+- [修改] `console/src/pages/Agent/Config/components/ReMeLightMemoryCard.tsx` —
+  - `autoMemorySearch` 折叠面板顶部加 `Alert` 引导：开启后需在本页下方 Embedding 配置填 API Key 才生效，推荐与对话模型同服务商。
+- [修改] `console/src/locales/zh.json` + `en.json` — 新增 `agentConfig.autoMemorySearchEnableHint` 中英双语引导文案。
+- [安全] 已部署 workspace 的 `agent.json` 因 `only_if_missing` 不覆盖；无 embedding 时 `auto_memory_search` 静默失败、安全降级（每轮空转一次检索，不崩、不影响聊天）；`doctor` 会提示"enabled 但无 key"。
+- [未改动] `LICENSE`/`NOTICE`/`license-compliance.md` 红线文件未触碰。
+- **下一步**：改完即 commit、不构建；待用户「测一下」一并重建镜像验收。
+
 ---
 
 ## 未修改声明

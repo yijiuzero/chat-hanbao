@@ -2114,6 +2114,7 @@
     "dreamCronInvalid": "请输入有效的 5 段 Cron 表达式",
     "autoMemorySearch": "自动记忆搜索(Beta)",
     "autoMemorySearchTooltip": "每轮对话都自动触发记忆搜索。每次 query 进来都会自动调用记忆搜索能力，让 hanbao 更懂你，但会增加 token 消耗。",
+    "autoMemorySearchEnableHint": "「自动记忆搜索」已默认开启（Beta）。需在本页下方「Embedding 配置」中填写 API Key 才会真正生效——推荐与你的对话模型使用同一服务商的 key（如硅基流动一个 key 同时驱动对话与记忆）。未配置时自动降级，不影响正常聊天。",
     "autoMaxResults": "自动搜索最大结果数",
     "autoMaxResultsTooltip": "自动记忆搜索时返回的最大结果数",
     "autoMaxResultsRequired": "最大结果数为必填项",

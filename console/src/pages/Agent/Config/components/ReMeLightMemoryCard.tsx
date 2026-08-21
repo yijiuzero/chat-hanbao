@@ -227,6 +227,12 @@ export function ReMeLightMemoryCard() {
             forceRender: true,
             children: (
               <>
+                <Alert
+                  type="info"
+                  showIcon
+                  style={{ marginBottom: 16 }}
+                  message={t("agentConfig.autoMemorySearchEnableHint")}
+                />
                 <Form.Item
                   label={t("agentConfig.autoMemorySearch")}
                   name={[

@@ -2255,6 +2255,7 @@
     "dreamCronInvalid": "Enter a valid 5-field cron expression",
     "autoMemorySearch": "Auto Memory Search (Beta)",
     "autoMemorySearchTooltip": "Auto memory search to run on every conversation turn. Each query will automatically invoke memory search capabilities, helping hanbao understand you better — but this increases token consumption.",
+    "autoMemorySearchEnableHint": "Auto Memory Search is on by default (Beta). Configure an API Key under \"Embedding Config\" below to actually activate it — preferably the same provider as your chat model (e.g. SiliconFlow uses one key for both LLM and memory). Without it, it safely degrades and chat still works.",
     "autoMaxResults": "Auto Search Max Results",
     "autoMaxResultsTooltip": "Maximum number of results returned when auto memory search is enabled",
     "autoMaxResultsRequired": "Max results is required",

@@ -621,7 +621,7 @@ class AutoMemorySearchConfig(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     enabled: bool = Field(
-        default=False,
+        default=True,  # [hanbao modification] 默认开启自动记忆搜索，新装即"越用越懂你"
         description="Whether to auto search memory on every turn",
     )
 
@@ -649,7 +649,10 @@ class EmbeddingModelConfig(BaseModel):
         description="API key for embedding provider",
     )
     base_url: str = Field(default="", description="Base URL for embedding API")
-    model_name: str = Field(default="", description="Embedding model name")
+    model_name: str = Field(
+        default="BAAI/bge-m3",  # [hanbao modification] 通用 OpenAI 兼容 embedding；硅基流动等"一个 key 通 LLM+Embedding"服务开箱即用
+        description="Embedding model name",
+    )
     dimensions: int = Field(default=1024, description="Embedding dimensions")
     enable_cache: bool = Field(
         default=True,
