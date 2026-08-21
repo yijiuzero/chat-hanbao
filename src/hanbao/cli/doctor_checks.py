@@ -863,11 +863,9 @@ def enabled_channel_notes(cfg: Config) -> list[str]:
                 continue
             if name == "console":
                 continue
-            if name == "discord" and not (sub.bot_token or "").strip():
-                notes.append(
-                    f"{agent_id}: discord enabled but bot_token is empty",
-                )
-            elif name == "dingtalk":
+            # [hanbao modification] removed discord/telegram/mattermost/
+            # mqtt/matrix/voice credential checks
+            if name == "dingtalk":
                 if (
                     not (sub.client_id or "").strip()
                     or not (sub.client_secret or "").strip()
@@ -893,41 +891,6 @@ def enabled_channel_notes(cfg: Config) -> list[str]:
                     notes.append(
                         f"{agent_id}: qq enabled but "
                         "app_id/client_secret incomplete",
-                    )
-            elif name == "telegram" and not (sub.bot_token or "").strip():
-                notes.append(
-                    f"{agent_id}: telegram enabled but bot_token is empty",
-                )
-            elif name == "mattermost":
-                if (
-                    not (sub.url or "").strip()
-                    or not (sub.bot_token or "").strip()
-                ):
-                    notes.append(
-                        f"{agent_id}: mattermost enabled but "
-                        "url/bot_token incomplete",
-                    )
-            elif name == "mqtt" and not (sub.host or "").strip():
-                notes.append(f"{agent_id}: mqtt enabled but host is empty")
-            elif name == "matrix":
-                if (
-                    not (sub.homeserver or "").strip()
-                    or not (sub.user_id or "").strip()
-                    or not (sub.access_token or "").strip()
-                ):
-                    notes.append(
-                        f"{agent_id}: matrix enabled but "
-                        "homeserver/user_id/access_token incomplete",
-                    )
-            elif name == "voice":
-                if (
-                    not (sub.twilio_account_sid or "").strip()
-                    or not (sub.twilio_auth_token or "").strip()
-                    or not (sub.phone_number or "").strip()
-                ):
-                    notes.append(
-                        f"{agent_id}: voice enabled but Twilio fields "
-                        "incomplete",
                     )
             elif name == "wecom":
                 if (

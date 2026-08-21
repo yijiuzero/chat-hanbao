@@ -1,37 +1,23 @@
+// [hanbao modification] removed discord/telegram/slack/mattermost/mqtt/
+// matrix/voice/sip/yuanbao/onebot channel keys
 export const CHANNELS = {
   imessage: "imessage",
-  discord: "discord",
   dingtalk: "dingtalk",
   feishu: "feishu",
   qq: "qq",
-  telegram: "telegram",
-  slack: "slack",
-  mattermost: "mattermost",
-  mqtt: "mqtt",
   console: "console",
-  matrix: "matrix",
-  voice: "voice",
-  sip: "sip",
   wecom: "wecom",
   xiaoyi: "xiaoyi",
-  yuanbao: "yuanbao",
+  wechat: "wechat",
 };
 
 export const CHANNEL_COLORS: Record<string, string> = {
   imessage: "geekblue",
-  discord: "blue",
   dingtalk: "green",
   feishu: "volcano",
   qq: "gold",
-  telegram: "geekblue",
-  slack: "purple",
-  mattermost: "purple",
-  mqtt: "orange",
   console: "green",
-  matrix: "red",
-  voice: "geekblue",
-  sip: "cyan",
   wecom: "olive",
   xiaoyi: "cyan",
-  yuanbao: "lime",
+  wechat: "green",
 };

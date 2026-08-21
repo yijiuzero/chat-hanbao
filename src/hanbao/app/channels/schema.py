@@ -28,20 +28,14 @@ class ChannelAddress:
 
 
 # Built-in channel type identifiers. Plugin channels use arbitrary str keys.
+# [hanbao modification] removed discord/telegram/mqtt/voice/sip/slack/yuanbao
 BUILTIN_CHANNEL_TYPES = (
     "imessage",
-    "discord",
     "dingtalk",
     "feishu",
     "qq",
-    "telegram",
-    "mqtt",
     "console",
-    "voice",
-    "sip",
-    "slack",
     "xiaoyi",
-    "yuanbao",
 )
 
 # ChannelType is str to allow plugin channels; built-in set above.

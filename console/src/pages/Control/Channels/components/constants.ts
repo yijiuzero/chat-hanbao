@@ -4,25 +4,17 @@ import type { TFunction } from "i18next";
 export type ChannelKey = string;
 
 // Built-in channel labels
+// [hanbao modification] removed labels for
+// discord/telegram/slack/mqtt/mattermost/matrix/voice/sip/onebot/yuanbao
 export const CHANNEL_LABELS: Record<string, string> = {
   imessage: "iMessage",
-  discord: "Discord",
   dingtalk: "DingTalk",
   feishu: "Feishu",
   qq: "QQ",
-  telegram: "Telegram",
-  slack: "Slack",
-  mqtt: "MQTT",
-  mattermost: "Mattermost",
-  matrix: "Matrix",
   console: "Console",
-  voice: "Twilio",
-  sip: "SIP",
   wecom: "WeCom",
   xiaoyi: "XiaoYi",
   wechat: "WeChat",
-  onebot: "OneBot",
-  yuanbao: "Yuanbao",
 };
 
 function formatCustomChannelKey(key: string): string {

@@ -14,10 +14,10 @@ describe("getChannelIconUrl", () => {
     );
   });
 
-  it("returns specific CDN URL for known channel 'discord'", () => {
-    const url = getChannelIconUrl("discord");
+  it("returns specific CDN URL for known channel 'qq'", () => {
+    const url = getChannelIconUrl("qq");
     expect(url).toBe(
-      "https://gw.alicdn.com/imgextra/i4/O1CN01BQFnBu21PWTtKbPmU_!!6000000006977-2-tps-400-400.png",
+      "https://gw.alicdn.com/imgextra/i3/O1CN014wGNgd27PsTzAyrcj_!!6000000007790-2-tps-400-400.png",
     );
   });
 
@@ -38,8 +38,8 @@ describe("getChannelLetterColor", () => {
     expect(getChannelLetterColor("console")).toBe("#C0392B");
   });
 
-  it("returns predefined color '#5865F2' for known channel 'discord'", () => {
-    expect(getChannelLetterColor("discord")).toBe("#5865F2");
+  it("returns predefined color '#12B7F5' for known channel 'qq'", () => {
+    expect(getChannelLetterColor("qq")).toBe("#12B7F5");
   });
 
   it("returns a color string starting with '#' for unknown channel 'my_custom_bot'", () => {

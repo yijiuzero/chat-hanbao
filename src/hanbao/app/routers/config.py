@@ -31,19 +31,12 @@ from ...config.config import (
     AgentsLLMRoutingConfig,
     ConsoleConfig,
     DingTalkConfig,
-    DiscordConfig,
     FeishuConfig,
     HeartbeatConfig,
     IMessageChannelConfig,
-    MatrixConfig,
-    MattermostConfig,
-    MQTTConfig,
     QQConfig,
-    SIPChannelConfig,
     SkillScannerConfig,
     SkillScannerWhitelistEntry,
-    TelegramConfig,
-    VoiceChannelConfig,
     WecomConfig,
 )
 from ...agents.acp.core import ACPConfig, ACPAgentConfig
@@ -66,19 +59,14 @@ from ..channels.qrcode_auth_handler import (
 router = APIRouter(prefix="/config", tags=["config"])
 
 
+# [hanbao modification] removed telegram/discord/voice/sip/mattermost/
+# mqtt/matrix from the channel config class map
 _CHANNEL_CONFIG_CLASS_MAP = {
-    "telegram": TelegramConfig,
     "dingtalk": DingTalkConfig,
-    "discord": DiscordConfig,
     "feishu": FeishuConfig,
     "qq": QQConfig,
     "imessage": IMessageChannelConfig,
     "console": ConsoleConfig,
-    "voice": VoiceChannelConfig,
-    "sip": SIPChannelConfig,
-    "mattermost": MattermostConfig,
-    "mqtt": MQTTConfig,
-    "matrix": MatrixConfig,
     "wecom": WecomConfig,
 }
 _ALLOWED_ACP_TOOL_PARSE_MODES = {

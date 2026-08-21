@@ -786,6 +786,41 @@ _背景：用户要求"维护所有 MD 文件"。经排查 `src/hanbao/agents/md
 
 ---
 
+### 频道模块减法·砍除 10 个频道（2026-08-21）
+
+_背景：hanbao 定位为飞牛 NAS 家庭单用户本地聊天（微信+控制台为主）。用户要求再砍频道，仅保留家庭场景所需。本次砍除：**Discord、Telegram、元宝(Yuanbao)、Matrix、SIP、Mattermost、MQTT、Slack、语音(Twilio Voice)、OneBot** 共 10 个；保留 imessage/dingtalk/feishu/qq/console/wecom/xiaoyi/wechat 8 个（含注册中心必需 console）。所有改动均从"删功能=高危、先查依赖"纪律出发，全仓 grep 彻查悬空引用，不做构建验证（待用户「测一下」）。_
+
+- [修改] `src/hanbao/app/channels/registry.py` — `_BUILTIN_SPECS` 移除 10 条目（discord/telegram/yuanbao/matrix/sip/mattermost/mqtt/slack/voice/onebot）。这是权威删除点：`get_available_channels()` 与前端 `channelTypes` API 均由此派生，频道自此不加载、不显示。
+- [修改] `src/hanbao/config/config.py` —
+  - 删除 10 个频道 config 类：`DiscordConfig`/`OneBotConfig`/`TelegramConfig`/`MQTTConfig`/`MattermostConfig`/`MatrixConfig`/`VoiceChannelConfig`/`SIPChannelConfig`/`YuanbaoConfig`/`SlackConfig`（均加注释标记）。
+  - `ChannelConfig` 移除对应 10 个字段（`extra="allow"` 兜底，旧配置多余 key 静默忽略）。
+  - `ChannelConfigUnion` 移除 8 个被砍类型（discord/telegram/mattermost/mqtt/matrix/voice/sip/slack）。
+- [修改] `src/hanbao/app/channels/schema.py` — `BUILTIN_CHANNEL_TYPES` 移除 discord/telegram/mqtt/voice/sip/slack/yuanbao（该常量当前无引用方，属遗留清理）。
+- [修改] `src/hanbao/cli/channels_cmd.py` — 移除 `DiscordConfig`/`TelegramConfig`/`VoiceChannelConfig` import、`configure_discord`/`configure_telegram`/`configure_voice` 三个交互配置函数、`_ALL_CHANNEL_NAMES` 与 `_ALL_CHANNEL_CONFIGURATORS` 中对应条目。
+- [修改] `src/hanbao/cli/doctor_connectivity.py` — 移除 6 个 config 类 import、7 个 `_probe_*` 函数（mqtt/mattermost/matrix/telegram/discord/onebot/voice）、`_BUILTIN_PROBES` 对应 7 条目。
+- [修改] `src/hanbao/cli/doctor_checks.py` — `enabled_channel_notes` 移除 discord/telegram/mattermost/mqtt/matrix/voice 六个凭证校验分支，首条改为 `if` 防 elif 语法错。
+- [修改] `src/hanbao/app/routers/config.py` — 移除 7 个被砍 config 类 import；`_CHANNEL_CONFIG_CLASS_MAP` 移除 telegram/discord/voice/sip/mattermost/mqtt/matrix 7 条目（仅被 `.get()` 消费，删后安全）。
+- [删除] `src/hanbao/app/routers/voice.py` + `src/hanbao/app/_app.py` 移除 `voice_router` 的 import 与 `include_router`（Twilio 端点 `/voice/*` 随语音频道一并移除）。
+- [删除] 10 个频道包目录：`src/hanbao/app/channels/{discord_,telegram,yuanbao,matrix,sip,mattermost,mqtt,slack,voice,onebot}/`（含各自 `__init__.py`/`channel.py`/helper 模块）。
+- [删除] 悬空测试 18 个：`tests/unit/channels/` 下 10 个（test_yuanbao/test_voice/test_telegram/test_slack/test_sip_memory_bounds/test_onebot_channel/test_mqtt/test_mattermost/test_matrix/test_discord）、`tests/contract/channels/` 下 7 个契约测试、`tests/unit/cli/test_doctor_connectivity.py`。
+- [修改] `tests/unit/config/test_channel_display_migration.py` — 示例频道 `slack`→`wecom`（测的是迁移函数本身，与具体频道无关）。
+- [修改] 前端数据层（被砍频道不再显示/可选）：
+  - `console/src/constants/channel.ts`（`CHANNELS`/`CHANNEL_COLORS` 删 10 key）
+  - `console/src/api/types/channel.ts`（删 10 个 config 接口 + `ChannelConfig` 10 字段 + `SingleChannelConfig` 10 项）
+  - `console/src/pages/Control/Channels/useChannels.ts`（`builtinOrder` 删 5 项）
+  - `console/src/pages/Control/Channels/components/constants.ts`（`CHANNEL_LABELS` 删 10）、`channelIcons.ts`（图标 URL 与头像色删 10）
+  - `console/src/pages/Control/Channels/components/ChannelDrawer.tsx`（`CHANNELS_WITH_ACCESS_CONTROL` 删 8、文档 URL map 删 10）
+  - `console/src/pages/Agent/Skills/components/SkillDrawer.tsx`（技能绑定频道下拉删 4）
+  - `console/src/pages/Agent/MCP/accessPolicy.ts`（`MCP_CHANNEL_SOURCE_VALUES` 删 8）
+  - `console/src/pages/Inbox/types.ts`（`PushMessage.channelType` 联合删 slack/telegram/discord）
+  - 同步 4 个前端测试（constants/channel.test.ts、useChannels.test.ts、components/constants.test.ts、channelIcons.test.ts，断言改为保留频道 qq 等）
+- [保留·说明] `ChannelDrawer.tsx` 中被砍频道的专属表单 switch-case（matrix/discord/telegram/slack/mqtt/mattermost/voice/yuanbao/onebot 等 case 块）、`locales/zh.json`/`en.json` 中对应频道文案——为死代码/死文案（频道不再从 API 返回，抽屉永不打开、永不渲染），留着无害，未删以免大文件盲改风险；如需连 UI 代码彻底清干净可再单独一轮处理。
+- [验证] 全仓 grep 零残留：`src/hanbao` 无任何被砍 config 类名/频道包 import；`tests/` 无被砍频道 import；10 个改动 Python 文件 `ast.parse` 语法全部通过。未做构建/镜像验证（纪律：改完即 commit，待用户「测一下」）。
+- [未改动] `LICENSE`/`NOTICE`/`license-compliance.md` 红线文件未触碰。
+- **下一步**：改完即 commit、不构建；与运行配置精简/记忆增强等一并待用户「测一下」重建镜像验收（本次改动会显著减小镜像体积：10 个频道含 Twilio/SIP/Matrix/slack-bolt 等重依赖被移除）。
+
+---
+
 ## 未修改声明
 
 除本文件记录的改动外，hanbao 中其余代码均来自上游 QwenPaw v2.0.1，其著作权归 The QwenPaw Authors 所有，按 Apache License 2.0 条款授权使用。

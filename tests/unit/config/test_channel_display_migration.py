@@ -18,14 +18,14 @@ from hanbao.config.utils import _load_and_validate_config
 
 def test_migrate_legacy_hidden_tool_messages():
     channels = {
-        "slack": {
+        "wecom": {
             "filter_tool_messages": True,
             "filter_thinking": True,
         },
     }
 
     assert migrate_channel_display_fields(channels)
-    assert channels["slack"] == {
+    assert channels["wecom"] == {
         "show_tool_calls": False,
         "show_tool_results": False,
         "show_thinking": False,
@@ -34,7 +34,7 @@ def test_migrate_legacy_hidden_tool_messages():
 
 def test_migrate_preserves_explicit_new_fields():
     channels = {
-        "slack": {
+        "wecom": {
             "filter_tool_messages": False,
             "show_tool_calls": False,
             "tool_call_max_length": 0,
@@ -42,20 +42,20 @@ def test_migrate_preserves_explicit_new_fields():
     }
 
     assert migrate_channel_display_fields(channels)
-    assert channels["slack"]["show_tool_calls"] is False
-    assert channels["slack"]["show_tool_results"] is True
-    assert channels["slack"]["tool_call_max_length"] == 0
+    assert channels["wecom"]["show_tool_calls"] is False
+    assert channels["wecom"]["show_tool_results"] is True
+    assert channels["wecom"]["tool_call_max_length"] == 0
 
 
 def test_no_legacy_fields_is_not_migrated():
     """Channels without legacy fields must not be rewritten/backfilled."""
     channels = {
-        "slack": {"enabled": True, "bot_prefix": ""},
+        "wecom": {"enabled": True, "bot_prefix": ""},
         "qq": {"show_tool_calls": False},
     }
 
     assert migrate_channel_display_fields(channels) is False
-    assert channels["slack"] == {"enabled": True, "bot_prefix": ""}
+    assert channels["wecom"] == {"enabled": True, "bot_prefix": ""}
     assert channels["qq"] == {"show_tool_calls": False}
 
 
@@ -63,7 +63,7 @@ def test_root_config_migration_persists(tmp_path):
     config_path = tmp_path / "config.json"
     raw = {
         "channels": {
-            "slack": {"filter_tool_messages": True},
+            "wecom": {"filter_tool_messages": True},
         },
     }
     config_path.write_text(json.dumps(raw), encoding="utf-8")
@@ -71,9 +71,9 @@ def test_root_config_migration_persists(tmp_path):
     config = _load_and_validate_config(config_path, raw)
     persisted = json.loads(config_path.read_text(encoding="utf-8"))
 
-    assert config.channels.slack.show_tool_calls is False
-    assert "filter_tool_messages" not in persisted["channels"]["slack"]
-    assert persisted["channels"]["slack"]["show_tool_calls"] is False
+    assert config.channels.wecom.show_tool_calls is False
+    assert "filter_tool_messages" not in persisted["channels"]["wecom"]
+    assert persisted["channels"]["wecom"]["show_tool_calls"] is False
 
 
 def test_loaded_agent_config_migration_persists(
@@ -86,7 +86,7 @@ def test_loaded_agent_config_migration_persists(
     raw = AgentProfileConfig(id="agent", name="Agent").model_dump(
         exclude_none=True,
     )
-    raw["channels"] = {"slack": {"filter_tool_messages": True}}
+    raw["channels"] = {"wecom": {"filter_tool_messages": True}}
     agent_config_path.write_text(json.dumps(raw), encoding="utf-8")
 
     root_config = Config(
@@ -107,6 +107,6 @@ def test_loaded_agent_config_migration_persists(
     config = load_agent_config("agent")
     persisted = json.loads(agent_config_path.read_text(encoding="utf-8"))
 
-    assert config.channels.slack.show_tool_calls is False
-    assert "filter_tool_messages" not in persisted["channels"]["slack"]
-    assert persisted["channels"]["slack"]["show_tool_calls"] is False
+    assert config.channels.wecom.show_tool_calls is False
+    assert "filter_tool_messages" not in persisted["channels"]["wecom"]
+    assert persisted["channels"]["wecom"]["show_tool_calls"] is False

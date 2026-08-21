@@ -45,22 +45,16 @@ export interface MCPSubjectValueOption {
   value: string;
 }
 
+// [hanbao modification] removed discord/telegram/mattermost/matrix/onebot/
+// mqtt/voice/sip channel sources
 export const MCP_CHANNEL_SOURCE_VALUES = [
   "console",
   "dingtalk",
   "feishu",
   "wechat",
   "wecom",
-  "discord",
-  "telegram",
   "qq",
   "imessage",
-  "mattermost",
-  "matrix",
-  "onebot",
-  "mqtt",
-  "voice",
-  "sip",
   "xiaoyi",
 ] as const;
 
