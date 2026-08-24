@@ -1,16 +1,16 @@
 # hanbao 项目续跑基准（会话交接）
 
 > 本文档是当前会话交付给后续会话的**唯一权威基准**。新会话须严格遵循，不重复返工已确认内容；与原设计冲突的技术决策，须先说明原因并征得确认后再实施。
-> 最后更新：2026-08-24 深夜 · 状态：阶段0~6 主体全部完成、包名全量改名落地、桌面端整条线已砍除、10 个频道已砍除仅留 8 个、I-019 文档改/创建自研工具落地、I-022 Tavily key 方案落地、前端两轮水墨化（边缘装饰→全面重做）已重建验收（镜像 `531ecf90e1ff` / `hanbao:latest` 1.74GB）；**待办：阶段5 真正 `fnpack build` + fnOS 实测上架**。⚠️ 见下方「〇、当前环境实况」——所有 08-21~08-24 的代码改动均已入最新镜像（`531ecf90e1ff`，2026-08-24 重建验收全绿）。
+> 最后更新：2026-08-24 收尾 · 状态：阶段0~6 主体全部完成、包名全量改名落地、桌面端整条线已砍除、10 个频道已砍除仅留 8 个、I-019 文档改/创建自研工具落地、I-022 Tavily key 方案落地、前端两轮水墨化（边缘装饰→全面重做）已重建验收（镜像 `531ecf90e1ff` / `hanbao:latest` 1.74GB）；收尾另提交 `039fa49`(auth.py 死条目+remeLightMemory TAB 隐藏)、`5ed0391`(ChannelDrawer 死代码清理)，均已提交、**待本轮「测一下」重建验收**；**待办：阶段5 真正 `fnpack build` + fnOS 实测上架**。⚠️ 见下方「〇、当前环境实况」——`531ecf90e1ff` 为上一轮（08-24）重建验收全绿的镜像，本轮（039fa49+5ed0391）重建后将刷新镜像哈希。
 
 ---
 
 ## 〇、当前环境实况（2026-08-24 深夜交接时刻，新会话必读）
 
 **Git**
-- HEAD = `59220ad`（前端全面水墨化第二轮提交）；工作树干净；所有改动均已提交并推送 `origin/main`
-- 08-21~08-24 提交链（重大减法 + 美化）：`f8fdce0`(砍 10 频道) → `e9c6d08`(砍桌面端整条线) → `d9a9875`(桌面线收尾：删悬空 /api/desktop/shutdown 端点 + 孤儿 tauri 测试) → `59220ad`(前端全面水墨化第二轮：登录页意境 + 聊天气泡 + 会话项 + 页眉)
-- I-019(文档改/创建自研) / I-022(Tavily key) / 前端第一轮水墨美化(a87fb07) 也均已提交
+- HEAD = `5ed0391`（ChannelDrawer 死代码清理）；工作树干净；所有改动均已提交（未推送 origin/main）
+- 08-21~08-24 提交链（重大减法 + 美化 + 收尾）：`f8fdce0`(砍 10 频道) → `e9c6d08`(砍桌面端整条线) → `d9a9875`(桌面线收尾) → `59220ad`(前端全面水墨化第二轮) → `039fa49`(auth.py 死条目+remeLightMemory TAB 隐藏) → `5ed0391`(ChannelDrawer 死代码清理)
+- I-019(文档改/创建自研) / I-022(Tavily key) / 前端第一轮水墨美化(a87fb07) 也已提交
 
 **Docker 实况**
 - daemon 在跑；**`hanbao:latest` = `531ecf90e1ff`**（1.74GB，2026-08-24 重建，验收全绿：`:8088`/`:8091` `<title>hanbao Console</title>`、auth/status `{"enabled":true,"has_users":false}`、err.log 零 traceback）
@@ -51,7 +51,7 @@ hanbao（中文"函包"）是 fork 自 **QwenPaw v2.0.1（Apache-2.0）** 的个
 | `docs/lifecycle-management.md` | 全生命周期管理 | 版本号 / 阶段准出标准基准 |
 | `docs/license-compliance.md` | 开源许可合规规范 | **每阶段开工前必读 §4 检查项**，未过不进下一阶段 |
 | `docs/CHANGES-FROM-UPSTREAM.md` | 与上游差异记录 | 改动证据；每次改动须同步追加 |
-| `docs/known-issues.md` | 已知问题追踪 | **I-001~I-028**，全部已解决/已确认（无未闭合代码项） |
+| `docs/known-issues.md` | 已知问题追踪 | **I-001~I-030**，全部已解决/已确认（无未闭合代码项） |
 | `README_zh.md`（顶部派生说明块） | 项目门面 | 上游正文原样保留，阶段 2 品牌改造再替换 |
 | `LICENSE` / `NOTICE` | 许可文件 | **永不动**，Apache-2.0 合规红线 |
 
@@ -93,13 +93,15 @@ hanbao（中文"函包"）是 fork 自 **QwenPaw v2.0.1（Apache-2.0）** 的个
 
 ## 六、已知问题（known-issues.md，I-001~I-028 全部 🟢 已解决/已确认）
 
-**全部已解决 ✅**（截至 2026-08-24）：I-001~I-026 历史项全部闭环；I-027（桌面线收尾：删悬空 `/api/desktop/shutdown` 端点 + 孤儿 tauri 测试，2026-08-21 `d9a9875`）、I-028（前端界面两轮水墨化美化，2026-08-24 `a87fb07`+`59220ad` 已重建验收）。
+**全部已解决 ✅**（截至 2026-08-24 收尾）：I-001~I-026 历史项全部闭环；I-027（桌面线收尾：删悬空 `/api/desktop/shutdown` 端点 + 孤儿 tauri 测试，2026-08-21 `d9a9875`）、I-028（前端界面两轮水墨化美化，2026-08-24 `a87fb07`+`59220ad` 已重建验收）、I-029（ChannelDrawer 被砍频道死代码清理，2026-08-24 `5ed0391`）、I-030（auth.py 死白名单条目 + 隐藏 remeLightMemory TAB，2026-08-24 `039fa49`）。I-029/I-030 已提交、**待本轮「测一下」重建验收**。
 
 **重要变更（本交接时刻已落地，新会话勿重复）**：
 - **桌面端整条线已砍除**（2026-08-21 `e9c6d08` + 2026-08-24 收尾 `d9a9875`）：Header/App 桌面死代码、pywebview/tauri mock、`scripts/pack-tauri/`、7 个桌面 GitHub Actions、`@tauri-apps/*` 依赖（package-lock 残留 43 处待 npm 自动清）全部清除。
 - **10 个频道已砍除仅留 8 个**（2026-08-21 `f8fdce0`）：Discord/Telegram/元宝/Matrix/SIP/Mattermost/MQTT/Slack/语音/OneBot 移除，保留 imessage/dingtalk/feishu/qq/console/wecom/xiaoyi/wechat；对应 pyproject SDK（python-telegram-bot 等）已移除，LGPL 直接依赖清零。
 - **I-019 文档改/创建已自研补齐**（2026-08-24）：`document_edit.py` 4 工具（create/edit docx/xlsx），python-docx/openpyxl MIT，pptx 维持放弃。
 - **I-022 Tavily 已 env 化**（2026-08-24）：`TAVILY_API_KEY` 可选，无 key 回退 keyless。
+- **I-029 ChannelDrawer 死代码清理（2026-08-24 `5ed0391`）**：删 10 频道 `case` 块(667 行)+3 const+useEffect（noUnusedLocals 须连带删），活频道逻辑不受影响。
+- **I-030 运行配置页清理（2026-08-24 `039fa49`）**：`auth.py` `_PUBLIC_PATHS` 删漏清的 `/api/desktop/shutdown`；运行配置页隐藏记忆后端 TAB，仅留 reactAgent（时区）。
 
 **唯一未闭合的对外事项**：阶段5 真正 `fnpack build` + fnOS 实测上架（脚手架已建，代码层面无阻塞）。
 
