@@ -14,7 +14,7 @@
 
 **Docker 实况**
 - daemon 在跑；**`hanbao:latest` = `1067ffd5c99f`**（1.74GB，2026-08-21 纪律后首轮「测一下」重建验收全绿：新镜像含 `039fa49`+`5ed0391`+MD 维护 `1aeb83d`；`:8099` 干净容器实测 `<title>hanbao Console</title>`、auth/status `{"enabled":true,"has_users":false}`、err.log 零 traceback）
-- **⚠️ 用户日常部署的 `hanbao` 容器（8088）仍跑在旧镜像 `4b9b782c5d9b`（08-21 重建，缺 039fa49/5ed0391 三轮 TAB 隐藏 + 本轮其余收尾）**。替换前须先停旧容器（带数据卷，勿 `docker rm` 丢数据）再以 `hanbao:latest` 起新容器——**此步由用户决定，AI 不自重启服务**。
+- **✅ 用户日常部署的 `hanbao` 容器（8088）已切到 `hanbao:latest`（`1067ffd5c99f`，2026-08-24「测一下」后按用户拍板「先停旧再起新」切换，数据卷 `hanbao-data`/`hanbao-secrets`/`hanbao-backups` 全部保留，`has_users:true` 确认账号数据未丢）**。部署铁律：重建后先 `docker stop hanbao && docker rm hanbao` 再挂同名卷起重容器，AI 已获授权自动执行此流程。
 - **⚠️ 验证容器 `hanbao_verify2`（8091，`531ecf90e1ff`）可能仍在运行** → http://localhost:8091 可预览；`docker rm -f hanbao_verify2` 停。
 - **🔴 构建铁律新增（2026-08-24 实测）：`docker build` 必须清掉宿主代理 env**——shell 里 `HTTP_PROXY/HTTPS_PROXY=127.0.0.1:7897` 会被自动注入构建容器，Clash 没起时 npm/pip 全走死代理假死。命令：
   `docker build -f deploy/Dockerfile --build-arg NODE_IMAGE=node:20-slim --build-arg UV_IMAGE=uv:local --build-arg HTTP_PROXY= --build-arg HTTPS_PROXY= --build-arg http_proxy= --build-arg https_proxy= -t hanbao:latest .`
