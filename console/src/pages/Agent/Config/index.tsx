@@ -7,9 +7,6 @@ import {
   ReactAgentCard,
 } from "./components";
 import { PageHeader } from "@/components/PageHeader";
-import {
-  MEMORY_MANAGER_BACKEND_MAPPINGS,
-} from "@/constants/backendMappings";
 import styles from "./index.module.less";
 
 function AgentConfigPage() {
@@ -29,9 +26,6 @@ function AgentConfigPage() {
     handleSave,
     handleTimezoneChange,
   } = useAgentConfig();
-
-  const memoryBackend =
-    Form.useWatch("memory_manager_backend", form) || "remelight";
 
   const dynamicTabs = useMemo(() => {
     const baseTabs = [
@@ -54,31 +48,12 @@ function AgentConfigPage() {
       },
     ];
 
-    const memoryMapping = MEMORY_MANAGER_BACKEND_MAPPINGS[memoryBackend];
-    if (memoryMapping) {
-      const MemoryComponent = memoryMapping.component;
-      baseTabs.push({
-        key: memoryMapping.tabKey,
-        label: (
-          <span className={styles.tabLabel}>
-            {t(`agentConfig.${memoryMapping.tabKey}Title`)}
-          </span>
-        ),
-        children: (
-          <div className={styles.tabContent}>
-            <MemoryComponent />
-          </div>
-        ),
-      });
-    }
-
     return baseTabs;
   }, [
     t,
     timezone,
     savingTimezone,
     handleTimezoneChange,
-    memoryBackend,
     saving,
   ]);
 
