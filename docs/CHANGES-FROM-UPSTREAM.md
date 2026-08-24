@@ -920,6 +920,23 @@ _背景：用户要求"桌面端整条线都给他砍掉"，并顺带确认仓�
 
 ---
 
+## 阶段 6.x · 前端界面水墨美化（2026-08-24）
+
+上游 QwenPaw 仅改过颜色、结构仍是原样。本次在既定水墨古典品牌方向内自主打磨界面质感（不另起炉灶、不触碰 `online.svg`/Mikasa 红线）：
+
+- [修改] `console/src/App.tsx` — `ConfigProvider` token 新增 `fontFamily: "var(--font-sans)"`，全站无衬线正文（含中文 PingFang/雅黑/Noto）统一；与 `.ink-title` 衬线立骨形成反差。
+- [修改] `console/src/styles/layout.css` —
+  - `:root` 新增 `--font-serif`/`--font-sans` 离线系统字体栈（不引外网，适配家庭 LAN NAS 离线场景）。
+  - `.ink-title` 与卡片/弹窗/抽屉/页眉标题统一改 `--font-serif` 衬线，立「文人水墨」骨相。
+  - 空态（`ant-empty`/`hanbao-empty`）补一枚朱砂圆环印（`::before`，随明暗切换），替代被隐藏的百炼插画，走极简水墨留白。
+  - `.page-content` 淡入、`.page-header` 缓升的轻入场动效（仅透明度/位移，规避 fixed 包含块问题）。
+  - `html,body` 注入 `--font-sans` 兜底正文。
+- [修改] `console/src/pages/Login/index.tsx` — 登录卡片右上角落一枚朱砂方印「函」（闲章），呼应「函包」品牌，立水墨文人气质。
+- [说明] 字体走系统衬线/无衬线栈、不加载 Web Font，保证离线可用；登录页闲章为纯 CSS 装饰、无外部资源。运行期视觉效果待「测一下」镜像重建后在浏览器确认。
+- [合规] `LICENSE`/`NOTICE`/红线文件未触碰；`online.svg`/Mikasa 肖像零碰触；改动均加 `[hanbao modification]`。
+
+---
+
 ## 未修改声明
 
 除本文件记录的改动外，hanbao 中其余代码均来自上游 QwenPaw v2.0.1，其著作权归 The QwenPaw Authors 所有，按 Apache License 2.0 条款授权使用。

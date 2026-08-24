@@ -191,6 +191,8 @@ function AppInner() {
             colorPrimaryText: isDark ? "#D9574B" : "#9E2B25",
             colorPrimaryTextHover: isDark ? "#E57368" : "#B03A2E",
             colorPrimaryTextActive: isDark ? "#A92B23" : "#7E211C",
+            // [hanbao modification] 全站无衬线行书字体统一（含中文 PingFang/雅黑/Noto），与 .ink-title 衬线立骨形成反差
+            fontFamily: "var(--font-sans)",
             colorLink: isDark ? "#D9574B" : "#9E2B25",
             colorLinkHover: "#B03A2E",
             colorLinkActive: "#7E211C",

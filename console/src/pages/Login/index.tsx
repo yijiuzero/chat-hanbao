@@ -101,8 +101,36 @@ export default function LoginPage() {
           boxShadow: isDark
             ? "0 4px 24px rgba(0,0,0,0.4)"
             : "0 8px 32px rgba(31,31,31,0.08)",
+          position: "relative",
+          overflow: "hidden",
         }}
       >
+        {/* [hanbao modification] 朱砂闲章（函）：落于卡片右上角，立水墨文人气质，呼应「函包」品牌 */}
+        <span
+          aria-hidden
+          style={{
+            position: "absolute",
+            top: 16,
+            right: 16,
+            width: 34,
+            height: 34,
+            borderRadius: 6,
+            border: `1.5px solid ${isDark ? "rgba(192,57,43,0.55)" : "rgba(158,43,37,0.55)"}`,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: isDark ? "rgba(192,57,43,0.6)" : "rgba(158,43,37,0.6)",
+            fontFamily: "var(--font-serif)",
+            fontSize: 16,
+            fontWeight: 600,
+            opacity: 0.85,
+            transform: "rotate(-5deg)",
+            pointerEvents: "none",
+            userSelect: "none",
+          }}
+        >
+          函
+        </span>
         <div style={{ textAlign: "center", marginBottom: 32 }}>
           <img
             src={isDark ? "/logo-dark.svg" : "/logo-light.svg"}

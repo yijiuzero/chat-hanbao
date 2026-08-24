@@ -4,6 +4,8 @@ body {
   overflow: hidden;
   margin: 0;
   padding: 0;
+  /* [hanbao modification] 全站正文统一无衬线行书（与 .ink-title 衬线呼应） */
+  font-family: var(--font-sans);
   background: #F2EEE4;
   background-image:
     radial-gradient(circle at 18% 12%, rgba(31, 31, 31, 0.018) 0, transparent 42%),
@@ -1017,6 +1019,32 @@ html.dark-mode .hanbao-sender-content {
   /* [hanbao modification] 墨线 */
 }
 
+/* [hanbao modification] 入场轻动效：内容淡入、页眉缓升，去生硬闪现（仅透明度/位移，避免触发 fixed 包含块问题） */
+.page-content {
+  animation: hanbaoFade 0.4s ease both;
+}
+.page-header {
+  animation: hanbaoRise 0.42s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+@keyframes hanbaoFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes hanbaoRise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 .table-container {
   height: 100%;
   overflow: hidden;
@@ -1189,7 +1217,7 @@ html.dark-mode .debug-log-path strong {
 /* ─── [hanbao modification] 水墨风通用工具类 ─────────────────────────────── */
 /* 书法感标题：衬线字体 + 墨黑 + 字间距，用于 Login / 控制台 / 设置 等关键页 */
 .ink-title {
-  font-family: "Songti SC", "STSong", "Noto Serif SC", "SimSun", serif !important;
+  font-family: var(--font-serif) !important; /* [hanbao modification] 衬线立骨 */
   color: #1f1f1f;
   letter-spacing: 0.06em;
   font-weight: 600;
@@ -1231,11 +1259,27 @@ html.dark-mode .ink-seal {
   background: #C0392B;
 }
 
+/* [hanbao modification] 主要面板标题（卡片/弹窗/抽屉/页眉）统一衬线，立「文人水墨」骨相 */
+.hanbao-card-head-title,
+.ant-card-head-title,
+.hanbao-modal-title,
+.ant-modal-title,
+.hanbao-drawer-title,
+.ant-drawer-title,
+.page-header {
+  font-family: var(--font-serif) !important;
+}
+
 /* ─── [hanbao modification] 全局品牌变量桥接 ─────────────────────────────
    组件 less 中大量使用 var(--colorPrimary, <回退色>) 的 qwenpaw 自定义约定。
    此处定义 --colorPrimary，使其解析为水墨朱砂红并随明暗切换（回退色已统一为 #C0392B）。 */
 :root {
   --colorPrimary: #9E2B25;
+  /* [hanbao modification] 水墨字体系统：--font-serif 立骨（标题/品牌），--font-sans 行书（正文），均为离线系统字体栈 */
+  --font-serif: "Songti SC", "STSong", "Source Han Serif SC", "Noto Serif CJK SC",
+    "Noto Serif SC", "SimSun", "宋体", serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Microsoft YaHei", "Noto Sans SC", "Hiragino Sans GB", sans-serif;
 }
 html.dark-mode {
   --colorPrimary: #C0392B;
@@ -1256,6 +1300,31 @@ html.dark-mode {
 html.dark-mode .hanbao-empty-description,
 html.dark-mode .ant-empty-description {
   color: rgba(255, 255, 255, 0.45) !important;
+}
+
+/* [hanbao modification] 空态落一枚朱砂印（圆环+墨晕），替代被隐藏的百炼插画，走极简水墨留白 */
+.ant-empty,
+.hanbao-empty {
+  position: relative;
+}
+.ant-empty::before,
+.hanbao-empty::before {
+  content: "";
+  display: block;
+  width: 44px;
+  height: 44px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  border: 1.5px solid var(--colorPrimary);
+  opacity: 0.32;
+  background: radial-gradient(circle at 50% 45%, rgba(158, 43, 37, 0.10), transparent 68%);
+  box-shadow: inset 0 0 0 3px rgba(158, 43, 37, 0.04);
+}
+html.dark-mode .ant-empty::before,
+html.dark-mode .hanbao-empty::before {
+  border-color: var(--colorPrimary);
+  opacity: 0.4;
+  background: radial-gradient(circle at 50% 45%, rgba(192, 57, 43, 0.16), transparent 68%);
 }
 
 /* 亮色卡片 hover 轻墨影，去 bailian 阴影味、增水墨层次 */
