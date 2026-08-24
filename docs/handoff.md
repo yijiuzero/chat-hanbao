@@ -13,8 +13,9 @@
 - I-019(文档改/创建自研) / I-022(Tavily key) / 前端第一轮水墨美化(a87fb07) 也已提交
 
 **Docker 实况**
-- daemon 在跑；**`hanbao:latest` = `531ecf90e1ff`**（1.74GB，2026-08-24 重建，验收全绿：`:8088`/`:8091` `<title>hanbao Console</title>`、auth/status `{"enabled":true,"has_users":false}`、err.log 零 traceback）
-- **⚠️ 验证容器 `hanbao_verify2`（8091）可能仍在运行** → http://localhost:8091 可预览；`docker rm -f hanbao_verify2` 停。用户日常用的是 8088 上的旧 `hanbao` 容器（带数据），替换前需先停旧容器
+- daemon 在跑；**`hanbao:latest` = `1067ffd5c99f`**（1.74GB，2026-08-21 纪律后首轮「测一下」重建验收全绿：新镜像含 `039fa49`+`5ed0391`+MD 维护 `1aeb83d`；`:8099` 干净容器实测 `<title>hanbao Console</title>`、auth/status `{"enabled":true,"has_users":false}`、err.log 零 traceback）
+- **⚠️ 用户日常部署的 `hanbao` 容器（8088）仍跑在旧镜像 `4b9b782c5d9b`（08-21 重建，缺 039fa49/5ed0391 三轮 TAB 隐藏 + 本轮其余收尾）**。替换前须先停旧容器（带数据卷，勿 `docker rm` 丢数据）再以 `hanbao:latest` 起新容器——**此步由用户决定，AI 不自重启服务**。
+- **⚠️ 验证容器 `hanbao_verify2`（8091，`531ecf90e1ff`）可能仍在运行** → http://localhost:8091 可预览；`docker rm -f hanbao_verify2` 停。
 - **🔴 构建铁律新增（2026-08-24 实测）：`docker build` 必须清掉宿主代理 env**——shell 里 `HTTP_PROXY/HTTPS_PROXY=127.0.0.1:7897` 会被自动注入构建容器，Clash 没起时 npm/pip 全走死代理假死。命令：
   `docker build -f deploy/Dockerfile --build-arg NODE_IMAGE=node:20-slim --build-arg UV_IMAGE=uv:local --build-arg HTTP_PROXY= --build-arg HTTPS_PROXY= --build-arg http_proxy= --build-arg https_proxy= -t hanbao:latest .`
   （`node:20-slim` 替代默认 ACR 的 `agentscope/node:slim`，后者因 Clash 对 aliyuncs 授权 EOF 拉不动；`uv:local` 用本地缓存省一次拉取）
@@ -74,8 +75,8 @@ hanbao（中文"函包"）是 fork 自 **QwenPaw v2.0.1（Apache-2.0）** 的个
 
 ## 四、当前可运行产物（截至 2026-08-24）
 
-- 镜像 **`hanbao:latest` = `531ecf90e1ff`**（1.74GB，2026-08-24 重建，前端全面水墨化第二轮 + 文档依赖已入）
-- 用户日常容器 `hanbao`（8088，带数据）运行中；验证容器 `hanbao_verify2`（8091）可预览新界面
+- 镜像 **`hanbao:latest` = `1067ffd5c99f`**（1.74GB，本轮回测重建，含 039fa49+5ed0391+MD 维护；验收全绿）
+- 用户日常容器 `hanbao`（8088，带数据）仍跑旧镜像 `4b9b782c5d9b`；验证容器 `hanbao_verify2`（8091，`531ecf90e1ff`）可预览
 - 基线 commit `9b86a976fffdc37b871fe31a7b689a8b6463c5b4`（`9b86a97`），tag `upstream/v2.0.1`（纯净上游 2846 文件）
 - 查看 hanbao 全部改动：`git diff upstream/v2.0.1..HEAD`
 

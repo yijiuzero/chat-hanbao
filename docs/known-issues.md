@@ -892,7 +892,7 @@ GPL 是 copyleft 传染性许可，与 Apache-2.0 闭源分发目标冲突，违
 | 2026-08-20 | **T1b 镜像二次重建 + 验收全绿（提交 3b28257）**：改 Dockerfile LABEL 触发 apt 层缓存失效真跑，暴露 `E: Unable to locate package fonts-wqy-microhei`（Debian 源已移除该包）→ 移除 microhei 重建成功（`c9d492804176`/1.78GB，apt+前端+uv 全重跑）。干净容器验收全绿：`:8088` `<title>hanbao Console</title>`、auth/status 正常、err.log 异常 0。容器保留供预览。 |
 | 2026-08-21 | **砍 10 频道（f8fdce0）+ 砍桌面端整条线（e9c6d08）+ 桌面线收尾（d9a9875）**：频道仅留 8 个（imessage/dingtalk/feishu/qq/console/wecom/xiaoyi/wechat），对应 pyproject SDK 移除（LGPL 直接依赖清零）；桌面端 Header/App 死代码、pywebview/tauri mock、`scripts/pack-tauri/`、7 个桌面 Actions、`@tauri-apps/*` 依赖全清；收尾删悬空 `/api/desktop/shutdown` 端点 + 孤儿 tauri 测试（I-027）。均 grep 彻查零悬空、未构建（待用户「测一下」）。 |
 | 2026-08-24 | **I-019/I-022 落地 + 前端两轮水墨化 + 重建验收全绿**：自研 `document_edit.py` 4 工具（create/edit docx/xlsx，python-docx/openpyxl MIT，pptx 放弃）补 I-019；`web_search` 支持可选 `TAVILY_API_KEY` 解 I-022；前端第一轮（a87fb07 字体/闲章/动效）+ 第二轮（59220ad 全面水墨化：登录页意境/聊天气泡/会话项/页眉）按用户拍板「全面水墨化」做实质性重做。**重建镜像 `531ecf90e1ff`/`hanbao:latest`（1.74GB）**，干净容器验收全绿：`<title>hanbao Console</title>`、auth/status `{"enabled":true,"has_users":false}`、err.log 零 traceback、`/api/desktop/shutdown` 404、I-019 依赖就绪。**🔴 构建教训**：shell 的 `HTTP_PROXY/HTTPS_PROXY` 被自动注入构建容器，Clash 没起时 npm/pip 假死——构建须 `--build-arg HTTP_PROXY= --build-arg HTTPS_PROXY=` 清空，走宿主直连（+ daemon mirror），无需 Clash。 |
-| 2026-08-24 | **auth.py 死条目清理 + remeLightMemory TAB 隐藏（039fa49）+ ChannelDrawer 死代码清理（5ed0391）**：前者删 `auth.py` `_PUBLIC_PATHS` 漏清的 `/api/desktop/shutdown`、运行配置页隐藏记忆后端 TAB 仅留 reactAgent（时区）；后者删 10 频道 `case` 块(667 行)+3 const+useEffect（noUnusedLocals 须连带删），活频道表单逻辑不受影响。均 grep 彻查零悬空、未构建（待本轮「测一下」重建验收）。 |
+| 2026-08-24 | **auth.py 死条目清理 + remeLightMemory TAB 隐藏（039fa49）+ ChannelDrawer 死代码清理（5ed0391）+ MD 维护（1aeb83d）**：前者删 `auth.py` `_PUBLIC_PATHS` 漏清的 `/api/desktop/shutdown`、运行配置页隐藏记忆后端 TAB 仅留 reactAgent（时区）；后者删 10 频道 `case` 块(667 行)+3 const+useEffect（noUnusedLocals 须连带删），活频道表单逻辑不受影响。均 grep 彻查零悬空。**本轮回测「测一下」重建 `hanbao:latest`（`1067ffd5c99f`，1.74GB）验收全绿**：`<title>hanbao Console</title>`、auth/status `{"enabled":true,"has_users":false}`、err.log 零 traceback、前端 tsc/vite 编译通过。 |
 
 ## I-025 · 改 Dockerfile 触发 apt 层缓存失效，暴露 fonts-wqy-microhei 已从 Debian 源移除
 
@@ -965,7 +965,7 @@ GPL 是 copyleft 传染性许可，与 Apache-2.0 闭源分发目标冲突，违
 - `constants.ts`/`channelIcons.ts` 此前已清理干净，本次无改动；无 ChannelDrawer 专属测试。
 
 ### 验证
-全仓 grep `useEffect`/三 const 在 ChannelDrawer 归零；`case "` 恰为 7 活频道（imessage/dingtalk/feishu/qq/wecom/xiaoyi/wechat）；活频道表单逻辑不受影响。未构建（待用户「测一下」重建验收）。
+全仓 grep `useEffect`/三 const 在 ChannelDrawer 归零；`case "` 恰为 7 活频道（imessage/dingtalk/feishu/qq/wecom/xiaoyi/wechat）；活频道表单逻辑不受影响。**已随 `hanbao:latest`（`1067ffd5c99f`）「测一下」重建验收全绿**：干净容器 `<title>hanbao Console</title>`、auth/status `{"enabled":true,"has_users":false}`、err.log 零 traceback，`tsc`/`vite` 编译通过。
 
 <a id="i-030"></a>
 ## I-030 · 运行配置页清理：auth.py 死白名单条目 + 隐藏 remeLightMemory TAB
@@ -977,4 +977,4 @@ GPL 是 copyleft 传染性许可，与 Apache-2.0 闭源分发目标冲突，违
 - `console/src/pages/Agent/Config/index.tsx`：移除 `MEMORY_MANAGER_BACKEND_MAPPINGS` import + `memoryBackend` useWatch + dynamicTabs 里按 backend 动态 push 记忆 TAB 的逻辑 → 运行配置页**只剩 reactAgent（用户时区）一个 TAB**。`reme_light_memory_config` 后端默认值照常加载、保存时 `...original` 兜底不丢；`ReMeLightMemoryCard.tsx` 文件保留（backendMappings 仍映射供其它页）。
 
 ### 验证
-`py_compile` 通过；前端 `tsc` 编译 + 运行期待「测一下」镜像重建确认。未构建（待用户「测一下」）。
+`py_compile` 通过；前端 `tsc`/`vite` 编译 + 运行期待「测一下」镜像重建确认。**已随 `hanbao:latest`（`1067ffd5c99f`）重建验收全绿**：`<title>hanbao Console</title>`、auth/status `{"enabled":true,"has_users":false}`、err.log 零 traceback，运行配置页仅余 reactAgent TAB 前端编译通过。

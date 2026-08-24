@@ -980,7 +980,7 @@ _背景：自动记忆搜索(Beta) 默认开着，家庭场景无需用户配置
 - [修改] `src/hanbao/app/auth.py` — `_PUBLIC_PATHS` 删 `/api/desktop/shutdown`（桌面端点路由已于 `d9a9875` 删除，请求 404 无害，白名单漏清的死条目）。0 依赖风险，`py_compile` 通过。
 - [修改] `console/src/pages/Agent/Config/index.tsx` — 移除 `MEMORY_MANAGER_BACKEND_MAPPINGS` import + `memoryBackend` useWatch + dynamicTabs 里按 backend 动态 push 记忆 TAB 的逻辑 → 运行配置页**只剩 reactAgent（用户时区）一个 TAB**。`reme_light_memory_config` 后端默认值照常加载、保存时 `...original` 兜底不丢；`ReMeLightMemoryCard.tsx` 文件保留（backendMappings 仍映射供其它页）。
 - [合规] `LICENSE`/`NOTICE`/红线文件未触碰；改动均加 `[hanbao modification]`。
-- [验证] 前端编译 + 运行期待「测一下」镜像重建确认。未构建（纪律：改完即 commit，待用户「测一下」）。
+- [验证] 前端编译 + 运行期待「测一下」镜像重建确认。**已随 `hanbao:latest`（`1067ffd5c99f`）「测一下」重建验收全绿**：`<title>hanbao Console</title>`、auth/status `{"enabled":true,"has_users":false}`、err.log 零 traceback，运行配置页仅余 reactAgent TAB 前端编译通过。
 
 ---
 
@@ -992,7 +992,7 @@ _背景：2026-08-21 砍除 10 个频道时，其 `ChannelDrawer.tsx` 专属 `ca
 - [说明] `tsconfig.app.json` `noUnusedLocals:true`：删 case 必须连带删 const/import，否则 `tsc` 阶段报错。
 - [保留] `constants.ts`/`channelIcons.ts` 此前已清理干净，本次无改动；无 ChannelDrawer 专属测试。locales JSON 仍含被砍频道翻译键（无害死文案，未清理）。
 - [合规] `LICENSE`/`NOTICE`/红线文件未触碰。
-- [验证] 全仓 grep `useEffect`/三 const 在 ChannelDrawer 归零；`case "` 恰为 7 活频道（imessage/dingtalk/feishu/qq/wecom/xiaoyi/wechat）；活频道表单逻辑不受影响。未构建（纪律：改完即 commit，待用户「测一下」）。
+- [验证] 全仓 grep `useEffect`/三 const 在 ChannelDrawer 归零；`case "` 恰为 7 活频道（imessage/dingtalk/feishu/qq/wecom/xiaoyi/wechat）；活频道表单逻辑不受影响。**已随 `hanbao:latest`（`1067ffd5c99f`）「测一下」重建验收全绿**：`<title>hanbao Console</title>`、auth/status `{"enabled":true,"has_users":false}`、err.log 零 traceback，前端 tsc/vite 编译通过。
 
 ---
 
