@@ -27,6 +27,8 @@ services:
     #   - HANBAO_AUTH_ENABLED=true
     #   - HANBAO_AUTH_USERNAME=admin
     #   - HANBAO_AUTH_PASSWORD=yourpassword
+    #   # 可选：填自己的 Tavily key 避免 web_search 免费 keyless 额度限速（I-022）
+    #   - TAVILY_API_KEY=${TAVILY_API_KEY:-}
     volumes:
       - hanbao-data:/app/working
       - hanbao-secrets:/app/working.secret

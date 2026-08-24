@@ -327,7 +327,7 @@ Coding Mode 移除时 Monaco 编辑器未一并清理，本次收尾：
 - [修改] `console/package-lock.json` — `npm install --package-lock-only` 同步（纯删 62 行，零版本漂移）
 - [修改] `console/src/main.tsx` — 删 `import "./monacoSetup"` 及注释
 - [修改] `console/src/monacoSetup.ts` — 清空为占位符 `export {}`（`tsc -b` 会编译 src 下所有 .ts，直接删依赖报 TS2307）
-- [保留] `console/scripts/verify-monaco-css.mjs` — 孤儿文件（.mjs 不被 tsc 编译、script 已删不调用），物理删除待用户手动执行
+- [已删] `console/scripts/verify-monaco-css.mjs` — 孤儿文件（.mjs 不被 tsc 编译、script 已删不调用），已于 2026-08-20 `9337598` 提交删除，`console/scripts/` 目录已清空
 
 > ⚠️ 环境教训：本机 `git rm` 删除文件曾触发整个 `console/` 目录 553 文件从磁盘消失（文件系统异常，类似 I-018），故未用 git rm，改用「清空占位 + 留孤儿文件」，物理删除交用户手动。
 
@@ -894,6 +894,17 @@ _背景：用户要求"桌面端整条线都给他砍掉"，并顺带确认仓�
 - [清理] `console/src/locales/zh.json`/`en.json` — `updateModal` 区块除 `title` 外全部为桌面更新流程文案（`installDesktopUpdate`/`desktopInstallHint`/`checking`/`downloading`/`readyToInstall`/`updateLater`/`backgroundDownloading` 等 22 个 key），代码零引用，全部删除；`title` 保留。`index.module.less` 删除 `.updateViewReleasesBtn` 类（纠正 2026-08-21 记录：该类的唯一使用者是 desktop install 按钮，按钮已删，类随之删除）。`externalLinkComponents.tsx` 顶部注释更新为纯浏览器描述。
 - [合规] `LICENSE`/`NOTICE`/`license-compliance.md` 红线文件未触碰；逐文件改动均已加 `[hanbao modification]` 注释（JSON/LESS 无法嵌注释的由本记录 + `git diff` 承担标注，符合 §4(b) 简化策略）。
 - [验证] 全仓 grep `onDesktop|isDesktopTauriRuntime|__TAURI__|pywebview|@tauri-apps|getPyWebViewApi|interceptBlankLinkClicks|updateViewReleasesBtn` 在 `console/src` 仅剩本次新增的 `[hanbao modification]` 注释文本，无任何代码引用；`.github` 无 desktop/tauri 残留；三份 JSON 校验通过；`scripts/pack-tauri`、`src-tauri` 目录已不存在。`console/package-lock.json` 中 `@tauri-apps/*` 条目（43 处）为锁文件残留，npm 生态惯例由下次 `npm install` 自动清除，不手改 lock（避免误伤哈希/依赖树）；`npm ci`/`npm install` 均不受 lock 多余条目影响。未做构建/镜像验证（纪律：改完即 commit，待用户「测一下」）。
+
+---
+
+## 阶段 6.x · I-022 web_search 支持可选 Tavily key（2026-08-24）
+
+`web_search` 工具原本写死 `X-Tavily-Access-Mode: keyless` 免费模式，上架后重度使用会集体撞 Tavily 限速（I-022）。改为支持可选 `TAVILY_API_KEY` 环境变量：
+
+- [修改] `src/hanbao/agents/tools/web_search.py` — 新增 `_TAVILY_API_KEY = os.environ.get("TAVILY_API_KEY", "")` 与 `_tavily_headers()`：有 key 时发 `Authorization: Bearer <key>` 认证请求（用部署者自有额度避限速），无 key 时回退 keyless 零配置。`py_compile` 通过。
+- [修改] `docker-compose.yml` — `environment` 示例注释加 `TAVILY_API_KEY=${TAVILY_API_KEY:-}`，提示部署者透传自有 key。
+- [修改] `docs/known-issues.md` — I-022 状态 🔴→🟢（env 方案），设置页 UI 入口列为可选增强。
+- [合规] `LICENSE`/`NOTICE`/红线文件未触碰；改动加 `[hanbao modification]`。
 
 ---
 

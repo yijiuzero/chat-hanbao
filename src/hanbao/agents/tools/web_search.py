@@ -3,11 +3,14 @@
 # pylint: disable=line-too-long
 """Web search and fetch tools.
 
-web_search uses Tavily keyless API.
+web_search uses the Tavily API. When the TAVILY_API_KEY environment variable
+is set it sends an authenticated request (per-user quota); otherwise it falls
+back to Tavily's free keyless mode (rate-limited, zero-config).
 web_fetch uses direct HTTP GET + markdownify (MIT).
 """
 
 import logging
+import os
 import re
 import ssl
 
@@ -30,9 +33,30 @@ _TAVILY_SEARCH_URL = "https://api.tavily.com/search"
 _DEFAULT_TIMEOUT = 30
 _DEFAULT_MAX_RESULTS = 5
 
+# [hanbao modification] Optional per-deployment Tavily key. When empty we use
+# Tavily's free keyless mode (rate-limited); when set we auth as that user so
+# heavy usage does not exhaust the shared keyless quota (I-022).
+_TAVILY_API_KEY = (os.environ.get("TAVILY_API_KEY", "") or "").strip()
+
+
+def _tavily_headers() -> dict:
+    """Build Tavily request headers.
+
+    Authenticated requests (TAVILY_API_KEY set) use a Bearer token; otherwise
+    we fall back to the free keyless access mode.
+    """
+    headers = {"Content-Type": "application/json"}
+    if _TAVILY_API_KEY:
+        headers["Authorization"] = f"Bearer {_TAVILY_API_KEY}"
+    else:
+        headers["X-Tavily-Access-Mode"] = "keyless"
+    return headers
+
+
 _SEARCH_FALLBACK_HINT = (
     "This tool uses a free API with rate limits. "
-    "Try again later, or fall back to "
+    "If you hit rate limits, set the TAVILY_API_KEY environment variable "
+    "to use your own Tavily key. Otherwise, try again later, or fall back to "
     "execute_shell_command with curl, or browser_use "
     "with action='open' as a last resort."
 )
@@ -229,10 +253,7 @@ async def web_search(search_term: str) -> ToolChunk:
     try:
         data = await _post(
             _TAVILY_SEARCH_URL,
-            headers={
-                "Content-Type": "application/json",
-                "X-Tavily-Access-Mode": "keyless",
-            },
+            headers=_tavily_headers(),
             payload={
                 "query": query,
                 "max_results": _DEFAULT_MAX_RESULTS,

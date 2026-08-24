@@ -30,7 +30,7 @@
 | [I-019](#i-019) | 文档处理能力降级：Anthropic 技能侵权，只能读不能改/创建 | 🔥 高 | 上架前必须解决 | 🟢 已解决（markitdown 已接 file_io；改/创建按计划放弃） |
 | [I-020](#i-020) | html2text 为 GPL-3.0 传染性依赖，违反 R5 红线 | 🔥 高 | 上架前必须解决 | 🟢 已解决（换 markdownify MIT） |
 | [I-021](#i-021) | 依赖审计：4 个 LGPL 弱传染依赖（telegram-bot/rope/pytoolconfig/docstring-to-markdown） | 🟠 中 | 上架前备案 | 🟢 已备案 + 2026-08-21 telegram-bot 随 Telegram 频道砍除从依赖移除（LGPL 直接依赖清零） |
-| [I-022](#i-022) | web_search 用 Tavily keyless（免费限速），上架后重度使用会撞限速 | 🟡 低 | 上架后可优化 | 🔴 待处理 |
+| [I-022](#i-022) | web_search 用 Tavily keyless（免费限速），重度使用会撞限速 | 🟡 低 | 上架后可优化 | 🟢 已解决（2026-08-24，env 变量方案） |
 | [I-023](#i-023) | patch 累积 diff 的提交依赖（原「基线偏离」为误判，本地基线=官方 v2.0.1） | 🟡 低 | 移植靠后提交前先识别前置依赖 | 🟢 已澄清 |
 | [I-024](#i-024) | Monaco 编辑器残留（Coding Mode 砍不干净） | 🟢 极低 | 阶段 3 收尾 | 🟢 已解决（依赖移除+占位符） |
 | [I-025](#i-025) | 改 Dockerfile 触发 apt 层缓存失效，暴露 fonts-wqy-microhei 已从 Debian 源移除 → 构建失败 | 🟠 中 | 环境教训（已修复） | 🟢 已解决（移除 microhei，3b28257） |
@@ -752,7 +752,7 @@ GPL 是 copyleft 传染性许可，与 Apache-2.0 闭源分发目标冲突，违
 
 ## I-022 · web_search 用 Tavily keyless（免费限速），重度使用会撞限速
 
-**严重度**：🟡 低 &nbsp;|&nbsp; **状态**：🔴 待处理 &nbsp;|&nbsp; **必须处理时机**：上架后可优化（非阻塞）
+**严重度**：🟡 低 &nbsp;|&nbsp; **状态**：🟢 已解决（2026-08-24，env 变量方案） &nbsp;|&nbsp; **必须处理时机**：上架后可优化（非阻塞）
 
 ### 现象
 `web_search` 工具用 Tavily **keyless** 模式（`X-Tavily-Access-Mode: keyless`），免费、无密钥、开箱即用，但 **Tavily 官方定位是"探索/轻量使用"**，明确说"生产环境换 API key"。keyless 有严格速率限制。
@@ -766,8 +766,14 @@ GPL 是 copyleft 传染性许可，与 Apache-2.0 闭源分发目标冲突，违
 - `web_search` 工具：默认用 keyless，无需任何配置
 - `config.py` 已预留 `tavily_search` MCP 配置（`enabled=False` + `TAVILY_API_KEY=""`），填了 key 才启用
 
-### 待办（上架后优化）
-1. [ ] 设置页加"搜索 API key"可选入口，支持用户填 Tavily key（免费 1000 credits/月），keyless 作为 fallback
+### 已处置（2026-08-24）
+采用**环境变量方案**（贴合本项目"配置走 env"哲学，零前端改动、零新增依赖）：
+- `src/hanbao/agents/tools/web_search.py` — 新增 `_TAVILY_API_KEY = os.environ.get("TAVILY_API_KEY", "")` 与 `_tavily_headers()`：有 key 时发 `Authorization: Bearer <key>` 认证请求（用部署者自己的额度），无 key 时回退 `X-Tavily-Access-Mode: keyless`。默认行为不变（仍零配置可用）。
+- `docker-compose.yml` — 在 `environment` 示例注释中加 `TAVILY_API_KEY=${TAVILY_API_KEY:-}`，提示部署者可透传自有 key 避限速。
+- 速率超限时的 fallback 提示文案补充「可设 TAVILY_API_KEY」。
+
+### 待办（可选增强，非必须）
+1. [ ] 设置页加"搜索 API key"可选入口（前端 UI），让终端用户自助填 key —— 当前 env 方案已消除"集体撞限速"风险，UI 入口属体验优化，按需再做
 2. [ ] 或评估换免费无 key 的搜索源（DuckDuckGo / SearXNG 自建）
 
 ### 备注
