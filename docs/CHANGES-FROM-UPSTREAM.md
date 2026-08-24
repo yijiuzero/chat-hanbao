@@ -942,6 +942,27 @@ _背景：用户要求"桌面端整条线都给他砍掉"，并顺带确认仓�
 
 ---
 
+## 阶段 6.x · 前端界面全面水墨化（2026-08-24 第二轮）
+
+用户实测上一轮「水墨美化」后反馈「界面还是没怎么变，只是加了点动效」——根因是上一轮仅在既定水墨方向内做边缘装饰（字体/闲章/动效），未动布局与质感。本轮按用户拍板的「全面水墨化」做实质性视觉重做（不另起炉灶、不碰 `online.svg`/Mikasa 红线）：
+
+- [修改] `console/src/styles/layout.css`（全局水墨层）—
+  - 宣纸纹理背景：body 在既有米白底上叠加双角墨晕 + 极淡朱砂点染 + 纵向纤维纹理（`repeating-linear-gradient`），告别「一片平」的纯色。
+  - 聊天气泡水墨化（Spark 外部组件，用稳定 class 片段钩子）：助手气泡=宣纸白 `#FBF8F1`+细墨边+柔影，用户气泡=朱砂淡宣纸+朱砂边；暗色模式对应墨灰/朱砂。仅改背景/边框/圆角/柔影，不碰 SDK 内部布局（避免流式渲染破坏）。
+  - 气泡内链接统一朱砂（`a { color:#9E2B25 }`）。
+  - 聊天输入区顶部加一道墨线，与消息区留白分界。
+  - `.page-content` 叠极淡纸影（「宣纸托起」层次）；`.ant-layout-content`/`.page-container` 铺极淡墨晕，避免纯白平板。
+  - 登录页响应式：窄屏（≤900px）隐藏水墨品牌立轴，仅留宣纸登录卡。
+- [修改] `console/src/components/SessionItem/sessionItem.module.less`（会话项水墨化）—
+  - `.sidebar`/`.drawer` 项 hover 加朱砂左条（`inset` 阴影，不挤布局）；`.active` 加朱砂左条 + 衬线名（`var(--font-serif)`），立「文人立骨」。
+  - 修复 QwenPaw 漏网青绿状态点 `rgba(20,184,166)` → 朱砂脉冲（`statusDotActive` + `chatStatusBreathe` 关键帧 glow 改朱砂），去 qwenpaw 味。
+- [重写] `console/src/pages/Login/index.tsx` — 登录页从「居中宣纸卡片+闲章」升级为**水墨意境双栏**：左墨黑品牌立轴（朱砂圆晕 + 衬线 wordmark「函包」+ 闲章「函」+ 标语「墨痕未干，对话已成」），右宣纸登录卡（logo + 衬线标题 + 表单 + 右上角朱砂闲章）；窄屏自动收起左轴。暗/亮双版。
+- [修改] `console/src/pages/Chat/components/ChatHeaderTitle/index.module.less` — 聊天页眉标题与下拉会话名统一衬线（`var(--font-serif)`），与全局 `.ink-title` 立骨一致；hover/激活本就朱砂，无需改。
+- [说明] 本轮为纯视觉/样式层改动，逻辑零改；字体走系统栈不引外网、登录页为纯 CSS 装饰，均离线可用。运行期视觉验收待用户「测一下」镜像重建后在浏览器确认。
+- [合规] `LICENSE`/`NOTICE`/红线文件未触碰；`online.svg`/Mikasa 肖像零碰触；改动均加 `[hanbao modification]`。
+
+---
+
 ## 未修改声明
 
 除本文件记录的改动外，hanbao 中其余代码均来自上游 QwenPaw v2.0.1，其著作权归 The QwenPaw Authors 所有，按 Apache License 2.0 条款授权使用。

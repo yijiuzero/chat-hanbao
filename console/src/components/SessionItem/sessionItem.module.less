@@ -2,13 +2,13 @@
   0%,
   100% {
     opacity: 0.65;
-    box-shadow: 0 0 0 0 rgba(20, 184, 166, 0.55);
+    box-shadow: 0 0 0 0 rgba(192, 57, 43, 0.45); /* [hanbao modification] 朱砂呼吸，替 QwenPaw 青绿 */
     transform: scale(1);
   }
 
   50% {
     opacity: 1;
-    box-shadow: 0 0 10px 3px rgba(20, 184, 166, 0.35);
+    box-shadow: 0 0 10px 3px rgba(192, 57, 43, 0.30);
     transform: scale(1.12);
   }
 }
@@ -74,6 +74,8 @@
 
   &.active {
     background: var(--color-fill-secondary, rgba(31, 31, 31, 0.08));
+    /* [hanbao modification] 朱砂左条，与 sidebar 风格统一 */
+    box-shadow: inset 2px 0 0 0 var(--colorPrimary, #C0392B);
   }
 
   &.editing .content {
@@ -99,6 +101,8 @@
 
   &:hover {
     background: var(--color-fill-tertiary, rgba(31, 31, 31, 0.05));
+    /* [hanbao modification] hover 朱砂左条（inset 不挤布局） */
+    box-shadow: inset 2px 0 0 0 rgba(158, 43, 37, 0.25);
 
     .moreBtn {
       opacity: 1;
@@ -112,9 +116,12 @@
 
   &.active {
     background: var(--color-fill-secondary, rgba(31, 31, 31, 0.08));
+    /* [hanbao modification] 朱砂左条立骨 + 衬线名，去 QwenPaw 平面感 */
+    box-shadow: inset 2px 0 0 0 var(--colorPrimary, #C0392B);
 
     .name {
       font-weight: 500;
+      font-family: var(--font-serif);
       color: var(--colorText, rgba(26, 23, 22, 0.88));
     }
 
@@ -243,7 +250,7 @@
 }
 
 .statusDotActive {
-  background: rgba(20, 184, 166, 1);
+  background: var(--colorPrimary, #C0392B); /* [hanbao modification] 朱砂替 QwenPaw 青绿 */
   animation: chatStatusBreathe 1.6s ease-in-out infinite;
 }
 

@@ -6,10 +6,13 @@ body {
   padding: 0;
   /* [hanbao modification] 全站正文统一无衬线行书（与 .ink-title 衬线呼应） */
   font-family: var(--font-sans);
-  background: #F2EEE4;
+  /* [hanbao modification] 宣纸纹理：米白底 + 双角墨晕 + 极淡朱砂点染 + 纵向纤维纹理 */
+  background-color: #F2EEE4;
   background-image:
-    radial-gradient(circle at 18% 12%, rgba(31, 31, 31, 0.018) 0, transparent 42%),
-    radial-gradient(circle at 82% 88%, rgba(31, 31, 31, 0.022) 0, transparent 46%);
+    radial-gradient(circle at 12% 8%, rgba(31, 31, 31, 0.025) 0, transparent 38%),
+    radial-gradient(circle at 88% 92%, rgba(31, 31, 31, 0.028) 0, transparent 42%),
+    radial-gradient(circle at 78% 16%, rgba(158, 43, 37, 0.020) 0, transparent 30%),
+    repeating-linear-gradient(0deg, rgba(31, 31, 31, 0.012) 0 1px, transparent 1px 3px);
 }
 
 .hanbao-layout {
@@ -1335,4 +1338,84 @@ html.dark-mode .hanbao-empty::before {
 html.dark-mode .hanbao-card:hover,
 html.dark-mode .ant-card:hover {
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.40) !important;
+}
+
+/* ─── [hanbao modification] 聊天气泡水墨化 ─────────────────────────────
+   气泡为 Spark 外部组件，用稳定 class 片段钩子统一水墨质感：
+   助手气泡=宣纸白+细墨边；用户气泡=朱砂淡宣纸+朱砂边。
+   仅改背景/边框/圆角/柔影，不碰布局，避免破坏 SDK 内部流式渲染。 */
+[class*="bubble-assistant"] {
+  background: #FBF8F1 !important;
+  border: 1px solid rgba(31, 31, 31, 0.10) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 1px 6px rgba(31, 31, 31, 0.06) !important;
+}
+[class*="bubble-user"] {
+  background: rgba(158, 43, 37, 0.07) !important;
+  border: 1px solid rgba(158, 43, 37, 0.22) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 1px 6px rgba(158, 43, 37, 0.08) !important;
+}
+html.dark-mode [class*="bubble-assistant"] {
+  background: #202020 !important;
+  border-color: rgba(255, 255, 255, 0.10) !important;
+}
+html.dark-mode [class*="bubble-user"] {
+  background: rgba(192, 57, 43, 0.16) !important;
+  border-color: rgba(192, 57, 43, 0.34) !important;
+}
+
+/* 聊天气泡内的链接用朱砂，与全站主色一致 */
+[class*="bubble-start"] a,
+[class*="bubble-end"] a,
+[class*="bubble-assistant"] a,
+[class*="bubble-user"] a {
+  color: #9E2B25 !important;
+}
+html.dark-mode [class*="bubble-start"] a,
+html.dark-mode [class*="bubble-end"] a,
+html.dark-mode [class*="bubble-assistant"] a,
+html.dark-mode [class*="bubble-user"] a {
+  color: #C0392B !important;
+}
+
+/* 聊天输入区（sender）顶部加一道墨线，与消息区留白分界 */
+.hanbao-chat-anywhere-input,
+[class*="chat-anywhere-input"] {
+  border-top: 1px solid rgba(31, 31, 31, 0.08) !important;
+}
+html.dark-mode .hanbao-chat-anywhere-input,
+html.dark-mode [class*="chat-anywhere-input"] {
+  border-top-color: rgba(255, 255, 255, 0.10) !important;
+}
+
+/* page-content 墨框：在既有 1px 墨边外，叠一层极淡纸影，立「宣纸托起」层次 */
+.page-content {
+  box-shadow: 0 1px 0 rgba(31, 31, 31, 0.02), 0 10px 30px rgba(31, 31, 31, 0.04);
+}
+html.dark-mode .page-content {
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.03), 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+/* 主内容区（ant-layout-content / page-container）也铺宣纸纹理，避免纯白平板 */
+.ant-layout-content,
+.page-container {
+  background-color: transparent !important;
+  background-image:
+    radial-gradient(circle at 90% 6%, rgba(31, 31, 31, 0.014) 0, transparent 34%),
+    radial-gradient(circle at 6% 94%, rgba(31, 31, 31, 0.016) 0, transparent 36%);
+}
+html.dark-mode .ant-layout-content,
+html.dark-mode .page-container {
+  background-image: radial-gradient(circle at 12% 12%, rgba(255, 255, 255, 0.02) 0, transparent 40%) !important;
+}
+
+/* [hanbao modification] 登录页：窄屏隐藏水墨品牌立轴，仅留宣纸登录卡 */
+@media (max-width: 900px) {
+  .hanbao-login-brand {
+    display: none !important;
+  }
+  .hanbao-login-split {
+    width: min(420px, 92vw) !important;
+  }
 }
