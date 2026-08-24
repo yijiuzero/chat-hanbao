@@ -195,9 +195,6 @@ export default function Header() {
           </Tooltip>
           <div className={styles.headerDivider} />
           <span className={styles.hideOnMobile}>
-          </span>
-          <div className={styles.headerDivider} />
-          <span className={styles.hideOnMobile}>
             <LanguageSwitcher />
           </span>
           <span className={styles.hideOnMobile}>
