@@ -39,6 +39,7 @@
 | [I-028](#i-028) | 前端界面两轮水墨化美化（边缘装饰→全面重做：登录页意境/聊天气泡/会话项/页眉） | 🟡 低 | 界面品牌化（已重建验收） | 🟢 已解决（2026-08-24 `a87fb07`+`59220ad`，镜像 `531ecf90e1ff`） |
 | [I-029](#i-029) | ChannelDrawer 被砍频道死代码清理（10 频道 case 块 + 3 const + useEffect） | 🟢 极低 | 频道砍除收尾（已修复） | 🟢 已解决（2026-08-24 `5ed0391`） |
 | [I-030](#i-030) | 运行配置页清理：auth.py 死白名单条目 + 隐藏 remeLightMemory TAB | 🟢 极低 | 界面收尾（已修复） | 🟢 已解决（2026-08-24 `039fa49`） |
+| [I-031](#i-031) | header 被删模块占位：GitHub 后空 `<span>` + 双分隔线导致中间空一截 | 🟢 极低 | header 布局收尾（已修复） | 🟢 已解决（2026-08-24 `e27acfa`） |
 
 ---
 
@@ -893,6 +894,7 @@ GPL 是 copyleft 传染性许可，与 Apache-2.0 闭源分发目标冲突，违
 | 2026-08-21 | **砍 10 频道（f8fdce0）+ 砍桌面端整条线（e9c6d08）+ 桌面线收尾（d9a9875）**：频道仅留 8 个（imessage/dingtalk/feishu/qq/console/wecom/xiaoyi/wechat），对应 pyproject SDK 移除（LGPL 直接依赖清零）；桌面端 Header/App 死代码、pywebview/tauri mock、`scripts/pack-tauri/`、7 个桌面 Actions、`@tauri-apps/*` 依赖全清；收尾删悬空 `/api/desktop/shutdown` 端点 + 孤儿 tauri 测试（I-027）。均 grep 彻查零悬空、未构建（待用户「测一下」）。 |
 | 2026-08-24 | **I-019/I-022 落地 + 前端两轮水墨化 + 重建验收全绿**：自研 `document_edit.py` 4 工具（create/edit docx/xlsx，python-docx/openpyxl MIT，pptx 放弃）补 I-019；`web_search` 支持可选 `TAVILY_API_KEY` 解 I-022；前端第一轮（a87fb07 字体/闲章/动效）+ 第二轮（59220ad 全面水墨化：登录页意境/聊天气泡/会话项/页眉）按用户拍板「全面水墨化」做实质性重做。**重建镜像 `531ecf90e1ff`/`hanbao:latest`（1.74GB）**，干净容器验收全绿：`<title>hanbao Console</title>`、auth/status `{"enabled":true,"has_users":false}`、err.log 零 traceback、`/api/desktop/shutdown` 404、I-019 依赖就绪。**🔴 构建教训**：shell 的 `HTTP_PROXY/HTTPS_PROXY` 被自动注入构建容器，Clash 没起时 npm/pip 假死——构建须 `--build-arg HTTP_PROXY= --build-arg HTTPS_PROXY=` 清空，走宿主直连（+ daemon mirror），无需 Clash。 |
 | 2026-08-24 | **auth.py 死条目清理 + remeLightMemory TAB 隐藏（039fa49）+ ChannelDrawer 死代码清理（5ed0391）+ MD 维护（1aeb83d）**：前者删 `auth.py` `_PUBLIC_PATHS` 漏清的 `/api/desktop/shutdown`、运行配置页隐藏记忆后端 TAB 仅留 reactAgent（时区）；后者删 10 频道 `case` 块(667 行)+3 const+useEffect（noUnusedLocals 须连带删），活频道表单逻辑不受影响。均 grep 彻查零悬空。**本轮回测「测一下」重建 `hanbao:latest`（`1067ffd5c99f`，1.74GB）验收全绿**：`<title>hanbao Console</title>`、auth/status `{"enabled":true,"has_users":false}`、err.log 零 traceback、前端 tsc/vite 编译通过。 |
+| 2026-08-24 | **header 被删模块占位清理（e27acfa）**：`Header.tsx` 的 `<Space size="middle">` 中 GitHub 按钮后残留「分隔线 + 空 `<span>` + 分隔线」，空 span 为上游 QwenPaw header（Docs/FAQ/Changelog 等减法删除模块）的占位（git blame 源自基线 9b86a97）。去掉空 span 与冗余分隔线，保留 GitHub 与语言/主题切换间单条分隔线；纯布局清理、无逻辑改动。 |
 
 ## I-025 · 改 Dockerfile 触发 apt 层缓存失效，暴露 fonts-wqy-microhei 已从 Debian 源移除
 
@@ -978,3 +980,21 @@ GPL 是 copyleft 传染性许可，与 Apache-2.0 闭源分发目标冲突，违
 
 ### 验证
 `py_compile` 通过；前端 `tsc`/`vite` 编译 + 运行期待「测一下」镜像重建确认。**已随 `hanbao:latest`（`1067ffd5c99f`）重建验收全绿**：`<title>hanbao Console</title>`、auth/status `{"enabled":true,"has_users":false}`、err.log 零 traceback，运行配置页仅余 reactAgent TAB 前端编译通过。
+
+<a id="i-031"></a>
+## I-031 · header 被删模块占位：GitHub 后空 `<span>` + 双分隔线导致中间空一截
+
+**严重度**：🟢 极低 &nbsp;|&nbsp; **状态**：🟢 已解决（2026-08-24 `e27acfa`） &nbsp;|&nbsp; **必须处理时机**：header 布局收尾
+
+### 现象
+Console 顶栏 `<Space size="middle">` 中，GitHub 按钮后紧接「分隔线 + 空 `<span>` + 分隔线」，空 `<span>` 无任何子节点，桌面端（`.hideOnMobile`）渲染为空占位，使 header 中间空出一截——用户从 devtools 看到 `hanbao-space-horizontal hanbao-space-align-center hanbao-space-gap-row-middle ...`（即该 antd `<Space>`，因 `App.tsx` 设 `prefixCls="hanbao"` 而带 `hanbao-` 前缀）。
+
+### 根因
+`git blame` 显示这几行源自基线 `9b86a97`（上游 QwenPaw v2.0.1 未改）。上游 header 在 GitHub 后还有 Docs/FAQ/Changelog 等模块按钮，减法式二次开发删除这些模块时，按钮内容被清掉，但其 `<span>` 占位与两侧分隔线残留，形成空位。
+
+### 处理
+- `console/src/layouts/Header.tsx`：删除空 `<span className={styles.hideOnMobile}>` 与冗余的一条 `headerDivider`，保留 GitHub 与 `<LanguageSwitcher/>`/`<ThemeToggleButton/>` 之间单条分隔线。改动后 header Space 子项：`GitHub` → `divider` → `LanguageSwitcher` → `ThemeToggleButton` → 移动端 `Dropdown`（桌面隐藏）。
+- 纯布局清理，无逻辑/依赖改动；移动端 `.hideOnMobile` 与 `.headerDivider` 本就在 ≤768px 隐藏，无副作用。
+
+### 验证
+`tsc`/`vite` 编译待「测一下」镜像重建确认（本次为纯 JSX 布局删减，属低风险）。
