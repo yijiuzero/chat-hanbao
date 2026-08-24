@@ -121,34 +121,7 @@
   "sidebar": {
     "newVersion": "New version available: v{{version}}, click to upgrade",
     "updateModal": {
-      "title": "New version available: v{{version}}",
-      "installDesktopUpdate": "Update Now",
-      "desktopInstallHint": "hanbao Desktop {{version}} is ready to install. The app will restart after the update.",
-      "checking": "Checking for updates…",
-      "checkingHint": "Confirming the latest release",
-      "downloading": "Downloading update",
-      "downloadingTo": "Updating to version {{version}}",
-      "downloadProgress": "{{done}} / {{total}} · {{rate}}",
-      "installing": "Installing update",
-      "willRestart": "The app will restart automatically when done.",
-      "stepPrepare": "Prepare",
-      "stepDownloading": "Download",
-      "stepInstalling": "Install",
-      "failedTitle": "Update failed",
-      "back": "Back",
-      "retry": "Retry",
-      "errors": {
-        "network": "Couldn't reach the update server. Check your internet and try again.",
-        "signature": "Update file signature invalid. Try downloading again.",
-        "appLocation": "hanbao is running from a read-only macOS location. Move hanbao.app to the Applications folder, launch it from there, then try updating again.",
-        "other": "Update failed."
-      },
-      "updateLater": "Download in Background",
-      "backgroundDownloading": "Downloading in background…",
-      "readyToInstall": "Update ready",
-      "readyToInstallHint": "v{{version}} update is downloaded. Restart to install and launch the new version.",
-      "restartNow": "Update Now",
-      "backgroundFailed": "Background download failed"
+      "title": "New version available: v{{version}}"
     },
     "settings": {
       "language": "Language",

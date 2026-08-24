@@ -873,6 +873,28 @@ _背景：上一轮移除更新弹窗 web 端 "view releases" 按钮（走 `getR
 - [未改动·合规] `LICENSE`/`NOTICE`/`license-compliance.md`/`CHANGES-FROM-UPSTREAM.md` 红线文件未触碰（R2 严禁 blanket 替换波及）。JSON 无法嵌注释，修改标注由本文件 + `git diff` 承担，符合 license-compliance.md §6 简化策略（§4(b) "prominent notices" 未强制逐文件头部）。`PYPI_URL`（`pypi.org/pypi/qwenpaw/json`）仍处禁用态且有 `constants.test.ts` 对应断言，暂保留不碰。
 - [验证] 全仓 grep `viewReleases` 零残留；两 locale 文件 `JSON.parse` 通过。未做构建/镜像验证（纪律：改完即 commit，待用户「测一下」）。
 
+### 砍除桌面端整条线（2026-08-21/2026-08-24）
+
+_背景：用户要求"桌面端整条线都给他砍掉"，并顺带确认仓库里有没有残留的 Tauri 构建脚手架。经核查确认：仓库源码树内无 Rust 版 `src-tauri/`、`tauri.conf.json`、`Cargo.toml`，但存在 `scripts/pack-tauri/` 打包脚本、`@tauri-apps/*` 依赖、`build:tauri-bootstrap` 脚本及整套桌面 GitHub Actions——全部属于桌面线残留，本次一并清除。hanbao 定位为 Web 控制台（后端同源托管），桌面 shell 无任何消费者，`onDesktop=false` 早已写死，砍除为纯减法、零功能损失。_
+
+- [修改] `console/src/layouts/Header.tsx` — 删除 `const desktop={...} as any` 桩、`onDesktop=false`、logo 8 连击 DevTools 手势（`handleLogoClick`/`logoClicksRef`）、桌面更新检查 useEffect、`handleStartInstall/UpdateLater/RestartNow`、后台下载/就绪/失败状态计算与对应 JSX（Popover/Tooltip 指示器）、更新弹窗 footer 的 desktop 安装/稍后按钮、`modalVersion/latestVersion`；清理仅被上述代码使用的 import（`Popover`、`SyncOutlined`、`CheckCircleOutlined`、`ExclamationCircleOutlined`、`useRef`）。版本徽标保留（`hasUpdate=false` 常闭，web 更新检查本已禁用）。
+- [修改] `console/src/App.tsx` — 移除 `isDesktopTauriRuntime`、`interceptBlankLinkClicks` 导入；删除两个桌面专用 useEffect（右键菜单拦截禁 DevTools、Tauri `_blank` 链接重路由）。
+- [修改] `console/src/utils/openExternalLink.ts` — 精简为纯浏览器：移除 `@tauri-apps/api/core`、pywebview 依赖及 `isDesktopTauriRuntime/hasTauriInternals/detectExternalLinkRuntime` 与 tauri/pywebview 分支，`openExternalLink` 只走 `window.open`；保留 `resolveExternalUrl/isHttpExternalUrl/resolveSupportedExternalUrl` 纯 URL 校验导出。加 `[hanbao modification]`。
+- [修改] `console/src/utils/downloadFileFromUrl.ts` — 精简为纯浏览器：移除 `@tauri-apps/api/core`、`@tauri-apps/plugin-dialog`、pywebview 依赖及 `downloadWithPyWebView/getTauriSavePath/downloadWithTauri`，仅保留 fetch+blob 下载路径。加 `[hanbao modification]`。
+- [删除] `console/src/utils/pywebview.ts`、`console/src/utils/interceptBlankLinkClicks.ts`（+`interceptBlankLinkClicks.test.ts`）、`console/src/test/tauri-mock.ts`（vite 测试别名目标）。
+- [修改] `console/src/vite-env.d.ts` — 移除 `PyWebViewAPI` 与 `Window.pywebview` 全局声明。
+- [修改] `console/vite.config.ts` — 移除 `@tauri-apps/api/core`、`@tauri-apps/plugin-dialog` 测试别名与 `**/src/tauri/**` exclude 项。
+- [修改] `console/package.json` — 移除 `@tauri-apps/api`、`@tauri-apps/plugin-dialog`、`@tauri-apps/cli` 依赖及 `build:tauri-bootstrap` 脚本（其引用 `src-tauri/vite.bootstrap.config.ts` 与 `scripts/pack-tauri/*`，均已不存在）。两文件均 `JSON.parse` 校验通过。
+- [删除] `scripts/pack-tauri/`（11 个文件）— pyinstaller + Tauri bootstrap 打包脚本，桌面构建脚手架残留。
+- [删除] GitHub Actions 桌面线（7 个文件）— `desktop-build.yml`、`desktop-publish.yml`、`desktop-promote.yml`、`desktop-release.yml`、`fork-verify-desktop.yml`、`.github/actions/verify-tauri-macos/action.yml`、`verify-tauri-windows/action.yml`。
+- [修改] `.github/workflows/release.yml` — 移除 `build-desktop`/`publish-desktop`/`promote-desktop` 三个 job 及其在各 publish/finalize job `needs:` 中的引用；移除 resolve job 里仅桌面验证用的 `HANBAO_DASHSCOPE_API_KEY` 检查；头部注释同步去掉 desktop 提及。Web/Docker/PyPI/插件发布线不受影响。
+- [修改] `.github/workflows/release-duty.yml` + `.github/release-duty-roster.yml` — 移除 macOS/Windows Desktop 验证清单与轮值名单；`actionlint.yaml` 移除 `tauri_updater_*` 变量声明与 `desktop-release.yml` paths 项。
+- [修改] `console/src/utils/openExternalLink.test.ts` — 重写为纯浏览器行为用例（移除 pywebview/tauri/`DownloadCancelledError` 相关用例与 `tauri-mock` 导入）。
+- [修改] `console/src/api/modules/workspace.test.ts` — 移除已无必要的 `@tauri-apps/*` mock（`downloadFileFromUrl` 本就整体 mock）。
+- [清理] `console/src/locales/zh.json`/`en.json` — `updateModal` 区块除 `title` 外全部为桌面更新流程文案（`installDesktopUpdate`/`desktopInstallHint`/`checking`/`downloading`/`readyToInstall`/`updateLater`/`backgroundDownloading` 等 22 个 key），代码零引用，全部删除；`title` 保留。`index.module.less` 删除 `.updateViewReleasesBtn` 类（纠正 2026-08-21 记录：该类的唯一使用者是 desktop install 按钮，按钮已删，类随之删除）。`externalLinkComponents.tsx` 顶部注释更新为纯浏览器描述。
+- [合规] `LICENSE`/`NOTICE`/`license-compliance.md` 红线文件未触碰；逐文件改动均已加 `[hanbao modification]` 注释（JSON/LESS 无法嵌注释的由本记录 + `git diff` 承担标注，符合 §4(b) 简化策略）。
+- [验证] 全仓 grep `onDesktop|isDesktopTauriRuntime|__TAURI__|pywebview|@tauri-apps|getPyWebViewApi|interceptBlankLinkClicks|updateViewReleasesBtn` 在 `console/src` 仅剩本次新增的 `[hanbao modification]` 注释文本，无任何代码引用；`.github` 无 desktop/tauri 残留；三份 JSON 校验通过；`scripts/pack-tauri`、`src-tauri` 目录已不存在。`console/package-lock.json` 中 `@tauri-apps/*` 条目（43 处）为锁文件残留，npm 生态惯例由下次 `npm install` 自动清除，不手改 lock（避免误伤哈希/依赖树）；`npm ci`/`npm install` 均不受 lock 多余条目影响。未做构建/镜像验证（纪律：改完即 commit，待用户「测一下」）。
+
 ---
 
 ## 未修改声明

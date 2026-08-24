@@ -1,11 +1,10 @@
 /**
  * Shared react-markdown renderer overrides.
  *
- * The default markdown <a> becomes a native anchor, and in the Tauri WebView a
- * click navigates the current window — replacing the whole app with the target
- * page and stranding the user with no way back. This renderer intercepts the
- * click and hands the URL to `openExternalLink`, which opens it in the system
- * browser (Tauri/pywebview) or a new tab (plain browser).
+ * [hanbao modification] Desktop shells (Tauri / pywebview) removed. The
+ * default markdown <a> becomes a native anchor; this renderer intercepts the
+ * click and hands the URL to `openExternalLink`, which opens it in a new tab
+ * with scheme validation.
  */
 import type { ComponentPropsWithoutRef } from "react";
 import { openExternalLink } from "@/utils/openExternalLink";

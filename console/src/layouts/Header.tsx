@@ -5,7 +5,6 @@ import {
   Spin,
   Tooltip,
   Dropdown,
-  Popover,
 } from "antd";
 import type { MenuProps } from "antd";
 import LanguageSwitcher, {
@@ -28,7 +27,7 @@ import {
   // compareVersions,
 } from "./constants";
 import { useTheme } from "../contexts/ThemeContext";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Slot } from "../plugins/registry/Slot";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -38,9 +37,6 @@ import {
   TagOutlined,
   GithubOutlined,
   InfoCircleOutlined,
-  SyncOutlined,
-  CheckCircleOutlined,
-  ExclamationCircleOutlined,
 } from "@ant-design/icons";
 
 const { Header: AntHeader } = Layout;
@@ -73,13 +69,9 @@ function UpdateCodeBlock({ code }: { code: string }) {
 export default function Header() {
   const { t, i18n } = useTranslation();
   const { isDark, setThemeMode } = useTheme();
-  const desktop = { hasUpdate: false, version: "", isBackground: false, phase: "", supportsLaterInstall: false, body: "", startInstall() {}, startBackgroundDownload() {}, installDownloaded() {}, total: 0, downloaded: 0, error: null } as any;
-  const onDesktop = false;
   const [version, setVersion] = useState<string>("");
-  const [latestVersion] = useState<string>("");
   const [updateModalOpen, setUpdateModalOpen] = useState(false);
   const [updateMarkdown, setUpdateMarkdown] = useState<string>("");
-  const logoClicksRef = useRef<number[]>([]);
 
   useEffect(() => {
     api
@@ -88,35 +80,12 @@ export default function Header() {
       .catch(() => {});
   }, []);
 
-  // Hidden gesture: 8 rapid clicks on the logo within 3 seconds toggles DevTools
-  // in the Tauri desktop build. This keeps DevTools inaccessible via the default
-  // context menu or keyboard shortcuts while still allowing support/debugging.
-  const handleLogoClick = () => {
-    if (!onDesktop) return;
-    const now = Date.now();
-    const windowStart = now - 3000;
-    logoClicksRef.current = logoClicksRef.current.filter(
-      (time) => time > windowStart,
-    );
-    logoClicksRef.current.push(now);
-    if (logoClicksRef.current.length >= 8) {
-      logoClicksRef.current = [];
-      // [hanbao] DevTools removed.
-    }
-  };
+  // [hanbao modification] Web update check disabled — no hanbao release channel
+  // yet (e.g. FlyOS app store version check). The update modal is shown from
+  // the local UPDATE_MD content instead.
 
-  // [hanbao modification] Web update check disabled.
-  // Hanbao's PyPI releases are not hanbao releases. Re-enable when hanbao
-  // has its own release channel (e.g. FlyOS app store version check).
-  useEffect(() => {
-    // Web update check disabled — no hanbao release channel yet.
-    // Previously fetched PYPI_URL to compare Hanbao versions.
-  }, [onDesktop]);
-
-  const hasUpdate = onDesktop ? desktop.hasUpdate : false;
-
-  const modalVersion = onDesktop ? desktop.version : latestVersion;
-
+  // The console is browser-served; the desktop install/update flow was removed.
+  const hasUpdate = false;
 
   const mobileMenuItems: MenuProps["items"] = [
     {
@@ -160,70 +129,22 @@ export default function Header() {
     const lang = i18n.language?.startsWith("zh")
       ? "zh"
       : i18n.language?.startsWith("ru")
-      ? "ru"
-      : "en";
-
-    if (onDesktop) {
-      setUpdateMarkdown(
-        desktop.body ||
-          t("sidebar.updateModal.desktopInstallHint", {
-            version: desktop.version,
-          }),
-      );
-      return;
-    }
+        ? "ru"
+        : "en";
 
     // [hanbao modification] use local UPDATE_MD instead of fetching the
     // upstream QwenPaw FAQ markdown for update instructions.
     setUpdateMarkdown(UPDATE_MD[lang] ?? UPDATE_MD.en);
   };
 
-  const handleStartInstall = () => {
-    setUpdateModalOpen(false);
-    void desktop.startInstall();
-  };
-
-  const handleUpdateLater = () => {
-    setUpdateModalOpen(false);
-    void desktop.startBackgroundDownload();
-  };
-
-  const handleRestartNow = () => {
-    void desktop.installDownloaded();
-  };
-
   const handleNavClick = (url: string) => {
     openExternalLink(url);
   };
 
-  // Background download/ready state for inline header indicator.
-  const isBackgroundActive =
-    onDesktop &&
-    desktop.isBackground &&
-    (desktop.phase === "checking" || desktop.phase === "downloading");
-  const isReady = onDesktop && desktop.phase === "downloaded";
-  const isApplyingDownloadedUpdate =
-    onDesktop && desktop.phase === "installing";
-  const isBackgroundFailed =
-    onDesktop && desktop.isBackground && desktop.phase === "failed";
-  const backgroundDownloadPercent =
-    isBackgroundActive && desktop.phase === "downloading" && desktop.total
-      ? Math.min(99, Math.round((desktop.downloaded / desktop.total) * 100))
-      : undefined;
-  const backgroundDownloadTitle =
-    backgroundDownloadPercent !== undefined
-      ? `${t(
-          `sidebar.updateModal.backgroundDownloading`,
-        )} ${backgroundDownloadPercent}%`
-      : t(`sidebar.updateModal.backgroundDownloading`);
-  const backgroundFailureTitle = desktop.error?.message
-    ? `${t(`sidebar.updateModal.backgroundFailed`)}: ${desktop.error.message}`
-    : t(`sidebar.updateModal.backgroundFailed`);
-
   return (
     <>
       <AntHeader className={styles.header}>
-        <div className={styles.logoWrapper} onClick={handleLogoClick}>
+        <div className={styles.logoWrapper}>
           {/*
             Slot lets a plugin replace the brand logo (e.g. a per-agent
             branding override). When no plugin registers a replacement —
@@ -240,78 +161,23 @@ export default function Header() {
           <div className={styles.logoDivider} />
           {version && (
             <Badge
-              dot={!!hasUpdate && !isReady && !isBackgroundActive}
+              dot={!!hasUpdate}
               color="rgba(192, 57, 43, 1)"
               offset={[4, 28]}
             >
               <span
                 className={`${styles.versionBadge} ${
-                  hasUpdate || isReady
+                  hasUpdate
                     ? styles.versionBadgeClickable
                     : styles.versionBadgeDefault
                 }`}
                 onClick={() => {
-                  if (isReady) return; // handled by Popover
                   if (hasUpdate) handleOpenUpdateModal();
                 }}
               >
                 v{version}
               </span>
             </Badge>
-          )}
-          {isBackgroundActive && (
-            <Tooltip title={backgroundDownloadTitle}>
-              <SyncOutlined
-                spin
-                style={{
-                  marginLeft: 6,
-                  fontSize: 14,
-                  color: "rgba(192, 57, 43, 1)",
-                }}
-              />
-            </Tooltip>
-          )}
-          {isReady && (
-            <Popover
-              content={
-                <div style={{ textAlign: "center" }}>
-                  <p style={{ marginBottom: 12 }}>
-                    {t(`sidebar.updateModal.readyToInstallHint`, {
-                      version: desktop.version,
-                    })}
-                  </p>
-                  <Button
-                    type="primary"
-                    size="small"
-                    onClick={handleRestartNow}
-                    loading={isApplyingDownloadedUpdate}
-                  >
-                    {t(`sidebar.updateModal.restartNow`)}
-                  </Button>
-                </div>
-              }
-              title={t(`sidebar.updateModal.readyToInstall`)}
-              trigger="click"
-            >
-              <Tooltip title={t(`sidebar.updateModal.readyToInstall`)}>
-                <CheckCircleOutlined
-                  style={{ marginLeft: 6, fontSize: 14, color: "#52c41a" }}
-                />
-              </Tooltip>
-            </Popover>
-          )}
-          {isBackgroundFailed && (
-            <Tooltip title={backgroundFailureTitle}>
-              <ExclamationCircleOutlined
-                style={{
-                  marginLeft: 6,
-                  fontSize: 14,
-                  color: "#ff4d4f",
-                  cursor: "pointer",
-                }}
-                onClick={() => void desktop.startBackgroundDownload()}
-              />
-            </Tooltip>
           )}
         </div>
         <Slot name="header.left" kind="fill" />
@@ -356,22 +222,7 @@ export default function Header() {
           <Button key="close" onClick={() => setUpdateModalOpen(false)}>
             {t("common.close")}
           </Button>,
-          onDesktop && desktop.supportsLaterInstall ? (
-            <Button key="later" onClick={handleUpdateLater}>
-              {t("sidebar.updateModal.updateLater")}
-            </Button>
-          ) : null,
-          onDesktop ? (
-            <Button
-              key="install"
-              type="primary"
-              className={styles.updateViewReleasesBtn}
-              onClick={handleStartInstall}
-            >
-              {t("sidebar.updateModal.installDesktopUpdate")}
-            </Button>
-          ) : null,
-        ].filter(Boolean)}
+        ]}
         width={960}
         className={styles.updateModal}
       >
@@ -380,11 +231,11 @@ export default function Header() {
           <div className={styles.updateModalBannerLeft}>
             <span className={styles.updateModalVersionTag}>
               <TagOutlined />
-              Version {modalVersion || version}
+              Version {version}
             </span>
             <div className={styles.updateModalBannerTitle}>
               {t("sidebar.updateModal.title", {
-                version: modalVersion || version,
+                version,
               })}
             </div>
           </div>

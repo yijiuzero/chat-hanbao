@@ -85,14 +85,6 @@ export default defineConfig(({ command, mode }) => {
           __dirname,
           "src/test/icons-mock.ts",
         ),
-        "@tauri-apps/api/core": path.resolve(
-          __dirname,
-          "src/test/tauri-mock.ts",
-        ),
-        "@tauri-apps/plugin-dialog": path.resolve(
-          __dirname,
-          "src/test/tauri-mock.ts",
-        ),
       },
       exclude: [
         "**/node_modules/**",
@@ -101,8 +93,6 @@ export default defineConfig(({ command, mode }) => {
         "**/testConnectionMessage.test.ts",
         // ChatPage test causes worker crash - pre-existing issue, needs more mock setup
         "**/pages/Chat/ChatPage.test.tsx",
-        // Tauri modules require @tauri-apps/api which only exists in desktop builds
-        "**/src/tauri/**",
       ],
       coverage: {
         provider: "v8",

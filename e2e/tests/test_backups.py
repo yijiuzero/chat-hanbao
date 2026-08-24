@@ -977,8 +977,9 @@ class TestBackupExport:
                 export_triggered = True
             except Exception as download_err:
                 if "Download" in str(download_err) or "download" in str(download_err):
-                    # May use pywebview native save; check for toast or status change after click
-                    success_msg = page.locator(
+                # [hanbao modification] Desktop shells removed — browser download
+                # may be intercepted by Playwright; check for toast or status change.
+                success_msg = page.locator(
                         '.hanbao-message-success, .hanbao-notification-success'
                     ).first
                     if success_msg.is_visible(timeout=3000):
