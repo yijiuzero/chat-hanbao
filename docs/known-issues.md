@@ -27,7 +27,7 @@
 | [I-016](#i-016) | 品牌名残留：插件 plugin.json author 字段 | 🟢 极低 | 无阻塞 | 🟢 保留上游署名（合规） |
 | [I-017](#i-017) | sed 产生 JS 注释 `//` 污染 Python 文件 | 🔥 高 | 阶段 3 删减定制 | 🟢 已解决 |
 | [I-018](#i-018) | git checkout 导致 gitignored 文件从磁盘消失 | 🔥 高 | 阶段 3 删减定制 | 🟢 已解决（gitignore 硬化） |
-| [I-019](#i-019) | 文档处理能力降级：Anthropic 技能侵权，只能读不能改/创建 | 🔥 高 | 上架前必须解决 | 🟢 已解决（markitdown 已接 file_io；改/创建按计划放弃） |
+| [I-019](#i-019) | 文档处理能力：Anthropic 专有技能侵权移除；读用 markitdown，改/创建用自研 python-docx/openpyxl | 🔥 高 | 上架前必须解决 | 🟢 已解决（读 markitdown + 改/创建自研工具，2026-08-24） |
 | [I-020](#i-020) | html2text 为 GPL-3.0 传染性依赖，违反 R5 红线 | 🔥 高 | 上架前必须解决 | 🟢 已解决（换 markdownify MIT） |
 | [I-021](#i-021) | 依赖审计：4 个 LGPL 弱传染依赖（telegram-bot/rope/pytoolconfig/docstring-to-markdown） | 🟠 中 | 上架前备案 | 🟢 已备案 + 2026-08-21 telegram-bot 随 Telegram 频道砍除从依赖移除（LGPL 直接依赖清零） |
 | [I-022](#i-022) | web_search 用 Tavily keyless（免费限速），重度使用会撞限速 | 🟡 低 | 上架后可优化 | 🟢 已解决（2026-08-24，env 变量方案） |
@@ -668,9 +668,9 @@ WSL2 后端的 Docker 数据盘路径由 `AppData\Local\Docker\wsl\disk\docker_d
 
 ---
 
-## I-019 · 文档处理能力降级：Anthropic 技能侵权，只能读不能改/创建
+## I-019 · 文档处理能力：Anthropic 专有技能侵权移除，读用 markitdown，改/创建用自研 python-docx/openpyxl
 
-**严重度**：🔥 高 &nbsp;|&nbsp; **状态**：🟢 已解决 &nbsp;|&nbsp; **必须处理时机**：上架前
+**严重度**：🔥 高 &nbsp;|&nbsp; **状态**：🟢 已解决（2026-08-24 自研改/创建工具落地） &nbsp;|&nbsp; **必须处理时机**：上架前
 
 ### 现象
 上游 QwenPaw 内置的 4 个文档处理技能 `docx`/`pdf`/`pptx`/`xlsx`，其 `LICENSE.txt` 为 **Anthropic 专有许可**（`© 2025 Anthropic, PBC. All rights reserved.`），明确禁止「分发 / 复制 / 衍生作品 / 销售」。Anthropic 官方仓库也确认这 4 个文档技能是 **source-available, not open source**（源码可见但非开源）。
@@ -691,14 +691,29 @@ WSL2 后端的 Docker 数据盘路径由 `AppData\Local\Docker\wsl\disk\docker_d
 ### 能力现状对照
 | 能力 | 状态 |
 |---|---|
-| 读 docx/pdf/pptx/xlsx 内容 | 🟢 已接入（markitdown 路由到 file_io.read_file，2026-08-19 落地） |
-| 改 docx/xlsx 样式/内容 | ❌ 不可（无 python-docx/openpyxl 库 + 无技能指引） |
-| 创建 docx/xlsx/pptx | ❌ 不可（已放弃） |
+| 读 docx/pdf/pptx/xlsx 内容 | 🟢 已接入（markitdown 路由到 file_io.read_file） |
+| 改 docx/xlsx 内容 | 🟢 已接入（自研 `document_edit` 工具：python-docx/openpyxl，MIT，2026-08-24） |
+| 创建 docx/xlsx | 🟢 已接入（自研 `document_edit` 工具，同上） |
+| 改/创建 pptx | ❌ 不可（pptx 创建/编辑复杂度高，维持放弃；读取仍由 markitdown 支持） |
 
 ### 待办
 1. [x] 删除 4 个 Anthropic 专有技能目录（docx/pdf/pptx/xlsx 的中英双语 + LICENSE.txt + scripts）—— ✅ 已删除（2026-08-13）
 2. [x] 接入 `markitdown`（加依赖 `markitdown[pdf,docx,pptx,xlsx]>=0.1.0` + 新增 `document_reader` 技能中英双语）—— ✅ 已完成（2026-08-13，构建验证通过 hanbao:0.0.12）
-3. [ ] 后续评估是否需要补「改文档」能力（自研简化版）
+3. [x] 补「改/创建文档」能力（自研简化版 python-docx/openpyxl）—— ✅ 2026-08-24 落地（见下）
+
+### 已处置（2026-08-24，自研改/创建工具）
+移除 Anthropic 专有技能后，函包一度「只能读不能改/创建」。本次以**许可干净的自研实现**补齐改/创建能力（不引入任何专有/传染性依赖）：
+
+- 新增 `src/hanbao/agents/tools/document_edit.py`，4 个 AgentScope `@tool_descriptor` 工具（与 `web_search`/`web_fetch` 同形态，Agent 直接调用、零前端改动）：
+  - `create_docx(file_path, content, title)` — 纯文本建 Word（每行一段，可选标题）
+  - `edit_docx(file_path, operation, ...)` — append 追加段落 / replace 段内查找替换
+  - `create_xlsx(file_path, rows, sheet_name)` — 制表符分隔行建 Excel
+  - `edit_xlsx(file_path, operation, ...)` — append_row 追加行 / write_cell 写单元格（支持 `Sheet!A1`）
+  - 复用 `file_io._resolve_file_path` 路径解析 + `io_utils.get_path_lock` 并发锁；python-docx/openpyxl **lazy import**，缺失时返回明确错误而非崩溃。
+- `src/hanbao/agents/tools/__init__.py` — 导入 4 个工具，装饰器自动注册进全局工具表。
+- `pyproject.toml` — 加 `python-docx>=1.1.0` + `openpyxl>=3.1.0`（均 MIT，Apache-2.0 再分发合规；正是此前被删 Anthropic 技能的合法替代）。
+- 范围为「简化版」：无样式引擎/模板系统，仅满足 Agent 代用户产出与微调 Office 文档的基本需求。pptx 创建/编辑维持放弃（复杂度高、收益低）。
+- 验证：`py_compile` + `ast.parse` 通过；依赖未本地装，运行期验证待「测一下」镜像重建（届时 pip 安装新依赖 + 容器实测 4 工具可用）。
 
 ---
 

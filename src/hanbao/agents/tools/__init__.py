@@ -30,6 +30,12 @@ from .file_search import grep_search, glob_search
 from .shell import execute_shell_command
 from .send_file import send_file_to_user
 from .web_search import web_search, web_fetch
+from .document_edit import (
+    create_docx,
+    edit_docx,
+    create_xlsx,
+    edit_xlsx,
+)
 from .view_media import view_image, view_video
 from .get_current_time import get_current_time, set_user_timezone
 from .get_token_usage import get_token_usage

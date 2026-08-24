@@ -908,6 +908,18 @@ _背景：用户要求"桌面端整条线都给他砍掉"，并顺带确认仓�
 
 ---
 
+## 阶段 6.x · I-019 自研文档改/创建工具（2026-08-24）
+
+移除 Anthropic 专有 docx/xlsx 技能后函包一度「只能读不能改/创建」，本次以许可干净的自研实现补齐（I-019 待办 #3）：
+
+- [新增] `src/hanbao/agents/tools/document_edit.py` — 4 个 AgentScope `@tool_descriptor` 工具：`create_docx`/`edit_docx`/`create_xlsx`/`edit_xlsx`（与 `web_search`/`web_fetch` 同形态，Agent 直接调用、零前端改动）。复用 `file_io._resolve_file_path` + `io_utils.get_path_lock`；python-docx/openpyxl **lazy import** 缺失优雅降级。`py_compile`+`ast.parse` 通过。
+- [修改] `src/hanbao/agents/tools/__init__.py` — 导入 4 工具，装饰器自动注册。
+- [修改] `pyproject.toml` — 加 `python-docx>=1.1.0` + `openpyxl>=3.1.0`（均 MIT，合法替代被删的 Anthropic 专有技能，Apache-2.0 再分发合规）。
+- [说明] 范围「简化版」：无样式引擎/模板，仅满足 Agent 代用户产出与微调 Office 文档；pptx 创建/编辑维持放弃。运行期验证待「测一下」镜像重建（pip 装新依赖 + 容器实测 4 工具）。
+- [合规] `LICENSE`/`NOTICE`/红线文件未触碰；新增文件含 `[hanbao modification]` 溯源注释。
+
+---
+
 ## 未修改声明
 
 除本文件记录的改动外，hanbao 中其余代码均来自上游 QwenPaw v2.0.1，其著作权归 The QwenPaw Authors 所有，按 Apache License 2.0 条款授权使用。

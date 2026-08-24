@@ -58,6 +58,11 @@ dependencies = [
     # [hanbao modification] Read PDF/Office documents via MarkItDown (MIT)
     # after removing Anthropic-proprietary docx/pdf/pptx/xlsx skills (I-019).
     "markitdown[pdf,docx,pptx,xlsx]>=0.1.0",
+    # [hanbao modification] Self-built document edit/create tools (I-019):
+    # python-docx + openpyxl are both MIT, replacing the removed Anthropic
+    # proprietary docx/xlsx skills with a license-clean implementation.
+    "python-docx>=1.1.0",
+    "openpyxl>=3.1.0",
 ]
 
 [project.urls]
