@@ -202,6 +202,11 @@ hanbao 仅做 Web 聊天，桌面打包（Tauri + Rust）需求不存在。
 - `console/src/utils/downloadFileFromUrl.ts` — 移除 Tauri invoke/save import
 - `console/src/pages/Agent/ACP/index.tsx` — 移除 Tauri 文件选择器
 
+**收尾补齐（2026-08-21）：** 初始移除时漏网两处，本次补齐，确保「桌面端整条线砍掉」彻底无残留：
+- `src/hanbao/app/_app.py` — 删除 `/api/desktop/shutdown` 端点（其函数体内 `from ..tauri.env import ...` 引用已删的 `src/hanbao/tauri` 侧车模块，属悬空引用，调用即 500）。
+- `tests/unit/tauri/test_entry.py`、`tests/unit/tauri/test_sidecar_logging.py` — 删除仍 `import hanbao.tauri` 的两个必挂孤儿测试（pytest 收集期即 ImportError）。
+- 验证：`_app.py` 经 `py_compile` 通过；`HANBAO_DESKTOP_PORT` 常量仍在 `constant.py`（port.py 顶层 import 安全）；频道 import 零残留；`desktop_cmd.py` 已不存在、无悬空引用。
+
 ### QwenPaw Pet 桌面宠物插件移除（2026-08-18）
 
 hanbao 仅做 Web 聊天且容器已砍桌面栈（I-004），桌面宠物（依赖 PySide6 + 独立桌面进程 `qwenpaw_pet_desktop`）既不在部署镜像内（`Dockerfile` 仅 `COPY src ./src`，根目录 `plugins/` 从未 COPY），也失去运行环境，故整目录移除。
