@@ -911,6 +911,8 @@ _背景：用户要求"桌面端整条线都给他砍掉"，并顺带确认仓�
 - [修改] `docs/known-issues.md` — I-022 状态 🔴→🟢（env 方案），设置页 UI 入口列为可选增强。
 - [合规] `LICENSE`/`NOTICE`/红线文件未触碰；改动加 `[hanbao modification]`。
 
+> **重建验收（2026-08-24，用户「测一下」触发）**：本项随第二轮前端美化一并入镜像 `531ecf90e1ff` 重建验收全绿——`docker exec` 实测 `docx`/`openpyxl` 可正常 import（运行期 4 工具可用），err.log 零 traceback。详见下方「前端界面全面水墨化（第二轮）」验收条。
+
 ---
 
 ## 阶段 6.x · I-019 自研文档改/创建工具（2026-08-24）
@@ -922,6 +924,8 @@ _背景：用户要求"桌面端整条线都给他砍掉"，并顺带确认仓�
 - [修改] `pyproject.toml` — 加 `python-docx>=1.1.0` + `openpyxl>=3.1.0`（均 MIT，合法替代被删的 Anthropic 专有技能，Apache-2.0 再分发合规）。
 - [说明] 范围「简化版」：无样式引擎/模板，仅满足 Agent 代用户产出与微调 Office 文档；pptx 创建/编辑维持放弃。运行期验证待「测一下」镜像重建（pip 装新依赖 + 容器实测 4 工具）。
 - [合规] `LICENSE`/`NOTICE`/红线文件未触碰；新增文件含 `[hanbao modification]` 溯源注释。
+
+> **重建验收（2026-08-24，用户「测一下」触发）**：本项随第二轮前端美化一并入镜像 `531ecf90e1ff` 重建验收全绿——`uv pip install` 拉取 python-docx/openpyxl 成功，`docker exec` 实测可 import，4 工具运行期可用。
 
 ---
 
@@ -939,6 +943,8 @@ _背景：用户要求"桌面端整条线都给他砍掉"，并顺带确认仓�
 - [修改] `console/src/pages/Login/index.tsx` — 登录卡片右上角落一枚朱砂方印「函」（闲章），呼应「函包」品牌，立水墨文人气质。
 - [说明] 字体走系统衬线/无衬线栈、不加载 Web Font，保证离线可用；登录页闲章为纯 CSS 装饰、无外部资源。运行期视觉效果待「测一下」镜像重建后在浏览器确认。
 - [合规] `LICENSE`/`NOTICE`/红线文件未触碰；`online.svg`/Mikasa 肖像零碰触；改动均加 `[hanbao modification]`。
+
+> **重建验收（2026-08-24 第二轮，用户「测一下」触发）**：本项与第一轮美化一并入镜像 `531ecf90e1ff` 重建验收全绿（前端重编 tsc+vite 通过），但用户实测反馈「还是没怎么变」——根因正是本轮仅在既定水墨方向内做边缘装饰，未动布局与质感，直接催生了下方「前端界面全面水墨化（第二轮）」。
 
 ---
 
@@ -960,6 +966,10 @@ _背景：用户要求"桌面端整条线都给他砍掉"，并顺带确认仓�
 - [修改] `console/src/pages/Chat/components/ChatHeaderTitle/index.module.less` — 聊天页眉标题与下拉会话名统一衬线（`var(--font-serif)`），与全局 `.ink-title` 立骨一致；hover/激活本就朱砂，无需改。
 - [说明] 本轮为纯视觉/样式层改动，逻辑零改；字体走系统栈不引外网、登录页为纯 CSS 装饰，均离线可用。运行期视觉验收待用户「测一下」镜像重建后在浏览器确认。
 - [合规] `LICENSE`/`NOTICE`/红线文件未触碰；`online.svg`/Mikasa 肖像零碰触；改动均加 `[hanbao modification]`。
+
+> **重建验收（2026-08-24，用户「测一下」触发）**：提交 `59220ad` 后重建镜像 `531ecf90e1ff`/`hanbao:latest`（1.74GB，前端重编 tsc+vite 通过、uv 装文档依赖），干净容器实测全绿：`:8091` `<title>hanbao Console</title>`、`/api/auth/status`=`{"enabled":true,"has_users":false}`、`/var/log/app.err.log` 零 traceback、`/api/desktop/shutdown` 404（悬空端点确认删除）、I-019 依赖 `docx 1.2.0`/`openpyxl 3.1.5` 就绪。浏览器预览见 `http://localhost:8091`。
+>
+> **🔴 构建教训（同批实测）**：shell 的 `HTTP_PROXY`/`HTTPS_PROXY=127.0.0.1:7897` 会被 docker 自动注入构建容器，Clash 没起时 npm/pip 全走死代理假死（表现为 build 卡住）。必须 `--build-arg HTTP_PROXY= --build-arg HTTPS_PROXY= --build-arg http_proxy= --build-arg https_proxy=` 清空，走宿主直连 + daemon mirror，无需 Clash。基础镜像默认 `agentscope/node:slim`（阿里云 ACR）因 Clash 对 aliyuncs 授权 EOF 拉不动，改用 `--build-arg NODE_IMAGE=node:20-slim`（Docker Hub，走 daemon mirror 直通）。
 
 ---
 

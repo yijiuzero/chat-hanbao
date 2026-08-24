@@ -1,7 +1,7 @@
 # hanbao（函包）
 
-> **hanbao 基于 [Hanbao](https://github.com/agentscope-ai/QwenPaw) v2.0.1（Apache-2.0 许可）修改而来。**
-> 原始版权归 **The Hanbao Authors** 所有。
+> **hanbao 基于 [QwenPaw](https://github.com/agentscope-ai/QwenPaw) v2.0.1（Apache-2.0 许可）修改而来。**
+> 原始版权归 **The QwenPaw Authors** 所有。
 > 修改内容详见 [CHANGES-FROM-UPSTREAM.md](docs/CHANGES-FROM-UPSTREAM.md)。
 
 一个轻量的个人 AI 聊天应用，专为**飞牛 NAS** 打造。
@@ -44,8 +44,10 @@ docker run -d --name hanbao -p 8088:8088 -v hanbao-working:/app/working hanbao:l
 | 品牌改造 & 中英双语 | ✅ |
 | 删减定制 | ✅ |
 | 镜像瘦身 | ✅（1.78GB） |
-| 界面品牌化 | ✅（水墨古典基调 + 全站去 qwenpaw 味：token 全量化/空态/欢迎语 hanbao 化，2026-08-20） |
-| FPK 打包 | ✅（脚手架已按官方规范建，待 fnOS 实测） |
+| 界面品牌化 | ✅（水墨古典基调 + 全站去 qwenpaw 味 + 两轮实质美化：登录页意境/聊天气泡/会话项/页眉，2026-08-24 已重建验收） |
+| 频道精简 | ✅（砍 10 留 8：微信/钉钉/飞书/QQ/企微/小忆/iMessage/Console） |
+| 桌面端 | ✅（整条线已砍除，纯 Web 控制台） |
+| FPK 打包 | 🚧（脚手架已按飞牛官方规范建，待 `fnpack build` + fnOS 实测） |
 | 飞牛上架 | ⬜ |
 
 ## 许可

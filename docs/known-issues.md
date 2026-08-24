@@ -35,6 +35,8 @@
 | [I-024](#i-024) | Monaco 编辑器残留（Coding Mode 砍不干净） | 🟢 极低 | 阶段 3 收尾 | 🟢 已解决（依赖移除+占位符） |
 | [I-025](#i-025) | 改 Dockerfile 触发 apt 层缓存失效，暴露 fonts-wqy-microhei 已从 Debian 源移除 → 构建失败 | 🟠 中 | 环境教训（已修复） | 🟢 已解决（移除 microhei，3b28257） |
 | [I-026](#i-026) | 品牌色批量替换漏网：Spark 百炼紫 #615ced（50+ 处）与暖橘 rgba(255,157,77) 形式 | 🟠 中 | 去 qwenpaw 味专项（已修复） | 🟢 已解决（2d5973d/297cc80） |
+| [I-027](#i-027) | 桌面线收尾：砍桌面端整条线时漏删的悬空 `/api/desktop/shutdown` 端点 + 孤儿 tauri 测试 | 🟠 中 | 桌面砍除收尾（已修复） | 🟢 已解决（2026-08-21 `d9a9875`） |
+| [I-028](#i-028) | 前端界面两轮水墨化美化（边缘装饰→全面重做：登录页意境/聊天气泡/会话项/页眉） | 🟡 低 | 界面品牌化（已重建验收） | 🟢 已解决（2026-08-24 `a87fb07`+`59220ad`，镜像 `531ecf90e1ff`） |
 
 ---
 
@@ -886,6 +888,8 @@ GPL 是 copyleft 传染性许可，与 Apache-2.0 闭源分发目标冲突，违
 | 2026-08-20 | **T1 镜像重建 + 干净容器验收全绿（用户「测一下」触发）**：`DOCKER_BUILDKIT=0` 48/48 步构建成功，新镜像 `c52b22bb54e8`/`hanbao:latest`（1.79GB；console-builder 因 console/src 改动重编前端，后端层全缓存）。干净容器 `hanbao_verify`（不挂宿主 src）实测：等 ~60s 起、curl :8088 body `<title>hanbao Console</title>`（真实页非错误 JSON）、`/api/auth/status`=`{"enabled":true,"has_users":false}`、`/var/log/app.err.log` 无 traceback/FATAL/ERROR（计数 0）。**验收全绿**；容器保留运行中供预览（http://localhost:8088，`docker rm -f hanbao_verify` 可停）。⚠️ 本次镜像 LABEL 仍为旧文案 "derived from Hanbao v2.0.1"（构建读旧 Dockerfile），LABEL 已修复为 QwenPaw 下次重建生效（仅元数据）。 |
 | 2026-08-20 | **去 qwenpaw 味重构（已提交 f2e3468/2d5973d/297cc80/a788cdf）**：用户镜像实测后要求「全部页面尽量重构、不要有 qwenpaw 味道」。根因：`@agentscope-ai/design`（Spark Design）= 上游 UI 库，bailianTheme 注入默认 token + Spark 组件（antd 薄封装）+ 阿里 CDN 空态插画 + 百炼紫 `#615ced`。改动：① `App.tsx` token 全量化覆盖 bailian 默认（colorPrimary 系/灰阶/fill/语义色/boxShadow 全套）；② 隐藏 Spark Empty CDN 插画（断 gw.alicdn.com 依赖）+ 空态文字水墨化 + 卡片 hover 墨影；③ 清百炼紫 9 文件 46 处→朱砂红 + 暖橘 rgba(255,157,77) 6 处；④ 聊天页欢迎语 hanbao 化（"你好，我是 hanbao。"，去"旅程/问技能"腔，中英 locale + fallback）。保留：Spark 图标（40+ 种，替换风险大）、聊天气泡 SDK 深层样式、外部 qwenpaw URL（合规）。全仓品牌色 + locale 品牌名**零残留**。 |
 | 2026-08-20 | **T1b 镜像二次重建 + 验收全绿（提交 3b28257）**：改 Dockerfile LABEL 触发 apt 层缓存失效真跑，暴露 `E: Unable to locate package fonts-wqy-microhei`（Debian 源已移除该包）→ 移除 microhei 重建成功（`c9d492804176`/1.78GB，apt+前端+uv 全重跑）。干净容器验收全绿：`:8088` `<title>hanbao Console</title>`、auth/status 正常、err.log 异常 0。容器保留供预览。 |
+| 2026-08-21 | **砍 10 频道（f8fdce0）+ 砍桌面端整条线（e9c6d08）+ 桌面线收尾（d9a9875）**：频道仅留 8 个（imessage/dingtalk/feishu/qq/console/wecom/xiaoyi/wechat），对应 pyproject SDK 移除（LGPL 直接依赖清零）；桌面端 Header/App 死代码、pywebview/tauri mock、`scripts/pack-tauri/`、7 个桌面 Actions、`@tauri-apps/*` 依赖全清；收尾删悬空 `/api/desktop/shutdown` 端点 + 孤儿 tauri 测试（I-027）。均 grep 彻查零悬空、未构建（待用户「测一下」）。 |
+| 2026-08-24 | **I-019/I-022 落地 + 前端两轮水墨化 + 重建验收全绿**：自研 `document_edit.py` 4 工具（create/edit docx/xlsx，python-docx/openpyxl MIT，pptx 放弃）补 I-019；`web_search` 支持可选 `TAVILY_API_KEY` 解 I-022；前端第一轮（a87fb07 字体/闲章/动效）+ 第二轮（59220ad 全面水墨化：登录页意境/聊天气泡/会话项/页眉）按用户拍板「全面水墨化」做实质性重做。**重建镜像 `531ecf90e1ff`/`hanbao:latest`（1.74GB）**，干净容器验收全绿：`<title>hanbao Console</title>`、auth/status `{"enabled":true,"has_users":false}`、err.log 零 traceback、`/api/desktop/shutdown` 404、I-019 依赖就绪。**🔴 构建教训**：shell 的 `HTTP_PROXY/HTTPS_PROXY` 被自动注入构建容器，Clash 没起时 npm/pip 假死——构建须 `--build-arg HTTP_PROXY= --build-arg HTTPS_PROXY=` 清空，走宿主直连（+ daemon mirror），无需 Clash。 |
 
 ## I-025 · 改 Dockerfile 触发 apt 层缓存失效，暴露 fonts-wqy-microhei 已从 Debian 源移除
 
@@ -900,3 +904,46 @@ GPL 是 copyleft 传染性许可，与 Apache-2.0 闭源分发目标冲突，违
 - **根因**：① 前两轮批量替换只覆盖"qwenpaw 品牌橙/蓝"，**漏了 Spark 设计系统主题色百炼紫**（最典型的 qwenpaw 色）；② T5 映射过 `#ff9d4d` hex 但**漏了其 rgba 形式**。
 - **修复**：`_inkwash_rebrand_colors.py` 追加百炼紫两条规则 + 手工替换暖橘 rgba，提交 2d5973d/297cc80；全仓品牌色 15 色系 grep 零残留。
 - **教训**：品牌色批量替换要**穷举上游设计系统的全部主题色**（含 hex + rgba 两种形式），不能只处理印象中的"品牌色"；去味专项应系统性扫描 `@agentscope-ai/design` 的 theme JSON（如 bailianTheme.json 的 token 值）逐项核对。
+
+<a id="i-027"></a>
+## I-027 · 桌面线收尾：砍桌面端整条线时漏删的悬空端点 + 孤儿测试
+
+**严重度**：🟠 中 &nbsp;|&nbsp; **状态**：🟢 已解决（2026-08-21 收尾 `d9a9875`） &nbsp;|&nbsp; **必须处理时机**：桌面砍除收尾
+
+### 现象（2026-08-21「测一下」静态复查发现）
+08-11 那轮「Tauri 桌面端移除」把 Header/App 的桌面死代码、pywebview/tauri mock、`scripts/pack-tauri/`、桌面 GitHub Actions、`@tauri-apps/*` 依赖都清了，但漏了三处：
+1. `src/hanbao/app/_app.py` 仍注册 `/api/desktop/shutdown` 端点，函数体内 `from ..tauri.env import ...` 指向**已删除**的 `src/hanbao/tauri` 侧车模块——虽是局部 import（app 启动不崩），但一调用即 500，与「桌面端整条线砍掉」目标矛盾。
+2. `tests/unit/tauri/` 两个测试仍 `import hanbao.tauri`，pytest 收集期必 ImportError（孤儿测试）。
+3. `src/hanbao/tauri/` 目录已不存在（确认）。
+
+### 处理
+- 删除 `_app.py` 的 `/api/desktop/shutdown` 端点（含 `[hanbao modification]` 注释说明）。
+- 删除 `tests/unit/tauri/test_entry.py` + `test_sidecar_logging.py`（`rm` + `git add -u`，不用 `git rm`），目录随之清理。
+- 验证：`_app.py` `py_compile` 通过；`HANBAO_DESKTOP_PORT` 常量仍在 `constant.py`（`port.py` 顶层 import 安全，无启动 FATAL）；被砍频道 import 全仓零残留；`desktop_cmd.py` 已不存在、无悬空。
+
+### 关键教训
+**大功能减法后必须 grep 启动路径**（`_app.py` 路由注册、tests）确认无悬空引用，不能只看「删了文件」就认为干净。端点删了但注册还在 = 调用期 500，比启动期 FATAL 更隐蔽。
+
+<a id="i-028"></a>
+## I-028 · 前端界面两轮水墨化美化（边缘装饰 → 全面重做）
+
+**严重度**：🟡 低 &nbsp;|&nbsp; **状态**：🟢 已解决（2026-08-24 `a87fb07` 第一轮 + `59220ad` 第二轮，镜像 `531ecf90e1ff` 重建验收全绿） &nbsp;|&nbsp; **必须处理时机**：界面品牌化
+
+### 背景
+此前阶段6（T5~T7）已完成水墨古典基调（墨黑+朱砂红、logo、全局换色、去 qwenpaw 味），但用户 2026-08-24 实测反馈「界面还是没怎么变，只是加了点动效」——根因是第一轮美化（a87fb07）仅在既定水墨方向内做边缘装饰（字体/闲章/轻动效），未动布局与质感。
+
+### 已处置
+- **第一轮（a87fb07）**：正文无衬线/标题衬线字体分工、空态朱砂圆环印、登录页右上角「函」闲章、页面入场淡入动效。
+- **第二轮（59220ad，按用户拍板「全面水墨化」）**：
+  - 登录页重写为真实水墨意境双栏（左墨黑品牌立轴 + 右宣纸登录卡 + 朱砂闲章）。
+  - 聊天气泡水墨化（user/assistant 宣纸底 + 墨边 + 柔影，含暗色模式）。
+  - 会话项 hover 朱砂左条、active 宣纸底+朱砂左边框+衬线名；**修复 QwenPaw 漏网青绿状态点 `rgba(20,184,166)` → 朱砂脉冲**。
+  - 宣纸纹理背景升级（noise + 墨晕 + 纤维纹理）。
+  - 聊天页眉标题统一衬线字体。
+- 合规：均加 `[hanbao modification]`；`online.svg`/Mikasa 红线零碰触；LICENSE/NOTICE 未动。
+
+### 验收
+2026-08-24 重建镜像 `531ecf90e1ff`（前端重编 tsc+vite 通过），干净容器实测：`<title>hanbao Console</title>`、auth/status `{"enabled":true,"has_users":false}`、err.log 零 traceback、`/api/desktop/shutdown` 404（悬空端点确认删除）、I-019 依赖 `docx/openpyxl` 就绪。
+
+### 关键教训
+**「改完即 commit、禁止改完即构建」铁律 + 用户「测一下」才构建** 在本项目成立，但**静态复查必须在 commit 前做**（I-027 就是 commit 后才在复查发现漏网）。本次还发现 shell 的 `HTTP_PROXY/HTTPS_PROXY` 会被自动注入构建容器，Clash 没起时导致 npm/pip 假死——构建必须清代理 env（见 CHANGES 阶段 6.x 末注）。

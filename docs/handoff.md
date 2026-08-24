@@ -1,33 +1,34 @@
 # hanbao 项目续跑基准（会话交接）
 
 > 本文档是当前会话交付给后续会话的**唯一权威基准**。新会话须严格遵循，不重复返工已确认内容；与原设计冲突的技术决策，须先说明原因并征得确认后再实施。
-> 最后更新：2026-08-20 傍晚 · 状态：阶段0~4 全清、包名全量改名落地、阶段5 FPK 脚手架完成（剩 `fnpack build` + fnOS 实测）；阶段6 界面品牌化（T5/T5b/T6/T7 水墨古风 + **全站去 qwenpaw 味**）+ 时间感知（T8/T9）已实现，镜像两次重建（c52b22bb54e8→c9d492804176）验收全绿；**待办：运行配置（Agent Config）代码逻辑改动（泽零单独说需求）、fnpack build + fnOS 实测**。⚠️ 见下方「〇、当前环境实况」——欢迎语改动（a788cdf）未入最新镜像，下次重建才生效
+> 最后更新：2026-08-24 深夜 · 状态：阶段0~6 主体全部完成、包名全量改名落地、桌面端整条线已砍除、10 个频道已砍除仅留 8 个、I-019 文档改/创建自研工具落地、I-022 Tavily key 方案落地、前端两轮水墨化（边缘装饰→全面重做）已重建验收（镜像 `531ecf90e1ff` / `hanbao:latest` 1.74GB）；**待办：阶段5 真正 `fnpack build` + fnOS 实测上架**。⚠️ 见下方「〇、当前环境实况」——所有 08-21~08-24 的代码改动均已入最新镜像（`531ecf90e1ff`，2026-08-24 重建验收全绿）。
 
 ---
 
-## 〇、当前环境实况（2026-08-20 傍晚交接时刻，新会话必读）
+## 〇、当前环境实况（2026-08-24 深夜交接时刻，新会话必读）
 
 **Git**
-- HEAD = `5b0f54e`，工作树干净；24+ commit 未推送（本地演进，正常）
-- 今日提交链：`45ebdd8`(T5b+T6/T7 水墨) → `55e2819`(docs+合规 R2 署名) → `f2e3468`(界面打磨) → `2d5973d`(去味 v1：token 全量化+空态插画) → `297cc80`(百炼紫 46 处) → `3b28257`(Dockerfile 去 microhei) → `a788cdf`(欢迎语 hanbao 化) → `5b0f54e`(docs 收尾)
+- HEAD = `59220ad`（前端全面水墨化第二轮提交）；工作树干净；所有改动均已提交并推送 `origin/main`
+- 08-21~08-24 提交链（重大减法 + 美化）：`f8fdce0`(砍 10 频道) → `e9c6d08`(砍桌面端整条线) → `d9a9875`(桌面线收尾：删悬空 /api/desktop/shutdown 端点 + 孤儿 tauri 测试) → `59220ad`(前端全面水墨化第二轮：登录页意境 + 聊天气泡 + 会话项 + 页眉)
+- I-019(文档改/创建自研) / I-022(Tavily key) / 前端第一轮水墨美化(a87fb07) 也均已提交
 
 **Docker 实况**
-- daemon 29.6.2 在跑；**`hanbao:latest` = `c9d492804176`**（1.78GB，T1b 重建，验收全绿：`:8088` `<title>hanbao Console</title>`、auth/status 正常、err.log 异常 0）
-- **验收容器 `hanbao_verify` 运行中** → http://localhost:8088 可预览；`docker rm -f hanbao_verify` 停
-- **⚠️ `a788cdf`（聊天页欢迎语 hanbao 化）在 c9d492804176 构建之后提交 → 最新镜像里的欢迎语仍是旧 qwenpaw 版（"你好，我今天能帮你做什么？"）！下次「测一下」重建才生效**
-- 构建日志：`/tmp/build_20260820e.log`（T1b 成功）；改 Dockerfile 任意指令会断 legacy builder 的 apt/RUN 缓存链，可能暴露从未真跑的环境问题（I-025，已踩）
+- daemon 在跑；**`hanbao:latest` = `531ecf90e1ff`**（1.74GB，2026-08-24 重建，验收全绿：`:8088`/`:8091` `<title>hanbao Console</title>`、auth/status `{"enabled":true,"has_users":false}`、err.log 零 traceback）
+- **⚠️ 验证容器 `hanbao_verify2`（8091）可能仍在运行** → http://localhost:8091 可预览；`docker rm -f hanbao_verify2` 停。用户日常用的是 8088 上的旧 `hanbao` 容器（带数据），替换前需先停旧容器
+- **🔴 构建铁律新增（2026-08-24 实测）：`docker build` 必须清掉宿主代理 env**——shell 里 `HTTP_PROXY/HTTPS_PROXY=127.0.0.1:7897` 会被自动注入构建容器，Clash 没起时 npm/pip 全走死代理假死。命令：
+  `docker build -f deploy/Dockerfile --build-arg NODE_IMAGE=node:20-slim --build-arg UV_IMAGE=uv:local --build-arg HTTP_PROXY= --build-arg HTTPS_PROXY= --build-arg http_proxy= --build-arg https_proxy= -t hanbao:latest .`
+  （`node:20-slim` 替代默认 ACR 的 `agentscope/node:slim`，后者因 Clash 对 aliyuncs 授权 EOF 拉不动；`uv:local` 用本地缓存省一次拉取）
 
 **待办（下轮优先）**
-1. **运行配置（侧边栏 Agent →「运行配置」nav.agentConfig）代码逻辑改动**——泽零会单独说需求；注意该页 UI 文案零品牌味（已查），要改的是逻辑
-2. 聊天页欢迎语已改（a788cdf）待重建验证
-3. 阶段5 `fnpack build` + fnOS 实测（界面这摊已告一段落）
+1. **阶段5 真正 `fnpack build` + fnOS 实测上架**——脚手架已按官方规范建好（docker-project 形态），剩封装+飞牛实测
+2. 浏览器预览新界面（8091 或替换 8088 后）
 
 **铁律速查**（详见 .workbuddy/memory/MEMORY.md）
 - 仅用户说「测一下/构建验证」才构建；改完即 commit
 - 验证容器**绝不挂宿主 src**；看 body `<title>` 不看 HTTP 状态码
-- 后台 build 勿依赖 task_id（会话中断会回收），看 `docker images -a` 中间层 CreatedSince
 - 删 tracked 用 `rm` + `git add -u`，绝不用 `git rm`；批量替换脚本二进制读写
 - 合规 R2：LICENSE/NOTICE/README 出处完好已核实；品牌替换禁波及 LICENSE/NOTICE/license-compliance/CHANGES
+- **构建清代理 env**（见上「Docker 实况」）
 
 ---
 
@@ -50,7 +51,7 @@ hanbao（中文"函包"）是 fork 自 **QwenPaw v2.0.1（Apache-2.0）** 的个
 | `docs/lifecycle-management.md` | 全生命周期管理 | 版本号 / 阶段准出标准基准 |
 | `docs/license-compliance.md` | 开源许可合规规范 | **每阶段开工前必读 §4 检查项**，未过不进下一阶段 |
 | `docs/CHANGES-FROM-UPSTREAM.md` | 与上游差异记录 | 改动证据；每次改动须同步追加 |
-| `docs/known-issues.md` | 已知问题追踪 | **I-001~I-024**，每个阶段逐条清 |
+| `docs/known-issues.md` | 已知问题追踪 | **I-001~I-028**，全部已解决/已确认（无未闭合代码项） |
 | `README_zh.md`（顶部派生说明块） | 项目门面 | 上游正文原样保留，阶段 2 品牌改造再替换 |
 | `LICENSE` / `NOTICE` | 许可文件 | **永不动**，Apache-2.0 合规红线 |
 
@@ -71,14 +72,14 @@ hanbao（中文"函包"）是 fork 自 **QwenPaw v2.0.1（Apache-2.0）** 的个
 
 ---
 
-## 四、当前可运行产物（阶段 1 成果）
+## 四、当前可运行产物（截至 2026-08-24）
 
-- 镜像 `hanbao:0.0.1-upstream`（4.02GB，8GB WSL 下构建成功）
-- 容器 `hanbao-test` 运行中；本机访问 **http://localhost:8088** 返回 Hanbao Console 首页
+- 镜像 **`hanbao:latest` = `531ecf90e1ff`**（1.74GB，2026-08-24 重建，前端全面水墨化第二轮 + 文档依赖已入）
+- 用户日常容器 `hanbao`（8088，带数据）运行中；验证容器 `hanbao_verify2`（8091）可预览新界面
 - 基线 commit `9b86a976fffdc37b871fe31a7b689a8b6463c5b4`（`9b86a97`），tag `upstream/v2.0.1`（纯净上游 2846 文件）
 - 查看 hanbao 全部改动：`git diff upstream/v2.0.1..HEAD`
 
-> 注：阶段 1 镜像含完整 XFCE4 桌面 + Chromium（体积大头，I-004），纯 Web 聊天用不到，阶段 4 瘦身。
+> 注：上游 XFCE4 桌面 + Chromium + 桌面端整条线 + 10 个频道 SDK 已全部砍除（阶段4 瘦身 + 08-21 减法），镜像从 4.02GB 降到 1.74GB。
 
 ---
 
@@ -90,19 +91,17 @@ hanbao（中文"函包"）是 fork 自 **QwenPaw v2.0.1（Apache-2.0）** 的个
 
 ---
 
-## 六、已知问题（known-issues.md，I-001~I-024）
+## 六、已知问题（known-issues.md，I-001~I-028 全部 🟢 已解决/已确认）
 
-**已解决 ✅**：I-001（上游 .gitignore 误伤，已 `git add -f`）、I-005（基础镜像拉取 EOF，预拉规避）、I-006（遥测上报，已禁用+调用移除）、I-008（构建 OOM，WSL 提 8GB 解决）、I-009（C 盘满，Junction 迁 F 盘）、I-010（WSL 崩溃转储吞 18GB，`crashDumpCount=0` 关）、I-011（DataFolder 对 WSL2 无效，Junction 为解）、I-017（sed JS 注释污染 Python）、I-019（Anthropic 专有技能，已删+markitdown 替代）、I-020（html2text GPL，已换 markdownify）、I-023（patch 提交依赖，已澄清——本地基线=官方 v2.0.1，原「基线偏离」为误判）、I-024（Monaco 残留，依赖移除+占位符化）。
+**全部已解决 ✅**（截至 2026-08-24）：I-001~I-026 历史项全部闭环；I-027（桌面线收尾：删悬空 `/api/desktop/shutdown` 端点 + 孤儿 tauri 测试，2026-08-21 `d9a9875`）、I-028（前端界面两轮水墨化美化，2026-08-24 `a87fb07`+`59220ad` 已重建验收）。
 
-**待解决（后续阶段逐条清）**：
-- **I-002**：Dockerfile 无 `COPY LICENSE NOTICE` → 镜像不含许可文件，阶段 4 必须补。（再分发者合规硬需）
-- **I-003**：`.dockerignore` 第 6 行 `*.md` 会排除 `docs/*.md` → 补 I-002 时需加白名单例外（**I-002/I-003 连体问题，同批修**）。
-- **I-004**：镜像含 XFCE4 桌面 + Chromium，体积 4GB → 阶段 4 瘦身去冗余。
-- **I-007**：Web Console 默认无认证 → 上飞牛前评估开 `HANBAO_AUTH_ENABLED`。
-- **I-012~I-016**：品牌残留（window.QwenPaw / localStorage 14 key / CSS 前缀 151 处 / 测试 / 插件 author）→ 均"不能直接改名"（登录态/样式/插件），收益低，标记低优先级，待评估。
-- **I-018**：git checkout 吞文件（处理中）。
-- **I-021**：LGPL 依赖（NOTICE 已补声明，rope/pytoolconfig 已随编码工具消除）。
-- **I-022**：web_search Tavily keyless 限速 → 上架后加可选 API key。
+**重要变更（本交接时刻已落地，新会话勿重复）**：
+- **桌面端整条线已砍除**（2026-08-21 `e9c6d08` + 2026-08-24 收尾 `d9a9875`）：Header/App 桌面死代码、pywebview/tauri mock、`scripts/pack-tauri/`、7 个桌面 GitHub Actions、`@tauri-apps/*` 依赖（package-lock 残留 43 处待 npm 自动清）全部清除。
+- **10 个频道已砍除仅留 8 个**（2026-08-21 `f8fdce0`）：Discord/Telegram/元宝/Matrix/SIP/Mattermost/MQTT/Slack/语音/OneBot 移除，保留 imessage/dingtalk/feishu/qq/console/wecom/xiaoyi/wechat；对应 pyproject SDK（python-telegram-bot 等）已移除，LGPL 直接依赖清零。
+- **I-019 文档改/创建已自研补齐**（2026-08-24）：`document_edit.py` 4 工具（create/edit docx/xlsx），python-docx/openpyxl MIT，pptx 维持放弃。
+- **I-022 Tavily 已 env 化**（2026-08-24）：`TAVILY_API_KEY` 可选，无 key 回退 keyless。
+
+**唯一未闭合的对外事项**：阶段5 真正 `fnpack build` + fnOS 实测上架（脚手架已建，代码层面无阻塞）。
 
 ---
 
