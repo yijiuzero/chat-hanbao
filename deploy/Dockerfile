@@ -102,6 +102,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-mark manual curl supervisor gettext-base python3 python3-venv fonts-wqy-zenhei \
     && apt-get purge -y build-essential gcc g++ make git libssl-dev \
     && apt-get autoremove -y --purge \
+    && rm -f /bin/uv \
     && rm -rf /var/lib/apt/lists/* && apt-get clean
 
 # [hanbao modification] Apache-2.0 compliance: ship license & attribution files
