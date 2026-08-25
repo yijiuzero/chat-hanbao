@@ -122,11 +122,28 @@ export default defineConfig(({ command, mode }) => {
       // outDir: path.resolve(__dirname, "../src/hanbao/console"),
       // emptyOutDir: true,
       cssCodeSplit: true,
-      sourcemap: mode !== "production",
-      chunkSizeWarningLimit: 1000,
+      // [hanbao modification] do not ship sourcemaps in the build output:
+      // smaller image, faster build, no source leak for a distributed product.
+      sourcemap: false,
+      chunkSizeWarningLimit: 800,
       rollupOptions: {
         output: {
           manualChunks(id) {
+            // [hanbao modification] Keep heavy on-demand libs out of the
+            // initial vendor chunk so they only load when actually rendered.
+            if (
+              id.includes("node_modules/mermaid") ||
+              id.includes("node_modules/@mermaid")
+            ) {
+              return "mermaid-vendor";
+            }
+            if (
+              id.includes("node_modules/react-syntax-highlighter") ||
+              id.includes("node_modules/refractor") ||
+              id.includes("node_modules/prismjs")
+            ) {
+              return "syntax-highlighter-vendor";
+            }
             // React core
             if (
               id.includes("node_modules/react/") ||

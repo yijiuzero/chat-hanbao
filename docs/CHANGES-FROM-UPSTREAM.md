@@ -1011,6 +1011,19 @@ _背景：两者均为继承自 QwenPaw 的休眠工具（`enabled_by_default=Fa
 
 ---
 
+## 阶段 6.z · 前端性能优化：重型依赖按需动态导入（2026-08-25）
+
+_背景：生产构建基线（`vite build --mode production`）实测，`react-syntax-highlighter`（Prism + refractor 全量语言，约 1MB+）与 `mermaid` 核心被静态打进首屏 `ui-vendor` chunk（`console/dist/index.html` 强制 modulepreload，8.3MB / gzip 2.44MB），每次进入即下载，即便当前对话不含代码块/图表。已核实 `@agentscope-ai/chat` / `@agentscope-ai/design` 均不静态引用这两者，故可安全改为按需动态导入，把它们移出首屏。_
+
+- [新增] `console/src/components/AsyncSyntaxHighlighter.tsx` — `react-syntax-highlighter` 的异步封装：内部 `import("react-syntax-highlighter")` + 风格 `import("react-syntax-highlighter/dist/esm/styles/prism")`，加载完成前回退 `<pre>`；加载后渲染与原有 `Prism` 一致。仅标 hanbao 版权（原创封装）。
+- [修改] `console/src/components/MermaidCodeBlock/MermaidCodeBlock.tsx` — 移除顶层 `import mermaid from "mermaid"` 与 `ensureMermaidInit()`，改为在渲染 effect 内 `await import("mermaid")`（ESM 模块缓存保证只初始化一次），`mermaid` 核心移出首屏、仅在出现 mermaid 图表时加载。加 `[hanbao modification]` 标注。
+- [修改] `console/src/components/MermaidCodeBlock/mermaidComponents.tsx` — 移除静态 `react-syntax-highlighter` / `oneDark` 导入，代码块渲染改用 `AsyncSyntaxHighlighter`。加 `[hanbao modification]`。
+- [修改] `console/src/components/Chat/ToolCards/shared/DefaultBlock.tsx` — 同上，移除静态 `react-syntax-highlighter` / `oneDark` 导入，JSON/文本分支改用 `AsyncSyntaxHighlighter`。加 `[hanbao modification]`。
+- [配置] `console/vite.config.ts` — `manualChunks` 新增 `mermaid-vendor` / `syntax-highlighter-vendor` 两个命名 chunk（双保险，确保即便被其它路径引用也不回流首屏）；`sourcemap` 改为 `false`（构建产物不再附带 sourcemap，减小镜像体积、加快构建、避免源码泄露）；`chunkSizeWarningLimit` 由 1000 降到 800 以暴露巨型 vendor chunk。均加 `[hanbao modification]` 标注。
+- [验证] 待用户「测一下」触发生产构建，对比 `ui-vendor` 体积与首屏 JS gzip（预期 rsh + mermaid 从首屏移除，约减 0.6–0.8MB gzip；纯聊天（无代码块/图表）场景此两块完全不下载）。`DefaultBlock.test.tsx` 现有同步断言依赖 `oneDark` mock，组件改为动态导入后须改为 `findBy*` 等待异步加载，待「测一下」时一并修正。
+- [合规] `LICENSE` / `NOTICE` / 红线文件未触碰；改动文件加 `[hanbao modification]`；上游 `@agentscope-ai/*` import 与 URL 保留。
+- [后续纵深] ① 可选将 `react-syntax-highlighter` 换成 `prism-async-light` 并仅注册实际使用的语言（json/javascript/python/bash 等），可把该按需 chunk 从 ~1MB 进一步压到 ~100KB；② `ui-vendor` 巨型单体（8.3MB，antd + `@agentscope-ai/design` + `@agentscope-ai/chat`）才是首屏体积主因，其进一步拆分/懒加载属高收益但改动面大的任务，需单独评估（见下方「未决项」）。
+
 ## 未修改声明
 
 除本文件记录的改动外，hanbao 中其余代码均来自上游 QwenPaw v2.0.1，其著作权归 The QwenPaw Authors 所有，按 Apache License 2.0 条款授权使用。

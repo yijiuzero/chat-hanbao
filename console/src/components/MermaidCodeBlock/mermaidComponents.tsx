@@ -1,8 +1,9 @@
 import type { ReactNode } from "react";
 import type { ComponentProps } from "@ant-design/x-markdown";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { MermaidCodeBlock } from "./MermaidCodeBlock";
+// [hanbao modification] react-syntax-highlighter is loaded on demand via the
+// AsyncSyntaxHighlighter wrapper so it stays out of the initial vendor chunk.
+import { AsyncSyntaxHighlighter } from "@/components/AsyncSyntaxHighlighter";
 
 /**
  * Extracts plain text from React children recursively.
@@ -44,9 +45,8 @@ function CodeWithMermaid({
   if (block) {
     const codeText = extractText(children).replace(/\n$/, "");
     return (
-      <SyntaxHighlighter
+      <AsyncSyntaxHighlighter
         language={lang || "text"}
-        style={oneDark}
         customStyle={{
           margin: 0,
           borderRadius: "6px",
@@ -55,7 +55,7 @@ function CodeWithMermaid({
         }}
       >
         {codeText}
-      </SyntaxHighlighter>
+      </AsyncSyntaxHighlighter>
     );
   }
 

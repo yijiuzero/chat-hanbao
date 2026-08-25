@@ -11,11 +11,12 @@
 import React, { useCallback, useMemo, useRef, useState } from "react";
 import { Markdown } from "@agentscope-ai/chat";
 import { CopyOutlined, CheckOutlined } from "@ant-design/icons";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { copyText } from "@/utils/clipboard";
 import { looksLikeMarkdown } from "./utils";
 import styles from "./toolCards.module.less";
+// [hanbao modification] react-syntax-highlighter is loaded on demand via the
+// AsyncSyntaxHighlighter wrapper so it stays out of the initial vendor chunk.
+import { AsyncSyntaxHighlighter } from "@/components/AsyncSyntaxHighlighter";
 
 export interface DefaultBlockProps {
   title: string;
@@ -82,25 +83,23 @@ const DefaultBlock: React.FC<DefaultBlockProps> = ({
     }
     if (parsedJson !== null) {
       return (
-        <SyntaxHighlighter
+        <AsyncSyntaxHighlighter
           language="json"
-          style={oneDark}
           customStyle={highlighterStyle}
           wrapLongLines
         >
           {JSON.stringify(parsedJson, null, 2)}
-        </SyntaxHighlighter>
+        </AsyncSyntaxHighlighter>
       );
     }
     return (
-      <SyntaxHighlighter
+      <AsyncSyntaxHighlighter
         language="text"
-        style={oneDark}
         customStyle={highlighterStyle}
         wrapLongLines
       >
         {content}
-      </SyntaxHighlighter>
+      </AsyncSyntaxHighlighter>
     );
   };
 
