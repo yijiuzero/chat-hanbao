@@ -54,15 +54,16 @@ ARG DEBIAN_FRONTEND=noninteractive
 # [hanbao modification] I-004: Drop the desktop stack (XFCE4 / Xvfb / dbus)
 # and Chromium (~1-2GB). hanbao is a headless chat server: the Web Console
 # is static files served by FastAPI, and browser automation (browser_use /
-# desktop_screenshot) was removed. build-essential is installed only to
-# compile any source wheels during `uv pip install` and purged afterwards.
+# desktop_screenshot) was removed.
+# [hanbao modification] size-opt (2026-08-25): build-only toolchain
+# (build-essential / gcc / g++ / make / git / libssl-dev) is NO LONGER
+# installed here. It is installed together with the venv build and purged in
+# the SAME RUN (see merged install step below) so it never persists in the
+# final image layer. ~200MB saved.
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
-    git \
     supervisor \
     gettext-base \
-    libssl-dev \
-    build-essential \
     python3 \
     python3-venv \
     fonts-wqy-zenhei \
@@ -79,25 +80,29 @@ WORKDIR ${WORKSPACE_DIR}
 RUN python3 -m venv venv
 ENV PATH="/app/venv/bin:$PATH"
 
-# [hanbao modification] Reorder for layer caching: install Python deps first.
-# A minimal package stub (__init__.py + __version__.py) lets uv resolve
-# dependencies without requiring the full source tree; PYTHONPATH makes
-# the stub discoverable by setuptools.
+# [hanbao modification] size-opt (2026-08-25): copy the full source BEFORE the
+# build so deps + the local package install in ONE RUN, and the build toolchain
+# can be purged in that same RUN. The earlier "stub" trick is no longer needed.
 COPY pyproject.toml setup.py README.md ./
 COPY --from=uv-src /uv /bin/uv
-ENV PYTHONPATH=/app/src
-RUN mkdir -p src/hanbao && \
-    echo '' > src/hanbao/__init__.py && \
-    echo '__version__ = "0.0.1"' > src/hanbao/__version__.py && \
-    uv pip install --no-cache-dir . && \
-    rm -rf ./build && rm -rf src/hanbao
-
-# Copy real source and reinstall (dependencies already in venv from above).
 COPY src ./src
 COPY website/public/docs/ ./src/hanbao/docs/
 # Inject console dist from build stage (repo does not commit dist).
 COPY --from=console-builder /app/console/dist/ ./src/hanbao/console/
-RUN uv pip install --no-cache-dir --no-deps . && rm -rf ./build
+ENV PYTHONPATH=/app/src
+
+# [hanbao modification] size-opt (2026-08-25): install build-only toolchain,
+# run `uv pip install`, then PURGE it in the same RUN so gcc/g++/make/git/
+# libssl-dev/libc6-dev never persist in the final image (~200MB saved).
+# apt-mark manual keeps the runtime packages safe from the subsequent autoremove.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        build-essential git libssl-dev \
+    && uv pip install --no-cache-dir . \
+    && rm -rf ./build \
+    && apt-mark manual curl supervisor gettext-base python3 python3-venv fonts-wqy-zenhei \
+    && apt-get purge -y build-essential gcc g++ make git libssl-dev \
+    && apt-get autoremove -y --purge \
+    && rm -rf /var/lib/apt/lists/* && apt-get clean
 
 # [hanbao modification] Apache-2.0 compliance: ship license & attribution files
 # inside the image. As a redistributor (derivative work) we MUST include these
@@ -115,9 +120,9 @@ ENV HANBAO_PORT=8088
 # [hanbao modification] I-007: 上架飞牛默认开启 Web Console 认证（可被 -e HANBAO_AUTH_ENABLED=false 覆盖）
 ENV HANBAO_AUTH_ENABLED=true
 
-# [hanbao modification] I-004: remove the build toolchain from the final image.
-RUN apt-get purge -y build-essential gcc g++ make && \
-    rm -rf /var/lib/apt/lists/* && apt-get clean
+# [hanbao modification] size-opt (2026-08-25): the build toolchain purge now
+# happens inline in the install RUN above (same layer), so no separate purge
+# step is needed here.
 
 COPY deploy/config/supervisord.conf.template /etc/supervisor/conf.d/supervisord.conf.template
 # [hanbao modification] I-004: DOCKER_BUILDKIT=0 (legacy builder, no --chmod) compatibility

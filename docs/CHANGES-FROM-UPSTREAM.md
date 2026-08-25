@@ -1011,6 +1011,21 @@ _背景：两者均为继承自 QwenPaw 的休眠工具（`enabled_by_default=Fa
 
 ---
 
+## 阶段 6.z · 镜像瘦身：构建工具链移出最终镜像层（2026-08-25）
+
+_背景：镜像 `hanbao:latest` 实测 1.74GB。拆解发现约 200MB 为「仅在编译期需要」的构建工具链（gcc-14 ~48MB、libc6-dev ~17MB、libgcc-14-dev ~16MB、libssl-dev ~22MB、git ~15MB、g++/libstdc++-14-dev/make/binutils/dpkg-dev ~85MB）。原 `Dockerfile` 在基础 apt 层（461MB 那层）装这些包，再在**独立新层** `apt-get purge`，而 Docker 后层 purge 减不掉前层已固化的体积——工具链因此死死留在最终镜像里。_
+
+- [修改] `deploy/Dockerfile` 基础 apt 层 — 移除 `git` / `libssl-dev` / `build-essential`（构建专用），仅留运行时包 `curl`/`supervisor`/`gettext-base`/`python3`/`python3-venv`/`fonts-wqy-zenhei`。
+- [修改] `deploy/Dockerfile` 构建步 — 源码 `COPY src` 提前到 `uv pip install` 之前（去掉原来的 `__init__.py`/`__version__.py` stub 技巧），并将 `build-essential git libssl-dev` 的 **install → `uv pip install .` → `apt-mark manual`(运行时包) → `apt-get purge` → `apt-get autoremove --purge`** 合并进**同一个 RUN**，使工具链不落盘。
+- [删除] `deploy/Dockerfile` 原独立 purge 步，其功能已并入上方合并 RUN。
+- [预期体积] 最终镜像约 **1.54GB**（较 1.74GB 减 ~200MB），**零功能损失**，仅改动 Dockerfile。
+- [风险·git] 最终镜像不再含 `git`（pyproject 无 git 源依赖，构建/安装不受影响；若某 skill 运行时 shell 调用 `git` 会失败，运行时风险低，已知无此类依赖）。
+- [风险·libssl-dev] 仅提供头文件/符号链接，运行时 `cryptography` 链接 base 镜像自带的 `libssl3`，purge `-dev` 不影响运行时。
+- [合规] `LICENSE`/`NOTICE`/红线文件未触碰；Dockerfile 改动均加 `[hanbao modification]`。
+- [验证] 待用户「测一下」触发重建，对比 `docker images` 体积，并 `dpkg -l | grep -E 'gcc|g\+\+|make|git'` 确认最终镜像内已无构建工具链。
+
+---
+
 ## 未修改声明
 
 除本文件记录的改动外，hanbao 中其余代码均来自上游 QwenPaw v2.0.1，其著作权归 The QwenPaw Authors 所有，按 Apache License 2.0 条款授权使用。
