@@ -182,8 +182,14 @@ JOBS_FILE = EnvVarLoader.get_str("HANBAO_JOBS_FILE", "jobs.json")
 CHATS_FILE = EnvVarLoader.get_str("HANBAO_CHATS_FILE", "chats.json")
 
 
-# Builtin Q&A helper profile.  agent_id keeps "Hanbao" prefix for existing
-# workspaces and agent.json; do not rename.
+# Legacy CoPaw builtin QA agent id.  Retained ONLY for the one-time migration
+# that disables the old Era builtin QA profile on first startup of a migrated
+# workspace (see app/migration.py::_apply_legacy_qa_disable_for_migration).
+# This is NOT the new builtin QA slot and is kept intentionally even though the
+# builtin QA agent type was removed from Hanbao.  Do not delete.
+LEGACY_QA_AGENT_ID = "CoPaw_QA_Agent_0.1beta1"
+
+
 def _discover_agent_languages() -> frozenset[str]:
     md_root = Path(__file__).resolve().parent / "agents" / "md_files"
     if md_root.is_dir():
@@ -196,22 +202,11 @@ def _discover_agent_languages() -> frozenset[str]:
         }
         if langs:
             return frozenset(langs)
-    return frozenset({"en", "zh", "ru"})
+    return frozenset({"en", "zh"})
 
 
 SUPPORTED_AGENT_LANGUAGES: frozenset[str] = _discover_agent_languages()
 
-BUILTIN_QA_AGENT_ID = "Hanbao_QA_Agent_0.2"
-BUILTIN_QA_AGENT_NAME = "QA Agent"
-# Default skills when the builtin QA workspace is first created only.
-# [hanbao modification] guidance / QA_source_index removed — the builtin QA
-# Agent starts with no pre-assigned skills.
-BUILTIN_QA_AGENT_SKILL_NAMES: tuple[str, ...] = ()
-
-# CoPaw-era builtin QA; may remain in config.json — disabled when the current
-# ``BUILTIN_QA_AGENT_ID`` profile is first created (see ``migration``), not
-# every startup, so users can re-enable this id if they want.
-LEGACY_QA_AGENT_ID = "CoPaw_QA_Agent_0.1beta1"
 
 TOKEN_USAGE_FILE = EnvVarLoader.get_str(
     "HANBAO_TOKEN_USAGE_FILE",

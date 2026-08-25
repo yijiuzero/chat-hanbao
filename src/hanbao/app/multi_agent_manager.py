@@ -19,7 +19,6 @@ from .agent_startup import (
 )
 from .workspace import Workspace
 from ..constant import (
-    BUILTIN_QA_AGENT_ID,
     CUSTOM_AGENT_STARTUP_CONCURRENCY,
 )
 from ..config.utils import load_config
@@ -697,9 +696,9 @@ class MultiAgentManager:
         Only agents with enabled=True will be started.
         Disabled agents are skipped to save resources.
 
-        The default and built-in QA agents form the concurrent core phase.
-        Remaining custom agents start only after that phase and are bounded
-        by ``HANBAO_CUSTOM_AGENT_STARTUP_CONCURRENCY``.
+        The ``default`` agent is the concurrent core phase. Remaining custom
+        agents start only after that phase and are bounded by
+        ``HANBAO_CUSTOM_AGENT_STARTUP_CONCURRENCY``.
 
         Returns:
             dict[str, bool]: Mapping of agent_id to success status
@@ -753,7 +752,7 @@ class MultiAgentManager:
 
         core_agent_ids = [
             agent_id
-            for agent_id in ("default", BUILTIN_QA_AGENT_ID)
+            for agent_id in ("default",)
             if agent_id in enabled_agents
         ]
         custom_agent_ids = [

@@ -10,7 +10,6 @@ from pathlib import Path
 
 from ..agents.templates import (
     DEFAULT_AGENT_TEMPLATE,
-    QA_AGENT_TEMPLATE,
     build_agent_template,
 )
 from ..config.config import (
@@ -22,7 +21,6 @@ from ..config.config import (
     save_agent_config,
 )
 from ..constant import (
-    BUILTIN_QA_AGENT_ID,
     LEGACY_QA_AGENT_ID,
     WORKING_DIR,
 )
@@ -739,7 +737,7 @@ def _other_agent_owns_workspace(
 def _fallback_active_agent_id(config, exclude_id: str) -> str:
     """Pick a new active agent when ``exclude_id`` is no longer usable."""
     profiles = config.agents.profiles
-    for candidate in (BUILTIN_QA_AGENT_ID, "default"):
+    for candidate in ("default",):
         ref = profiles.get(candidate)
         if ref is None or candidate == exclude_id:
             continue
@@ -784,105 +782,3 @@ def _apply_legacy_qa_disable_for_migration(config) -> None:
             legacy_id,
             new_active,
         )
-
-
-def ensure_qa_agent_exists() -> None:
-    """Ensure the builtin QA agent profile and workspace exist.
-
-    On **first creation** only, ``skills/`` is seeded from
-    ``BUILTIN_QA_AGENT_SKILL_NAMES`` (e.g. ``guidance``,
-    ``hanbao_source_index``), and built-in tools are restricted (see
-    ``build_qa_agent_tools_config``).
-    After that, the user may change skills and tools freely; we do not
-    overwrite their choices on later startups.
-
-    If the canonical QA workspace path is already used by another agent id,
-    builtin creation is **skipped** (with a warning) so that workspace's
-    ``agent.json`` is not overwritten.
-
-    On **first creation** of the current builtin QA id, if
-    ``LEGACY_QA_AGENT_ID`` is still in ``profiles``, it is set to
-    ``enabled=False`` and ``active_agent`` is moved off it if needed. This runs
-    only once (when the new slot appears), so users may re-enable the legacy
-    agent afterward without it being disabled on every startup.
-
-    Note:
-        This function catches all exceptions internally and never raises.
-        Errors are logged for graceful degradation.
-    """
-    try:
-        _do_ensure_qa_agent()
-    except Exception as e:
-        logger.error(
-            f"Failed to ensure QA agent exists: {e}. "
-            "QA agent will not be available.",
-            exc_info=True,
-        )
-
-
-def _do_ensure_qa_agent() -> None:
-    """Internal implementation of QA agent initialization."""
-    from .routers.agents import _initialize_agent_workspace
-
-    config = load_config()
-    qa_id = BUILTIN_QA_AGENT_ID
-
-    if qa_id in config.agents.profiles:
-        agent_ref = config.agents.profiles[qa_id]
-        qa_workspace = Path(agent_ref.workspace_dir).expanduser()
-        agent_existed = True
-    else:
-        qa_workspace = Path(
-            f"{WORKING_DIR}/workspaces/{qa_id}",
-        ).expanduser()
-        agent_existed = False
-
-    qa_workspace.mkdir(parents=True, exist_ok=True)
-
-    _ensure_workspace_json_files(qa_workspace, "QA agent")
-
-    if agent_existed:
-        return
-
-    other_id = _other_agent_owns_workspace(
-        config.agents.profiles,
-        qa_workspace,
-        qa_id,
-    )
-    if other_id is not None:
-        logger.warning(
-            "Skipping builtin QA profile %r: workspace %s is already "
-            "used by agent %r. Point that agent to another directory "
-            "or remove it from config before the builtin QA slot can "
-            "be created.",
-            qa_id,
-            qa_workspace,
-            other_id,
-        )
-        return
-
-    logger.info("Creating builtin QA agent...")
-    template_result = build_agent_template(
-        QA_AGENT_TEMPLATE,
-        agent_id=qa_id,
-        workspace_dir=qa_workspace,
-        fallback_language=config.agents.language or "zh",
-    )
-
-    _initialize_agent_workspace(
-        qa_workspace,
-        skill_names=list(template_result.initial_skill_names),
-        md_template_id=template_result.md_template_id,
-    )
-
-    config.agents.profiles[qa_id] = AgentProfileRef(
-        id=qa_id,
-        workspace_dir=str(qa_workspace),
-    )
-    _apply_legacy_qa_disable_for_migration(config)
-    save_config(config)
-    save_agent_config(qa_id, template_result.agent_config)
-    logger.info(
-        "Created builtin QA agent with workspace: %s",
-        qa_workspace,
-    )

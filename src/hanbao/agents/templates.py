@@ -12,27 +12,10 @@ from ..config.config import (
     HeartbeatConfig,
     MCPConfig,
     ToolsConfig,
-    build_local_agent_tools_config,
-    build_qa_agent_tools_config,
 )
-from ..constant import BUILTIN_QA_AGENT_NAME, BUILTIN_QA_AGENT_SKILL_NAMES
 
 DEFAULT_AGENT_TEMPLATE = "default"
-LOCAL_AGENT_TEMPLATE = "local"
-QA_AGENT_TEMPLATE = "qa"
-SUPPORTED_AGENT_TEMPLATES = (
-    DEFAULT_AGENT_TEMPLATE,
-    LOCAL_AGENT_TEMPLATE,
-    QA_AGENT_TEMPLATE,
-)
-
-LOCAL_TEMPLATE_SKILL_NAMES = ("make_plan",)
-QA_TEMPLATE_DESCRIPTION = (
-    "Builtin Q&A helper for Hanbao setup, local config under "
-    "HANBAO_WORKING_DIR, and documentation. Prefer reading files "
-    "before answering; use absolute paths for code outside this "
-    "workspace."
-)
+SUPPORTED_AGENT_TEMPLATES = (DEFAULT_AGENT_TEMPLATE,)
 
 
 @dataclass(frozen=True)
@@ -50,9 +33,11 @@ def list_supported_agent_templates() -> tuple[str, ...]:
 
 
 def get_workspace_md_template_id(template_id: str | None) -> str | None:
-    """Map an agent template id to the workspace markdown template id."""
-    if template_id in {LOCAL_AGENT_TEMPLATE, QA_AGENT_TEMPLATE}:
-        return template_id
+    """Map an agent template id to the workspace markdown template id.
+
+    hanbao only ships the ``default`` agent template, so no markdown
+    template override is mapped for any template id.
+    """
     return None
 
 
@@ -87,46 +72,6 @@ def build_agent_template(
         return AgentTemplateBuildResult(
             agent_config=agent_config,
             initial_skill_names=(),
-            md_template_id=get_workspace_md_template_id(template_id),
-        )
-
-    if template_id == LOCAL_AGENT_TEMPLATE:
-        agent_config = AgentProfileConfig(
-            id=agent_id,
-            name=name or "Local Agent",
-            description=(
-                description or "An agent running on local deployed models."
-            ),
-            workspace_dir=str(workspace_dir),
-            template_id=template_id,
-            language=resolved_language,
-            channels=ChannelConfig(),
-            mcp=MCPConfig(),
-            heartbeat=HeartbeatConfig(),
-            tools=build_local_agent_tools_config(),
-        )
-        return AgentTemplateBuildResult(
-            agent_config=agent_config,
-            initial_skill_names=LOCAL_TEMPLATE_SKILL_NAMES,
-            md_template_id=get_workspace_md_template_id(template_id),
-        )
-
-    if template_id == QA_AGENT_TEMPLATE:
-        agent_config = AgentProfileConfig(
-            id=agent_id,
-            name=name or BUILTIN_QA_AGENT_NAME,
-            description=description or QA_TEMPLATE_DESCRIPTION,
-            workspace_dir=str(workspace_dir),
-            template_id=template_id,
-            language=resolved_language,
-            channels=ChannelConfig(),
-            mcp=MCPConfig(),
-            heartbeat=HeartbeatConfig(),
-            tools=build_qa_agent_tools_config(),
-        )
-        return AgentTemplateBuildResult(
-            agent_config=agent_config,
-            initial_skill_names=tuple(BUILTIN_QA_AGENT_SKILL_NAMES),
             md_template_id=get_workspace_md_template_id(template_id),
         )
 

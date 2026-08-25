@@ -16,7 +16,6 @@ import hanbao.app.multi_agent_manager as multi_agent_manager_module
 import hanbao.constant as constants
 from hanbao.app.agent_startup import AgentStartupStatus
 from hanbao.app.multi_agent_manager import MultiAgentManager
-from hanbao.constant import BUILTIN_QA_AGENT_ID
 
 
 def _config(*agent_ids: str):
@@ -109,23 +108,21 @@ def test_custom_startup_concurrency_supports_legacy_env() -> None:
 async def test_core_agents_overlap_before_custom_agents(
     monkeypatch,
 ) -> None:
+    """The single core agent (``default``) starts before custom agents."""
     manager = MultiAgentManager()
-    config = _config("default", BUILTIN_QA_AGENT_ID, "custom")
+    config = _config("default", "custom")
     monkeypatch.setattr(
         "hanbao.app.multi_agent_manager.load_config",
         lambda: config,
     )
 
     core_started = set()
-    both_core_started = asyncio.Event()
     release_core = asyncio.Event()
     custom_started = asyncio.Event()
 
     async def get_agent(agent_id: str):
-        if agent_id in {"default", BUILTIN_QA_AGENT_ID}:
+        if agent_id == "default":
             core_started.add(agent_id)
-            if len(core_started) == 2:
-                both_core_started.set()
             await release_core.wait()
         else:
             custom_started.set()
@@ -139,38 +136,35 @@ async def test_core_agents_overlap_before_custom_agents(
         ),
     )
 
-    await asyncio.wait_for(both_core_started.wait(), timeout=1)
+    await asyncio.wait_for(release_core.wait(), timeout=1)
+    assert core_started == {"default"}
     assert not custom_started.is_set()
     release_core.set()
     result = await asyncio.wait_for(task, timeout=1)
 
     assert result == {
         "default": True,
-        BUILTIN_QA_AGENT_ID: True,
         "custom": True,
     }
     callback.assert_called_once()
 
 
 @pytest.mark.asyncio
-async def test_core_ready_waits_for_enabled_qa(monkeypatch) -> None:
-    """Ready is published only after both enabled core agents finish."""
+async def test_core_ready_waits_for_default(monkeypatch) -> None:
+    """Ready is published only after the core (``default``) agent finishes."""
     manager = MultiAgentManager()
-    config = _config("default", BUILTIN_QA_AGENT_ID)
+    config = _config("default")
     monkeypatch.setattr(
         "hanbao.app.multi_agent_manager.load_config",
         lambda: config,
     )
     default_done = asyncio.Event()
-    qa_started = asyncio.Event()
-    release_qa = asyncio.Event()
+    release_default = asyncio.Event()
 
     async def get_agent(agent_id: str):
         if agent_id == "default":
             default_done.set()
-        else:
-            qa_started.set()
-            await release_qa.wait()
+            await release_default.wait()
         return SimpleNamespace()
 
     manager.get_agent = AsyncMock(side_effect=get_agent)
@@ -180,20 +174,21 @@ async def test_core_ready_waits_for_enabled_qa(monkeypatch) -> None:
     )
 
     await asyncio.wait_for(default_done.wait(), timeout=1)
-    await asyncio.wait_for(qa_started.wait(), timeout=1)
     callback.assert_not_called()
 
-    release_qa.set()
+    release_default.set()
     await asyncio.wait_for(task, timeout=1)
     callback.assert_called_once()
 
 
 @pytest.mark.asyncio
-async def test_core_ready_does_not_wait_for_disabled_qa(monkeypatch) -> None:
-    """A disabled QA agent is excluded from the core readiness phase."""
+async def test_core_ready_not_called_when_default_disabled(
+    monkeypatch,
+) -> None:
+    """With the only core (``default``) disabled, readiness never fires."""
     manager = MultiAgentManager()
-    config = _config("default", BUILTIN_QA_AGENT_ID)
-    config.agents.profiles[BUILTIN_QA_AGENT_ID].enabled = False
+    config = _config("default")
+    config.agents.profiles["default"].enabled = False
     monkeypatch.setattr(
         "hanbao.app.multi_agent_manager.load_config",
         lambda: config,
@@ -205,9 +200,9 @@ async def test_core_ready_does_not_wait_for_disabled_qa(monkeypatch) -> None:
         on_core_ready=callback,
     )
 
-    assert result == {"default": True}
-    manager.get_agent.assert_awaited_once_with("default")
-    callback.assert_called_once_with({"default": True})
+    assert result == {}
+    manager.get_agent.assert_not_awaited()
+    callback.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -250,7 +245,7 @@ async def test_custom_agent_startup_respects_concurrency(
     monkeypatch,
 ) -> None:
     custom_ids = [f"custom-{index}" for index in range(6)]
-    config = _config("default", BUILTIN_QA_AGENT_ID, *custom_ids)
+    config = _config("default", *custom_ids)
     monkeypatch.setattr(
         "hanbao.app.multi_agent_manager.load_config",
         lambda: config,
@@ -340,7 +335,7 @@ async def test_runtime_startups_share_concurrency_and_pending_state(
 @pytest.mark.asyncio
 async def test_startup_display_skips_empty_custom_phase(monkeypatch) -> None:
     manager = MultiAgentManager()
-    config = _config("default", BUILTIN_QA_AGENT_ID)
+    config = _config("default")
     monkeypatch.setattr(
         "hanbao.app.multi_agent_manager.load_config",
         lambda: config,

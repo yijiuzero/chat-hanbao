@@ -1066,3 +1066,33 @@ _背景：阶段 6 品牌化后，agent 人格五件套（AGENTS/SOUL/PROFILE/BO
 ## 未修改声明
 
 除本文件记录的改动外，hanbao 中其余代码均来自上游 QwenPaw v2.0.1，其著作权归 The QwenPaw Authors 所有，按 Apache License 2.0 条款授权使用。
+
+---
+
+## 阶段 6.ad · 减法改造：删除内置 QA/Local agent 类型与主人格 id/ru 语言，仅留中英双语（2026-08-25）
+
+_背景：用户确认 hanbao 只做中英双语（en/zh），其余语言与多余内置 agent 类型一律干掉。原 `md_files/` 下主人格有 en/zh/id/ru 四语言，另有 `qa/`、`local/` 两个**独立 agent 类型**（内置 QA 助手 / 本地模型 Agent）；`templates.py` 据此暴露 `default`/`qa`/`local` 三种 agent 模板。本次把主人格收敛到 en/zh，并把 `qa`/`local` 两类型整体删除（含目录与全部后端接线）。_
+
+- [删除·目录] `src/hanbao/agents/md_files/{id,ru,qa,local}/`（21 个文件）— 主人格 id/ru 语言变体 + qa/local 两 agent 类型目录整体移除；仅留 `en/`、`zh/`。`SUPPORTED_AGENT_LANGUAGES` 由 `_discover_agent_languages()` 动态发现，删目录后自动收敛到 `{en, zh}`。
+- [修改] `src/hanbao/agents/templates.py` — 移除 `build_local_agent_tools_config`/`build_qa_agent_tools_config` 与 `BUILTIN_QA_AGENT_*` 导入；`SUPPORTED_AGENT_TEMPLATES = (DEFAULT_AGENT_TEMPLATE,)`（删 `LOCAL_AGENT_TEMPLATE`/`QA_AGENT_TEMPLATE`/`LOCAL_TEMPLATE_SKILL_NAMES`/`QA_TEMPLATE_DESCRIPTION`）；`get_workspace_md_template_id` 恒返 `None`；`build_agent_template` 仅留 default 分支 + `raise ValueError`。
+- [修改] `src/hanbao/constant.py` — 删「Builtin Q&A helper profile」注释块；fallback `frozenset({"en","zh","ru"})` → `frozenset({"en","zh"})`；删除 `BUILTIN_QA_AGENT_*` 常量。**保留 `LEGACY_QA_AGENT_ID = "CoPaw_QA_Agent_0.1beta1"`**——其为刻意保留的 CoPaw 遗留迁移逻辑（`migration._apply_legacy_qa_disable_for_migration` 仍引用），删则运行时 `ImportError`，故保留并加注释说明。
+- [删除] `src/hanbao/agents/utils/setup_utils.py` 的 `copy_builtin_qa_md_files` 函数及其在 `__init__.py` 的 import / `__all__` 条目。
+- [删除] `src/hanbao/config/config.py` 的 `build_qa_agent_tools_config()` 与 `build_local_agent_tools_config()` 两函数。
+- [修改] `src/hanbao/app/migration.py` — import 精简（删 `QA_AGENT_TEMPLATE` / `BUILTIN_QA_AGENT_ID`）；`_fallback_active_agent_id` 仅候选 `("default",)`；用脚本删除文件末尾 `ensure_qa_agent_exists` + `_do_ensure_qa_agent` 两函数（102 行）；保留 `_apply_legacy_qa_disable_for_migration`。
+- [修改] `src/hanbao/app/multi_agent_manager.py` — 删 `BUILTIN_QA_AGENT_ID` import；`core_agent_ids` 仅 `["default"]`；docstring 收敛为单一核心 agent。
+- [修改] `src/hanbao/app/routers/workspace.py` — 删 `BUILTIN_QA_AGENT_ID` import 与 `or ("qa" if ...)` 回退；`md_template_id=get_workspace_md_template_id(agent_config.template_id)`。
+- [修改] `src/hanbao/app/_app.py` + `cli/init_cmd.py` — 确认内置 QA Agent 自动创建逻辑此前已注释停用，本次仅清理残留注释指针，无新增自动创建。
+- [同步测试] `tests/unit/app/test_multi_agent_manager_startup.py`、`tests/unit/agents/utils/test_setup_utils.py`、`tests/integration/test_agents.py` — 移除 `BUILTIN_QA_AGENT_ID` 引用，单核心断言改写（default 为唯一核心 agent，禁用 default 时返回 `{}` 且不触发回调）。
+- [零破坏] 仅 default agent 为内置核心语义不变；QA 自动创建此前已停用，local LLM 已删，删除爆炸半径锁定在后端接线，前端无 qa/local 模板选择器依赖（grep 复核全为 `localStorage`/`antd/locale` 噪声）。
+- [验证] `py_compile` 改动 13 文件全绿；全仓（src/hanbao）grep 删除符号零残留引用；`git grep` 确认 `LEGACY_QA_AGENT_ID` 在 constant.py 已恢复、migration.py 引用可解析。
+- [合规] 改动文件均含 `[hanbao modification]` 标注；`LICENSE` / `NOTICE` / 红线文件未触碰。
+
+### 附：cloudpaw 插件人格文档标注审计（2026-08-25，无改动）
+
+_用户「要」触发：对 `plugins/bundle/cloudpaw/agents/{executor,orchestration,verifier}/{en,zh}/{PROFILE,SOUL}.md`（12 个）做 `[hanbao modification]` 标注 / 品牌合规审计。_
+
+- [结论] **无需改动。** 12 文件均随 `9b86a97`（pristine QwenPaw v2.0.1 导入）进入仓库后**从未被 hanbao 修改**；按 R2 合规规则，`[hanbao modification]` 仅标于 hanbao 改过的文件，故这些文件不加标注即为正确状态（加了反而不合规）。
+- [品牌] 正文使用插件自身名 `CloudPaw-*`（非禁用商标 QwenPaw/AgentScope/Qwen/通义）；12 文件 0 命中禁用商标词。
+- [双语] 仅 en/zh，无 id/ru/qa/local，与本次收敛决策一致。
+- [依赖] 全插件 grep `qa`/`local` agent 类型引用 0 命中，未引用已删的 `BUILTIN_QA` 机制；其引用的 `alicloud_cli` / `iac-code` / ACP Runner / Mission Mode 均属插件自身能力，仍有效。
+- [旁注] `cloudpaw/README*.md` 引用了 `raw.githubusercontent.com/agentscope-ai/QwenPaw/...` 的图片 URL（上游仓库地址，非正文商标）——属人格文档审计范围外，且仅为外链图片，不影响分发合规；若后续要做品牌彻底去上游化可单独处理。

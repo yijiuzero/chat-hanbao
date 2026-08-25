@@ -2001,53 +2001,6 @@ class ToolsConfig(BaseModel):
         return self
 
 
-def build_qa_agent_tools_config() -> ToolsConfig:
-    """Tools preset for builtin ``default_qa_agent`` (first workspace init).
-
-    Only these are enabled: execute_shell_command, read_file, edit_file,
-    write_file, view_image. All other built-ins are disabled.
-    """
-    allow = frozenset(
-        {
-            "execute_shell_command",
-            "read_file",
-            "write_file",
-            "edit_file",
-            "view_image",
-        },
-    )
-    builtin_tools = {
-        name: tc.model_copy(update={"enabled": name in allow})
-        for name, tc in _default_builtin_tools().items()
-    }
-    return ToolsConfig(builtin_tools=builtin_tools)
-
-
-def build_local_agent_tools_config() -> ToolsConfig:
-    """Tools preset for local collaborative agents.
-
-    Inter-agent coordination tools are enabled by default, along with
-    execute_shell_command and file read/write/edit tools, so a local small
-    model can escalate planning work while still handling basic workspace
-    actions. All other built-ins are disabled.
-    """
-    allow = frozenset(
-        {
-            "list_agents",
-            "chat_with_agent",
-            "submit_to_agent",
-            "check_agent_task",
-            "execute_shell_command",
-            "read_file",
-            "write_file",
-            "edit_file",
-        },
-    )
-    builtin_tools = {
-        name: tc.model_copy(update={"enabled": name in allow})
-        for name, tc in _default_builtin_tools().items()
-    }
-    return ToolsConfig(builtin_tools=builtin_tools)
 
 
 class ToolGuardRuleConfig(BaseModel):

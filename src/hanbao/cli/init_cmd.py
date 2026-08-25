@@ -149,8 +149,6 @@ def init_cmd(
     """Create working dir with config.json and HEARTBEAT.md (interactive)."""
     from ..app.migration import (
         ensure_default_agent_exists,
-        # [hanbao modification] QA Agent auto-creation disabled.
-        # ensure_qa_agent_exists,
         migrate_legacy_skills_to_skill_pool,
     )
 
@@ -187,9 +185,6 @@ def init_cmd(
     ensure_default_agent_exists()
     migrate_legacy_skills_to_skill_pool()
     click.echo("✓ Default workspace initialized")
-    # [hanbao modification] Disable builtin QA Agent auto-creation.
-    # ensure_qa_agent_exists()
-    # click.echo("✓ Builtin QA agent workspace ensured")
 
     # --- Ensure local skill hub exists ---
     from ..agents.skill_system import ensure_skill_pool_initialized

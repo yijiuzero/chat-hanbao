@@ -44,7 +44,6 @@ from .auth import (
 )
 from .migration import (
     ensure_default_agent_exists,
-    ensure_qa_agent_exists,
     migrate_legacy_skills_to_skill_pool,
     migrate_legacy_workspace_to_default_agent,
 )
@@ -117,8 +116,7 @@ async def lifespan(  # pylint: disable=too-many-statements,too-many-branches
     migrate_legacy_workspace_to_default_agent()
     ensure_default_agent_exists()
     migrate_legacy_skills_to_skill_pool()
-    # [hanbao modification] Disable builtin QA Agent auto-creation.
-    # ensure_qa_agent_exists()
+    # [hanbao modification] Builtin QA Agent auto-creation removed entirely.
 
     # Migrate old conversations from sessions/*.json into each scroll agent's
     # history.db, so chats from before scroll existed stay recallable. This is
