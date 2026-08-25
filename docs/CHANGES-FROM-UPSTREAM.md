@@ -1027,6 +1027,18 @@ _背景：镜像 `hanbao:latest` 实测 1.74GB。拆解发现约 200MB 为「仅
 
 ---
 
+## 阶段 6.aa · 前端导航收敛：移除独立「技能池」入口（2026-08-25）
+
+_背景：单用户本地 NAS 场景下，上游多租户「共享技能池」范式属过度设计。前端同时存在「技能」(`/skills`) 与「技能池」(`/skill-pool`) 两个并列入口，用户感知冲突；且「技能」页（`pages/Agent/Skills`）已内建从池下载 / 上传到池 / hub 安装 / 市场浏览全套能力，独立「技能池」页为重复入口（其独有「广播到多 agent」对单用户无意义）。_
+
+- [修改] `console/src/layouts/registry/builtinRoutes.tsx` — 移除 `core.skill-pool` 路由注册及 `SkillPoolPage` 懒加载 import（同步删 import 以免 `noUnusedLocals` 编译失败）。底部 `[hanbao modification]` 注释已补充本次减法。
+- [修改] `console/src/layouts/registry/builtinMenu.ts` — 移除 `core.skill-pool` 导航菜单项（`primary.settings` 分组下），保留注释化参考以便还原。
+- [保留] 底层 `SkillPoolService` / `SkillService` / 内置技能自动同步 / hub 安装 / 「技能」页内「从池下载 / 上传到池」能力**全部保留**；`pages/Settings/SkillPool/` 页面代码保留但不再经由路由/菜单可达。
+- [零破坏] 仅收敛导航入口，不删数据、不删页面源码、不改动任何后端逻辑；如需还原，恢复上述两处注册即可。后续可选深化：将「技能」页内「上传到池 / 从池下载」措辞收敛为「我的技能库」语义（属 UX 文案层，本轮未做）。
+- [合规] 改动文件均含 `[hanbao modification]` 标注；`LICENSE`/`NOTICE`/红线文件未触碰。
+
+---
+
 ## 未修改声明
 
 除本文件记录的改动外，hanbao 中其余代码均来自上游 QwenPaw v2.0.1，其著作权归 The QwenPaw Authors 所有，按 Apache License 2.0 条款授权使用。

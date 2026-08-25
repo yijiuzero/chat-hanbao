@@ -32,7 +32,6 @@ import {
   SparkMagicWandLine,
   SparkMcpMcpLine,
   SparkModePlazaLine,
-  SparkOtherLine,
   SparkToolLine,
   SparkUserGroupLine,
   SparkWifiLine,
@@ -172,15 +171,17 @@ export const BUILTIN_MENU: MenuItem[] = [
     route: "core.models",
     order: 20,
   },
-  {
-    id: "core.skill-pool",
-    location: "primary.settings",
-    parentId: "core.settings-group",
-    label: navLabel("nav.skillPool", "Skill Pool"),
-    icon: SparkOtherLine,
-    route: "core.skill-pool",
-    order: 30,
-  },
+  // [hanbao modification] 2026-08-25: 单用户场景移除独立「技能池」导航入口；
+  // 技能管理统一收敛到 /skills（Agent 技能）页，底层 SkillPoolService 保留。
+  // {
+  //   id: "core.skill-pool",
+  //   location: "primary.settings",
+  //   parentId: "core.settings-group",
+  //   label: navLabel("nav.skillPool", "Skill Pool"),
+  //   icon: SparkOtherLine,
+  //   route: "core.skill-pool",
+  //   order: 30,
+  // },
   {
     id: "core.token-usage",
     location: "primary.settings",

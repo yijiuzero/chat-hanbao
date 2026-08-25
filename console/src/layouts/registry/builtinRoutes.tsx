@@ -1,6 +1,10 @@
 /**
  * [hanbao modification] Stripped down builtin routes — Coding, Heartbeat,
  * ACP, Environments, Security, VoiceTranscription, AppCenter removed.
+ * 2026-08-25: also removed the standalone "skill-pool" route; skill
+ * management is unified under /skills (the Agent Skills page already owns
+ * pool download/upload, hub install and market browse). SkillPoolService
+ * and the Settings/SkillPool page code are retained but no longer routed.
  */
 import { Suspense } from "react";
 import { Navigate } from "react-router-dom";
@@ -17,7 +21,6 @@ const SessionsPage = lazyImportWithRetry("../../pages/Control/Sessions");
 const InboxPage = lazyImportWithRetry("../../pages/Inbox");
 const CronJobsPage = lazyImportWithRetry("../../pages/Control/CronJobs");
 const SkillsPage = lazyImportWithRetry("../../pages/Agent/Skills");
-const SkillPoolPage = lazyImportWithRetry("../../pages/Settings/SkillPool");
 const ToolsPage = lazyImportWithRetry("../../pages/Agent/Tools");
 const WorkspacePage = lazyImportWithRetry("../../pages/Agent/Workspace");
 const MCPPage = lazyImportWithRetry("../../pages/Agent/MCP");
@@ -44,7 +47,6 @@ export const BUILTIN_ROUTES: Route[] = [
   { id: "core.inbox", path: "/inbox", component: InboxPage },
   { id: "core.cron-jobs", path: "/cron-jobs", component: CronJobsPage },
   { id: "core.skills", path: "/skills", component: SkillsPage },
-  { id: "core.skill-pool", path: "/skill-pool", component: SkillPoolPage },
   { id: "core.tools", path: "/tools", component: ToolsPage },
   { id: "core.mcp", path: "/mcp", component: MCPPage },
   { id: "core.workspace", path: "/workspace", component: WorkspacePage },
