@@ -23,8 +23,7 @@ _TOOL_FILE_PARAMS: dict[str, tuple[str, ...]] = {
     "read_file": ("file_path",),
     "write_file": ("file_path",),
     "edit_file": ("file_path",),
-    "append_file": ("file_path",),
-    "send_file_to_user": ("file_path",),
+    "send_file_to_user": ("file_path",),  # [hanbao modification] append_file removed from guarded params
     # agentscope built-ins (may be enabled by users)
     "view_text_file": ("file_path", "path"),
     "write_text_file": ("file_path", "path"),

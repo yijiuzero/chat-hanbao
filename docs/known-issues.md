@@ -41,6 +41,7 @@
 | [I-030](#i-030) | 运行配置页清理：auth.py 死白名单条目 + 隐藏 remeLightMemory TAB | 🟢 极低 | 界面收尾（已修复） | 🟢 已解决（2026-08-24 `039fa49`） |
 | [I-031](#i-031) | header 被删模块占位：GitHub 后空 `<span>` + 双分隔线导致中间空一截 | 🟢 极低 | header 布局收尾（已修复） | 🟢 已解决（2026-08-24 `e27acfa`） |
 | [I-032](#i-032) | 运行配置页下线：时区调整移入侧栏设置面板、整页删除 | 🟢 极低 | 界面收尾（已修复） | 🟢 已解决（2026-08-25） |
+| [I-033](#i-033) | 删除 `append_file` 与 `delegate_external_agent` 两个后端工具及对应前端卡片/测试 | 🟢 极低 | 工具集减法（已修复） | 🟢 已解决（2026-08-25） |
 
 ---
 
@@ -897,6 +898,7 @@ GPL 是 copyleft 传染性许可，与 Apache-2.0 闭源分发目标冲突，违
 | 2026-08-24 | **auth.py 死条目清理 + remeLightMemory TAB 隐藏（039fa49）+ ChannelDrawer 死代码清理（5ed0391）+ MD 维护（1aeb83d）**：前者删 `auth.py` `_PUBLIC_PATHS` 漏清的 `/api/desktop/shutdown`、运行配置页隐藏记忆后端 TAB 仅留 reactAgent（时区）；后者删 10 频道 `case` 块(667 行)+3 const+useEffect（noUnusedLocals 须连带删），活频道表单逻辑不受影响。均 grep 彻查零悬空。**本轮回测「测一下」重建 `hanbao:latest`（`1067ffd5c99f`，1.74GB）验收全绿**：`<title>hanbao Console</title>`、auth/status `{"enabled":true,"has_users":false}`、err.log 零 traceback、前端 tsc/vite 编译通过。 |
 | 2026-08-24 | **header 被删模块占位清理（e27acfa）**：`Header.tsx` 的 `<Space size="middle">` 中 GitHub 按钮后残留「分隔线 + 空 `<span>` + 分隔线」，空 span 为上游 QwenPaw header（Docs/FAQ/Changelog 等减法删除模块）的占位（git blame 源自基线 9b86a97）。去掉空 span 与冗余分隔线，保留 GitHub 与语言/主题切换间单条分隔线；纯布局清理、无逻辑改动。 |
 | 2026-08-25 | **运行配置页下线（I-032）**：时区调整移入侧栏设置面板 `SidebarSettingsPanel`（新增 `TimezoneRow`，复用 `getUserTimezone/updateUserTimezone`/`useTimezoneOptions`），整页 `pages/Agent/Config/` 删除；连带清理 `builtinRoutes` 路由、`builtinMenu` 菜单项、`Sidebar` 简单模式白名单、`constants/backendMappings`（死代码+悬空 import）、`LoopModeSelector` 死链按钮。grep 零悬空（`noUnusedLocals` 安全）。待「测一下」重建验收。 |
+| 2026-08-25 | **删除 append_file / delegate_external_agent 两工具（I-033）**：`file_io.py` 移除 `append_file` 定义（含 `@tool_descriptor` 装饰器、清理未用 `append_text_async` 导入）；`tools/__init__.py` 去除两个 import；`security/tool_guard` 的 `file_guardian`/`utils` 移除对应守卫项。前端 `ToolCards/cards` 删除 `AppendFileCard`/`DelegateExternalAgentCard` 并改写注册表，`Agent/Tools/index.tsx` 移除 `delegate_external_agent` 异步执行入口。删 `delegate_external_agent.py` 与端到端测试 `test_acp_runner.py`；修 3 个测试文件悬空 import/断言（`test_file_io` / `test_unified_tool_registration` / `test_utils`），并将 plugin 所有权测试 `builtin_name` 改为仍存在的 `read_file`。**保留 `agents/acp/` 共享子系统**（网页配置 API/TUI/核心 hook 仍依赖），仅删工具本身。grep 全仓零悬空（acp 子系统内注释除外，无害）；py_compile 通过。待「测一下」重建验收。 |
 
 ## I-025 · 改 Dockerfile 触发 apt 层缓存失效，暴露 fonts-wqy-microhei 已从 Debian 源移除
 
@@ -1018,3 +1020,29 @@ Console 顶栏 `<Space size="middle">` 中，GitHub 按钮后紧接「分隔线 
 
 ### 验证
 grep 全仓复核：`Agent/Config`、`useAgentConfig`、`ReactAgentCard`、`/agent-config`、`core.agent-config`、`backendMappings`、`SparkModifyLine` 均零残留；`SidebarSettingsPanel` 时区行结构与既有行一致。前端 `tsc`/`vite` 编译待「测一下」镜像重建确认（低风险纯删减 + 一行新组件）。
+
+---
+
+## I-033 · 删除 append_file 与 delegate_external_agent 两个后端工具
+
+**严重度**：🟢 极低 &nbsp;|&nbsp; **状态**：🟢 已解决（2026-08-25） &nbsp;|&nbsp; **必须处理时机**：工具集减法
+
+### 背景
+`append_file`（`file_io.py`，`@tool_descriptor` 装饰、`enabled_by_default=False`）与 `delegate_external_agent`（`delegate_external_agent.py`，通过 ACP 协议调度外部编码 agent，如 claude_code/codex/opencode）均为继承自 QwenPaw 的休眠工具，家庭单用户聊天机器人场景用不到。用户拍板一并砍除。
+
+### 依赖分析（删功能先查依赖）
+- `append_file`：仅被 `tools/__init__.py` import + `security/tool_guard` 两处守卫字典引用，完全孤立，干净可砍。
+- `delegate_external_agent`：单向 import `agents/acp/`（client/service/tool_adapter/node_runtime/permissions），但 **`agents/acp/` 是共享基础设施**——`app/routers/config.py` 的 `get_acp_config`/`set_acp_config` 网页配置 API、`cli/tui/`、`cli/acp_cmd.py`（`hanbao acp` 服务端）、`hooks/session/session_hook.py`、`runtime/builder.py` 均依赖 `acp.meta` 与子系统。**整删会拖垮控制台配置页与核心 hook**，故**只删工具本身、保留 `agents/acp/` 子系统**。
+- `write_file`/`edit_file`：与治理层 `governance/detectors.py`、系统提示词 `app/chats/utils.py`、默认工具预设深度耦合且默认开启，**不在本次两工具范围**，保留。
+
+### 处理
+- **后端**：`file_io.py` 删除 `append_file` 定义（含 `@tool_descriptor` 装饰器块）并清理因此变未用的 `append_text_async` 导入；`tools/__init__.py` 去除两个 import；`security/tool_guard/guardians/file_guardian.py` 与 `security/tool_guard/utils.py` 移除对应守卫项（`_TOOL_FILE_PARAMS` / `_DEFAULT_GUARDED_TOOLS`）。
+- **删除文件**：`src/hanbao/agents/tools/delegate_external_agent.py`、`tests/integration/test_acp_runner.py`（整文件即端到端测该工具）。
+- **前端**：`ToolCards/cards` 删除 `AppendFileCard.tsx`/`DelegateExternalAgentCard.tsx` 并改写 `index.ts` 注册表；`pages/Agent/Tools/index.tsx` 移除 `delegate_external_agent` 异步执行入口（`{["execute_shell_command"]}`）。
+- **测试收尾**：`test_file_io.py` 移除 `append_file` import 与 `TestAppendFile` 整类；`test_unified_tool_registration.py` 移除两工具 import 与 `test_delegate_external_agent_disabled_by_default`/`test_append_file_disabled_by_default` 两方法，并将 plugin 所有权测试 `builtin_name` 由已删的 `append_file` 改为仍存在的 `read_file`；`test_utils.py` 的 `_DEFAULT_GUARDED_TOOLS` 期望集合移除 `append_file`。
+
+### 验证
+- `python -m py_compile` 四个改动后端文件全部通过。
+- grep 全仓：后端 `src/hanbao`（除 `agents/acp/` 子系统内历史注释/docstring，无害）、`tests/`、`console/src` 中 `append_file` / `delegate_external_agent` 功能引用**零残留**（仅 acp 子系统注释提及，因该子系统保留故不清理）。
+- 所有修改文件加 `[hanbao modification]` 标记。
+- 前端 `tsc`/`vite` 编译待「测一下」镜像重建确认（低风险纯删减）。

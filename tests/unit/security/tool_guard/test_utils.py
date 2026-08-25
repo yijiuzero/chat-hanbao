@@ -401,7 +401,6 @@ class TestDefaultGuardedTools:
             "read_file",
             "write_file",
             "edit_file",
-            "append_file",
             "send_file_to_user",
             "view_text_file",
             "write_text_file",

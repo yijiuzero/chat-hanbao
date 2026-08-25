@@ -996,6 +996,21 @@ _背景：2026-08-21 砍除 10 个频道时，其 `ChannelDrawer.tsx` 专属 `ca
 
 ---
 
+## 阶段 6.y · 删除 append_file / delegate_external_agent 两工具（2026-08-25）
+
+_背景：两者均为继承自 QwenPaw 的休眠工具（`enabled_by_default=False`），家庭单用户聊天机器人场景用不到，用户拍板砍除。_
+
+- [删除] `src/hanbao/agents/tools/file_io.py` — 移除 `append_file` 定义（含其 `@tool_descriptor` 装饰器块）及因此变未用的 `append_text_async` 导入；`src/hanbao/agents/tools/__init__.py` 去除 `append_file` 与 `delegate_external_agent` 两处 import；`security/tool_guard/guardians/file_guardian.py` 与 `security/tool_guard/utils.py` 移除对应守卫项。
+- [删除] `src/hanbao/agents/tools/delegate_external_agent.py`、`tests/integration/test_acp_runner.py`（整文件即端到端测该工具）。
+- [删除·前端] `console/src/components/Chat/ToolCards/cards/AppendFileCard.tsx`、`DelegateExternalAgentCard.tsx` 并改写 `index.ts` 注册表；`console/src/pages/Agent/Tools/index.tsx` 移除 `delegate_external_agent` 异步执行入口。
+- [保留·关键] `src/hanbao/agents/acp/` 共享子系统**保留**——网页配置 API（`get_acp_config`/`set_acp_config`）、`cli/tui/`、`cli/acp_cmd.py`、核心 `session_hook`/`runtime/builder` 均依赖之，整删会拖垮控制台与 hook；本次仅删工具本身，不动 acp 子系统与其 `config.py` 的 `ACPConfig`。
+- [保留] `write_file`/`edit_file` 与治理层 `governance/detectors.py`、系统提示词深度耦合且默认开启，不在本次两工具范围。
+- [测试收尾] `test_file_io.py`（移除 `append_file` import + `TestAppendFile` 整类）、`test_unified_tool_registration.py`（移除两工具 import 与两测试方法，plugin 所有权测试 `builtin_name` 改 `read_file`）、`test_utils.py`（`_DEFAULT_GUARDED_TOOLS` 期望集移除 `append_file`）。
+- [合规] `LICENSE`/`NOTICE`/红线文件未触碰；改动文件加 `[hanbao modification]`。
+- [验证] `python -m py_compile` 四个后端文件通过；grep 全仓 `append_file`/`delegate_external_agent` 功能引用零残留（仅 `agents/acp/` 子系统内历史注释提及，无害）。待「测一下」重建验收。
+
+---
+
 ## 未修改声明
 
 除本文件记录的改动外，hanbao 中其余代码均来自上游 QwenPaw v2.0.1，其著作权归 The QwenPaw Authors 所有，按 Apache License 2.0 条款授权使用。

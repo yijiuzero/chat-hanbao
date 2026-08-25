@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 # flake8: noqa: E501
 # pylint: disable=line-too-long
+# [hanbao modification] append_file tool removed — file-write primitives are
+# unnecessary for the chat bot (document generation is covered by document_edit).
 import asyncio
 import os
 import shutil
@@ -25,7 +27,6 @@ from ...config.context import (
 from ...constant import WORKING_DIR
 from ...runtime.tool_registry import tool_descriptor
 from ...utils.io_utils import (
-    append_text_async,
     get_path_lock,
     write_text_atomic_async,
 )
@@ -491,71 +492,3 @@ async def edit_file(
             ),
         ],
     )
-
-
-@tool_descriptor(
-    requires_sandbox=("file_write",),
-    async_execution=True,
-    enabled_by_default=False,
-    tool_type="file",
-    target_param="file_path",
-    policy_name="Append",
-    ui_description="Append content to a file",
-    ui_icon="📎",
-)
-async def append_file(
-    file_path: str,
-    content: str,
-) -> ToolChunk:
-    """Append content to the end of a file. Relative paths resolve from
-    WORKING_DIR.
-
-    Args:
-        file_path (`str`):
-            Path to the file.
-        content (`str`):
-            Content to append.
-    """
-
-    if not file_path:
-        return ToolChunk(
-            is_last=True,
-            state=ToolResultState.ERROR,
-            content=[
-                TextBlock(
-                    type="text",
-                    text="Error: No `file_path` provided.",
-                ),
-            ],
-        )
-
-    file_path = _resolve_file_path(file_path)
-    encoding = _get_encoding_for_file(file_path)
-
-    try:
-        await append_text_async(
-            file_path,
-            content,
-            encoding=encoding,
-        )
-        return ToolChunk(
-            is_last=True,
-            state=ToolResultState.SUCCESS,
-            content=[
-                TextBlock(
-                    type="text",
-                    text=f"Appended {len(content)} bytes to {file_path}.",
-                ),
-            ],
-        )
-    except Exception as e:
-        return ToolChunk(
-            is_last=True,
-            state=ToolResultState.ERROR,
-            content=[
-                TextBlock(
-                    type="text",
-                    text=f"Error: Append file failed due to \n{e}",
-                ),
-            ],
-        )

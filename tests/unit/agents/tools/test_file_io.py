@@ -7,7 +7,6 @@ Covers:
 - read_file
 - write_file
 - edit_file
-- append_file
 """
 # pylint: disable=protected-access,unused-argument
 
@@ -23,7 +22,6 @@ import pytest
 from hanbao.agents.tools.file_io import (
     _get_encoding_for_file,
     _resolve_file_path,
-    append_file,
     edit_file,
     read_file,
     write_file,
@@ -280,62 +278,3 @@ class TestEditFile:
         assert f.read_text(encoding="utf-8-sig") == "ccc bbb ccc"
 
 
-# ---------------------------------------------------------------------------
-# append_file
-# ---------------------------------------------------------------------------
-
-
-class TestAppendFile:
-    """Tests for append_file."""
-
-    @pytest.mark.asyncio
-    async def test_append_to_existing(self, tmp_path):
-        f = tmp_path / "append.txt"
-        f.write_text("line1\n", encoding="utf-8")
-        result = await append_file(str(f), "line2\n")
-        assert "Appended" in result.content[0].text
-        assert f.read_text(encoding="utf-8") == "line1\nline2\n"
-
-    @pytest.mark.asyncio
-    async def test_append_creates_new_file(self, tmp_path):
-        f = tmp_path / "new_append.txt"
-        result = await append_file(str(f), "first line")
-        assert "Appended" in result.content[0].text
-        assert f.read_text(encoding="utf-8-sig") == "first line"
-
-    @pytest.mark.asyncio
-    async def test_append_empty_path(self):
-        result = await append_file("", "content")
-        assert (
-            "No" in result.content[0].text
-            and "file_path" in result.content[0].text
-        )
-
-    @pytest.mark.asyncio
-    async def test_concurrent_appends_are_serialized_per_path(self, tmp_path):
-        f = tmp_path / "concurrent.txt"
-        active = 0
-        max_active = 0
-        guard = threading.Lock()
-
-        def delayed_append(file_path, content, encoding):
-            nonlocal active, max_active
-            with guard:
-                active += 1
-                max_active = max(max_active, active)
-            time.sleep(0.01)
-            with open(file_path, "a", encoding=encoding) as handle:
-                handle.write(content)
-            with guard:
-                active -= 1
-
-        with patch(
-            "hanbao.utils.io_utils._append_text",
-            delayed_append,
-        ):
-            await asyncio.gather(
-                *(append_file(str(f), f"{index}\n") for index in range(8)),
-            )
-
-        assert max_active == 1
-        assert len(f.read_text(encoding="utf-8-sig").splitlines()) == 8

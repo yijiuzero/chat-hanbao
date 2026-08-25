@@ -326,11 +326,9 @@ export default function ToolsPage() {
                         </div>
                       )}
 
+                      {/* [hanbao modification] delegate_external_agent card removed (tool deleted) */}
                       <div className={styles.cardFooter}>
-                        {[
-                          "execute_shell_command",
-                          "delegate_external_agent",
-                        ].includes(tool.name) && (
+                        {["execute_shell_command"].includes(tool.name) && (
                           <Button
                             className={styles.toggleButton}
                             onClick={() => toggleAsyncExecution(tool)}

@@ -10,10 +10,6 @@ from unittest.mock import patch
 
 import pytest
 
-from hanbao.agents.tools.delegate_external_agent import (
-    delegate_external_agent,
-)
-from hanbao.agents.tools.file_io import append_file
 from hanbao.config.config import (
     ToolsConfig,
     _default_builtin_tools,
@@ -312,19 +308,6 @@ class TestAutoDefaultUserRules:
 
 
 class TestBuiltinToolConfigFromDescriptors:
-    def test_delegate_external_agent_disabled_by_default(self):
-        tools = _default_builtin_tools()
-        assert "delegate_external_agent" in tools
-        assert tools["delegate_external_agent"].enabled is False
-        desc = getattr(delegate_external_agent, "_tool_descriptor")
-        assert desc.enabled_by_default is False
-
-    def test_append_file_disabled_by_default(self):
-        tools = _default_builtin_tools()
-        assert tools["append_file"].enabled is False
-        desc = getattr(append_file, "_tool_descriptor")
-        assert desc.enabled_by_default is False
-
     def test_web_search_ui_metadata(self):
         tools = _default_builtin_tools()
         assert tools["web_search"].icon == "🔎"
@@ -938,7 +921,7 @@ class TestLoaderGovernanceLifecycle:
         attacker = "__ut_loader_attacker__"
         victim = "__ut_loader_victim__"
         foreign_tool = "__ut_loader_foreign_tool__"
-        builtin_name = "append_file"
+        builtin_name = "read_file"
         release_tool_ownership_for_plugin(attacker)
         release_tool_ownership_for_plugin(victim)
         DEFAULT_REGISTRY.unregister_python_tool(foreign_tool)

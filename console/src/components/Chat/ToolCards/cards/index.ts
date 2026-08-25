@@ -9,6 +9,8 @@
  *  - ChatV1 via v1Adapter + PluginSystem
  */
 
+// [hanbao modification] AppendFileCard & DelegateExternalAgentCard removed
+// (their underlying tools append_file / delegate_external_agent were deleted).
 import type React from "react";
 import type { ToolCallContent } from "../shared/types";
 
@@ -16,7 +18,6 @@ import type { ToolCallContent } from "../shared/types";
 export { default as ReadFileCard } from "./ReadFileCard";
 export { default as WriteFileCard } from "./WriteFileCard";
 export { default as EditFileCard } from "./EditFileCard";
-export { default as AppendFileCard } from "./AppendFileCard";
 export { default as GrepSearchCard } from "./GrepSearchCard";
 export { default as GlobSearchCard } from "./GlobSearchCard";
 export { default as ViewImageCard } from "./ViewImageCard";
@@ -35,7 +36,6 @@ export { default as ListAgentsCard } from "./ListAgentsCard";
 export { default as ChatWithAgentCard } from "./ChatWithAgentCard";
 export { default as SubmitToAgentCard } from "./SubmitToAgentCard";
 export { default as CheckAgentTaskCard } from "./CheckAgentTaskCard";
-export { default as DelegateExternalAgentCard } from "./DelegateExternalAgentCard";
 export { default as MaterializeSkillCard } from "./MaterializeSkillCard";
 export { default as ShellCard } from "./ShellCard";
 export { default as GenericToolCard } from "./GenericToolCard";
@@ -44,7 +44,6 @@ export { default as GenericToolCard } from "./GenericToolCard";
 import ReadFileCard from "./ReadFileCard";
 import WriteFileCard from "./WriteFileCard";
 import EditFileCard from "./EditFileCard";
-import AppendFileCard from "./AppendFileCard";
 import GrepSearchCard from "./GrepSearchCard";
 import GlobSearchCard from "./GlobSearchCard";
 import ViewImageCard from "./ViewImageCard";
@@ -60,7 +59,6 @@ import ListAgentsCard from "./ListAgentsCard";
 import ChatWithAgentCard from "./ChatWithAgentCard";
 import SubmitToAgentCard from "./SubmitToAgentCard";
 import CheckAgentTaskCard from "./CheckAgentTaskCard";
-import DelegateExternalAgentCard from "./DelegateExternalAgentCard";
 import MaterializeSkillCard from "./MaterializeSkillCard";
 import ShellCard from "./ShellCard";
 
@@ -80,7 +78,6 @@ export const BUILTIN_CARD_REGISTRY: Record<string, BuiltinCardComponent> = {
   read_file: ReadFileCard,
   write_file: WriteFileCard,
   edit_file: EditFileCard,
-  append_file: AppendFileCard,
 
   // Search
   grep_search: GrepSearchCard,
@@ -120,7 +117,6 @@ export const BUILTIN_CARD_REGISTRY: Record<string, BuiltinCardComponent> = {
   chat_with_agent: ChatWithAgentCard,
   submit_to_agent: SubmitToAgentCard,
   check_agent_task: CheckAgentTaskCard,
-  delegate_external_agent: DelegateExternalAgentCard,
 
   // Skills
   materialize_skill: MaterializeSkillCard,

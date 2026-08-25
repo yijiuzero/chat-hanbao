@@ -25,7 +25,7 @@ from typing import Callable
 
 # Each import triggers the @tool_descriptor decorator, which auto-
 # collects the function into the global registry.
-from .file_io import read_file, write_file, edit_file, append_file
+from .file_io import read_file, write_file, edit_file  # [hanbao modification] append_file removed
 from .file_search import grep_search, glob_search
 from .shell import execute_shell_command
 from .send_file import send_file_to_user
@@ -46,7 +46,6 @@ from .agent_management import (
     check_agent_task,
     spawn_subagent,
 )
-from .delegate_external_agent import delegate_external_agent
 from .make_skill_tools import materialize_skill
 
 
