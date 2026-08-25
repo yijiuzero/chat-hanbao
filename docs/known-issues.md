@@ -40,6 +40,7 @@
 | [I-029](#i-029) | ChannelDrawer 被砍频道死代码清理（10 频道 case 块 + 3 const + useEffect） | 🟢 极低 | 频道砍除收尾（已修复） | 🟢 已解决（2026-08-24 `5ed0391`） |
 | [I-030](#i-030) | 运行配置页清理：auth.py 死白名单条目 + 隐藏 remeLightMemory TAB | 🟢 极低 | 界面收尾（已修复） | 🟢 已解决（2026-08-24 `039fa49`） |
 | [I-031](#i-031) | header 被删模块占位：GitHub 后空 `<span>` + 双分隔线导致中间空一截 | 🟢 极低 | header 布局收尾（已修复） | 🟢 已解决（2026-08-24 `e27acfa`） |
+| [I-032](#i-032) | 运行配置页下线：时区调整移入侧栏设置面板、整页删除 | 🟢 极低 | 界面收尾（已修复） | 🟢 已解决（2026-08-25） |
 
 ---
 
@@ -895,6 +896,7 @@ GPL 是 copyleft 传染性许可，与 Apache-2.0 闭源分发目标冲突，违
 | 2026-08-24 | **I-019/I-022 落地 + 前端两轮水墨化 + 重建验收全绿**：自研 `document_edit.py` 4 工具（create/edit docx/xlsx，python-docx/openpyxl MIT，pptx 放弃）补 I-019；`web_search` 支持可选 `TAVILY_API_KEY` 解 I-022；前端第一轮（a87fb07 字体/闲章/动效）+ 第二轮（59220ad 全面水墨化：登录页意境/聊天气泡/会话项/页眉）按用户拍板「全面水墨化」做实质性重做。**重建镜像 `531ecf90e1ff`/`hanbao:latest`（1.74GB）**，干净容器验收全绿：`<title>hanbao Console</title>`、auth/status `{"enabled":true,"has_users":false}`、err.log 零 traceback、`/api/desktop/shutdown` 404、I-019 依赖就绪。**🔴 构建教训**：shell 的 `HTTP_PROXY/HTTPS_PROXY` 被自动注入构建容器，Clash 没起时 npm/pip 假死——构建须 `--build-arg HTTP_PROXY= --build-arg HTTPS_PROXY=` 清空，走宿主直连（+ daemon mirror），无需 Clash。 |
 | 2026-08-24 | **auth.py 死条目清理 + remeLightMemory TAB 隐藏（039fa49）+ ChannelDrawer 死代码清理（5ed0391）+ MD 维护（1aeb83d）**：前者删 `auth.py` `_PUBLIC_PATHS` 漏清的 `/api/desktop/shutdown`、运行配置页隐藏记忆后端 TAB 仅留 reactAgent（时区）；后者删 10 频道 `case` 块(667 行)+3 const+useEffect（noUnusedLocals 须连带删），活频道表单逻辑不受影响。均 grep 彻查零悬空。**本轮回测「测一下」重建 `hanbao:latest`（`1067ffd5c99f`，1.74GB）验收全绿**：`<title>hanbao Console</title>`、auth/status `{"enabled":true,"has_users":false}`、err.log 零 traceback、前端 tsc/vite 编译通过。 |
 | 2026-08-24 | **header 被删模块占位清理（e27acfa）**：`Header.tsx` 的 `<Space size="middle">` 中 GitHub 按钮后残留「分隔线 + 空 `<span>` + 分隔线」，空 span 为上游 QwenPaw header（Docs/FAQ/Changelog 等减法删除模块）的占位（git blame 源自基线 9b86a97）。去掉空 span 与冗余分隔线，保留 GitHub 与语言/主题切换间单条分隔线；纯布局清理、无逻辑改动。 |
+| 2026-08-25 | **运行配置页下线（I-032）**：时区调整移入侧栏设置面板 `SidebarSettingsPanel`（新增 `TimezoneRow`，复用 `getUserTimezone/updateUserTimezone`/`useTimezoneOptions`），整页 `pages/Agent/Config/` 删除；连带清理 `builtinRoutes` 路由、`builtinMenu` 菜单项、`Sidebar` 简单模式白名单、`constants/backendMappings`（死代码+悬空 import）、`LoopModeSelector` 死链按钮。grep 零悬空（`noUnusedLocals` 安全）。待「测一下」重建验收。 |
 
 ## I-025 · 改 Dockerfile 触发 apt 层缓存失效，暴露 fonts-wqy-microhei 已从 Debian 源移除
 
@@ -998,3 +1000,21 @@ Console 顶栏 `<Space size="middle">` 中，GitHub 按钮后紧接「分隔线 
 
 ### 验证
 `tsc`/`vite` 编译待「测一下」镜像重建确认（本次为纯 JSX 布局删减，属低风险）。
+
+---
+
+## I-032 · 运行配置页下线：时区调整移入侧栏设置面板、整页删除
+
+**严重度**：🟢 极低 &nbsp;|&nbsp; **状态**：🟢 已解决（2026-08-25） &nbsp;|&nbsp; **必须处理时机**：界面收尾
+
+### 背景
+运行配置页（`/agent-config`）经多轮减法后，仅剩「ReAct 智能体」一个 TAB，且该 TAB 只暴露「时区调整」一项。为家庭单用户场景精简入口，将该功能移入侧栏底部 `collapseToggle` 设置齿轮弹出的 `SidebarSettingsPanel`（与语言/主题/模式并列），并彻底删除独立运行配置页。
+
+### 处理
+- **新增时区行**：`console/src/layouts/SidebarSettingsPanel.tsx` 增加 `TimezoneRow` 组件——挂载时 `api.getUserTimezone()` 拉取当前时区，`Select`（`useTimezoneOptions()`）选择后 `api.updateUserTimezone()` 保存，复用既有 `agentConfig.timezone*` locale 键；样式沿用面板既有 `.row`/`.label` 结构。
+- **删除运行配置页**：整目录 `console/src/pages/Agent/Config/`（index.tsx、useAgentConfig.tsx + 测试、components 全套卡片 + 测试、index.module.less）删除。
+- **清理入口与死链**：`builtinRoutes.tsx` 移除 lazy 导入与 `/agent-config` 路由；`builtinMenu.ts` 移除 `core.agent-config` 菜单项（含 `SparkModifyLine` 图标导入，因仅此一处使用一并移除）；`Sidebar.tsx` 的 `SIMPLE_MODE_WHITELIST` 移除 `core.agent-config`。
+- **连带死代码**：`constants/backendMappings.ts`（及其测试）仅被已删的 `useAgentConfig` 消费，且 import 了已删的 `LightContextCard`/`ReMeLightMemoryCard`/`ADBPGConfigCard`，一并删除；`LoopInput/LoopModeSelector.tsx` 原「去设置」按钮 `navigate("/agent-config?tab=agentLoop")` 成死链，移除该按钮并清理因此变未用的 `navigate`/`useNavigate`/`Settings2` 导入（避免 `noUnusedLocals` 编译失败）。
+
+### 验证
+grep 全仓复核：`Agent/Config`、`useAgentConfig`、`ReactAgentCard`、`/agent-config`、`core.agent-config`、`backendMappings`、`SparkModifyLine` 均零残留；`SidebarSettingsPanel` 时区行结构与既有行一致。前端 `tsc`/`vite` 编译待「测一下」镜像重建确认（低风险纯删减 + 一行新组件）。
