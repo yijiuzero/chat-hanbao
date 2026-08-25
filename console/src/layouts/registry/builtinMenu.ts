@@ -32,7 +32,6 @@ import {
   SparkMagicWandLine,
   SparkMcpMcpLine,
   SparkModePlazaLine,
-  SparkModifyLine,
   SparkOtherLine,
   SparkToolLine,
   SparkUserGroupLine,
@@ -136,15 +135,6 @@ export const BUILTIN_MENU: MenuItem[] = [
     icon: SparkMcpMcpLine,
     route: "core.mcp",
     order: 40,
-  },
-  {
-    id: "core.agent-config",
-    location: "primary.agentScoped",
-    parentId: "core.agent-group",
-    label: navLabel("nav.agentConfig"),
-    icon: SparkModifyLine,
-    route: "core.agent-config",
-    order: 60,
   },
   {
     id: "core.agent-stats",

@@ -16,7 +16,6 @@ const ChannelsPage = lazyImportWithRetry("../../pages/Control/Channels");
 const SessionsPage = lazyImportWithRetry("../../pages/Control/Sessions");
 const InboxPage = lazyImportWithRetry("../../pages/Inbox");
 const CronJobsPage = lazyImportWithRetry("../../pages/Control/CronJobs");
-const AgentConfigPage = lazyImportWithRetry("../../pages/Agent/Config");
 const SkillsPage = lazyImportWithRetry("../../pages/Agent/Skills");
 const SkillPoolPage = lazyImportWithRetry("../../pages/Settings/SkillPool");
 const ToolsPage = lazyImportWithRetry("../../pages/Agent/Tools");
@@ -51,11 +50,6 @@ export const BUILTIN_ROUTES: Route[] = [
   { id: "core.workspace", path: "/workspace", component: WorkspacePage },
   { id: "core.agents", path: "/agents", component: AgentsPage },
   { id: "core.models", path: "/models", component: ModelsPage },
-  {
-    id: "core.agent-config",
-    path: "/agent-config",
-    component: AgentConfigPage,
-  },
   { id: "core.token-usage", path: "/token-usage", component: TokenUsagePage },
   { id: "core.agent-stats", path: "/agent-stats", component: AgentStatsPage },
   { id: "core.debug", path: "/debug", component: DebugPage },

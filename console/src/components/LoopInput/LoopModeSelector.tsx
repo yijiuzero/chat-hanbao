@@ -5,14 +5,12 @@ import {
   LoaderCircle,
   MessageCircleQuestion,
   Rocket,
-  Settings2,
   Sparkles,
   Target,
 } from "lucide-react";
 import { Popover, Tooltip } from "antd";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
 
 import {
   DEFAULT_LOOP_MODE,
@@ -45,7 +43,6 @@ function ModeIcon({ mode, size = 14 }: { mode: LoopModeInfo; size?: number }) {
 
 export function LoopModeSelector() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const availableModes = useLoopStore((state) => state.availableModes);
   const selectedModeId = useLoopStore((state) => state.selectedModeId);
@@ -140,19 +137,6 @@ export function LoopModeSelector() {
           <div className={styles.menuTitle}>{t("loop.selectorTitle")}</div>
           <div className={styles.menuHint}>{t("loop.selectorHint")}</div>
         </div>
-        <Tooltip title={t("loop.gotoSettings")}>
-          <button
-            aria-label={t("loop.gotoSettings")}
-            className={styles.settingsButton}
-            onClick={() => {
-              setOpen(false);
-              navigate("/agent-config?tab=agentLoop");
-            }}
-            type="button"
-          >
-            <Settings2 size={16} />
-          </button>
-        </Tooltip>
       </div>
       {renderGroup(t("loop.builtInModes"), builtInModes)}
       {renderGroup(t("loop.customModes"), extendedModes)}

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
 import { SunMoon } from "lucide-react";
@@ -10,6 +10,10 @@ import {
   SparkFullscreenLine,
   SparkExitFullscreenLine,
 } from "@agentscope-ai/icons";
+import { Select } from "@agentscope-ai/design";
+import api from "../api";
+import { useAppMessage } from "../hooks/useAppMessage";
+import { useTimezoneOptions } from "../hooks/useTimezoneOptions";
 import { languageApi } from "../api/modules/language";
 import { useTheme, type ThemeMode } from "../contexts/ThemeContext";
 import { useSidebarModeStore } from "../stores/sidebarModeStore";
@@ -22,6 +26,74 @@ const LANGS = [
   { key: "en", label: "English", icon: <SparkEnglish02Line size={14} /> },
 ];
 const KNOWN_KEYS = new Set(LANGS.map((l) => l.key));
+
+// ── Timezone quick-setting (moved from the removed "运行配置" page) ──────────
+function TimezoneRow() {
+  const { t } = useTranslation();
+  const { message } = useAppMessage();
+  const [timezone, setTimezone] = useState<string>("UTC");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const timezoneOptions = useTimezoneOptions();
+
+  useEffect(() => {
+    let active = true;
+    api
+      .getUserTimezone()
+      .then((resp) => {
+        if (active) setTimezone(resp.timezone || "UTC");
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const handleChange = async (value: string) => {
+    if (value === timezone) return;
+    setSaving(true);
+    try {
+      await api.updateUserTimezone(value);
+      setTimezone(value);
+      message.success(t("agentConfig.timezoneSaveSuccess"));
+    } catch (err) {
+      const errMsg =
+        err instanceof Error
+          ? err.message
+          : t("agentConfig.timezoneSaveFailed");
+      message.error(errMsg);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className={styles.row}>
+      <span className={styles.label}>
+        {t("agentConfig.timezone", "Timezone")}
+      </span>
+      <Select
+        showSearch
+        value={timezone}
+        placeholder={t("agentConfig.selectTimezone", "Select timezone")}
+        filterOption={(input, option) =>
+          (option?.label?.toString() || "")
+            .toLowerCase()
+            .includes(input.toLowerCase())
+        }
+        options={timezoneOptions}
+        onChange={handleChange}
+        loading={loading || saving}
+        disabled={saving}
+        size="small"
+        style={{ width: "100%" }}
+      />
+    </div>
+  );
+}
 
 // ── Component ─────────────────────────────────────────────────────────────
 
@@ -142,6 +214,9 @@ export default function SidebarSettingsPanel({
           )}
         </button>
       </div>
+
+      {/* ── Timezone ───────────────────────────────────── */}
+      <TimezoneRow />
     </div>
   );
 }
