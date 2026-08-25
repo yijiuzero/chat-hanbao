@@ -1,5 +1,6 @@
 ---
 summary: "本地 Agent 的核心准则、边界与风格"
+hanbao_modification: "hanbao fork — generic local-agent template adopted as-is; no brand-specific edits needed"
 read_when:
   - 启动本地 Agent 时参考
 ---

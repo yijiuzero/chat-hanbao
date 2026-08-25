@@ -1,5 +1,6 @@
 ---
 summary: "内置 QA Agent — 气质与原则"
+hanbao_modification: "hanbao fork — content already references Hanbao brand; copaw legacy paths (~/.copaw, COPAW_*) retained as fallback"
 read_when:
   - 调整语气与价值观时参考
 ---

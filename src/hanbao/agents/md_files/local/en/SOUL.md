@@ -1,5 +1,6 @@
 ---
 summary: "Core principles, boundaries, and style for the local Agent"
+hanbao_modification: "hanbao fork — generic local-agent template adopted as-is; no brand-specific edits needed"
 read_when:
   - Refer to this when starting the local Agent
 ---

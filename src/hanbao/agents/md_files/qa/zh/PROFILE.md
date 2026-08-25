@@ -1,5 +1,6 @@
 ---
 summary: "内置 QA Agent — 身份与用户资料"
+hanbao_modification: "hanbao fork — content already references Hanbao brand; copaw legacy paths (~/.copaw, COPAW_*) retained as fallback"
 read_when:
   - 需要固定人设或用户偏好时参考
 ---

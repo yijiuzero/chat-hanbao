@@ -1051,6 +1051,18 @@ _背景：阶段 6.aa 收敛了导航入口，但「技能」页（可达）内�
 
 ---
 
+## 阶段 6.ac · Agent 人格文档（md_files）维护补全（2026-08-25）
+
+_背景：阶段 6 品牌化后，agent 人格五件套（AGENTS/SOUL/PROFILE/BOOTSTRAP/HEARTBEAT）的 hanbao 化已覆盖 en/zh/id/ru 四套核心，但 `qa/` 与 `local/` 子目录缺 `hanbao_modification` 标注，且 `zh/SOUL.md` 标注误写「豆包」（字节跳动竞品 Doubao 笔误，正文已正确用「hanbao」）。本次补全标注口径一致性。_
+
+- [修正] `src/hanbao/agents/md_files/zh/SOUL.md` — frontmatter `hanbao_modification` 标注中「定制化豆包」→「定制化函包」（笔误修正，正文「你是 hanbao」无误）。
+- [补标注] `qa/{en,zh,ru}/{AGENTS,PROFILE,SOUL}.md`（9 个）— 补 `hanbao_modification` 字段，注明内容已用 Hanbao 品牌名、copaw legacy 路径（`~/.copaw` / `COPAW_*`）作为 `HANBAO_WORKING_DIR` fallback 有意保留。
+- [补标注] `local/{en,zh}/SOUL.md`（2 个）— 补 `hanbao_modification` 字段，注明为通用本地 Agent 模板直接采用、无品牌专属改动。
+- [零破坏] 仅 frontmatter 增字段 + 一处笔误修正，未改任何正文语义；YAML 结构校验通过。HEARTBEAT.md 为空模板占位（无标注，合理）。
+- [合规] 五件套扫描：QwenPaw / AgentScope / 通义 等上游品牌词 0 命中，已砍功能词（Tauri / Chromium / 本地 LLM / 多租户）0 命中；`LICENSE` / `NOTICE` / 红线文件未触碰。
+
+---
+
 ## 未修改声明
 
 除本文件记录的改动外，hanbao 中其余代码均来自上游 QwenPaw v2.0.1，其著作权归 The QwenPaw Authors 所有，按 Apache License 2.0 条款授权使用。

@@ -1,5 +1,6 @@
 ---
 summary: "Builtin QA Agent — workspace instructions"
+hanbao_modification: "hanbao fork — content already references Hanbao brand; copaw legacy paths (~/.copaw, COPAW_*) retained as fallback"
 read_when:
   - Answering questions about Hanbao, local config, or docs
 ---
