@@ -1,7 +1,7 @@
 # hanbao 项目续跑基准（会话交接）
 
 > 本文档是当前会话交付给后续会话的**唯一权威基准**。新会话须严格遵循，不重复返工已确认内容；与原设计冲突的技术决策，须先说明原因并征得确认后再实施。
-> 最后更新：2026-08-24 收尾 · 状态：阶段0~6 主体全部完成、包名全量改名落地、桌面端整条线已砍除、10 个频道已砍除仅留 8 个、I-019 文档改/创建自研工具落地、I-022 Tavily key 方案落地、前端两轮水墨化（边缘装饰→全面重做）已重建验收（镜像 `531ecf90e1ff` / `hanbao:latest` 1.74GB）；收尾另提交 `039fa49`(auth.py 死条目+remeLightMemory TAB 隐藏)、`5ed0391`(ChannelDrawer 死代码清理)，均已提交、**待本轮「测一下」重建验收**；**待办：阶段5 真正 `fnpack build` + fnOS 实测上架**。⚠️ 见下方「〇、当前环境实况」——`531ecf90e1ff` 为上一轮（08-24）重建验收全绿的镜像，本轮（039fa49+5ed0391）重建后将刷新镜像哈希。
+> 最后更新：2026-08-26 收尾 · 状态：阶段0~6 主体全部完成、包名全量改名落地、桌面端整条线已砍除、10 个频道已砍除仅留 8 个、I-019 文档改/创建自研工具落地、I-022 Tavily key 方案落地、前端两轮水墨化已重建验收；I-027~I-033 全部 🟢 已解决（运行配置页下线、append_file/delegate_external_agent 删除、前端导航收敛 6.aa/6.ab）；**hanbao:latest 已瘦身至 1.23GB（2026-08-25 前端收敛构建部署验收全绿、数据卷保留）**；**待办：阶段5 真正 `fnpack build` + fnOS 实测上架**。
 
 ---
 
@@ -13,8 +13,8 @@
 - I-019(文档改/创建自研) / I-022(Tavily key) / 前端第一轮水墨美化(a87fb07) 也已提交
 
 **Docker 实况**
-- daemon 在跑；**`hanbao:latest` = `1067ffd5c99f`**（1.74GB，2026-08-21 纪律后首轮「测一下」重建验收全绿：新镜像含 `039fa49`+`5ed0391`+MD 维护 `1aeb83d`；`:8099` 干净容器实测 `<title>hanbao Console</title>`、auth/status `{"enabled":true,"has_users":false}`、err.log 零 traceback）
-- **✅ 用户日常部署的 `hanbao` 容器（8088）已切到 `hanbao:latest`（`1067ffd5c99f`，2026-08-24「测一下」后按用户拍板「先停旧再起新」切换，数据卷 `hanbao-data`/`hanbao-secrets`/`hanbao-backups` 全部保留，`has_users:true` 确认账号数据未丢）**。部署铁律：重建后先 `docker stop hanbao && docker rm hanbao` 再挂同名卷起重容器，AI 已获授权自动执行此流程。
+- daemon 在跑；**`hanbao:latest` 已瘦身至 1.23GB**（2026-08-25 前端收敛构建部署验收全绿：含 6.aa/6.ab + I-029/I-030/I-033 收尾；`<title>hanbao Console</title>`、auth/status `{"enabled":true,"has_users":true}`、err.log 零 traceback；数据卷 `hanbao-data`/`hanbao-secrets`/`hanbao-backups` 全部保留）
+- **✅ 用户日常部署的 `hanbao` 容器（8088）已切到 `hanbao:latest`（1.23GB，2026-08-25 前端收敛重建后按用户拍板「先停旧再起新」切换，数据卷 `hanbao-data`/`hanbao-secrets`/`hanbao-backups` 全部保留，`has_users:true` 确认账号数据未丢）**。部署铁律：重建后先 `docker stop hanbao && docker rm hanbao` 再挂同名卷起重容器，AI 已获授权自动执行此流程。
 - **⚠️ 验证容器 `hanbao_verify2`（8091，`531ecf90e1ff`）可能仍在运行** → http://localhost:8091 可预览；`docker rm -f hanbao_verify2` 停。
 - **🔴 构建铁律新增（2026-08-24 实测）：`docker build` 必须清掉宿主代理 env**——shell 里 `HTTP_PROXY/HTTPS_PROXY=127.0.0.1:7897` 会被自动注入构建容器，Clash 没起时 npm/pip 全走死代理假死。命令：
   `docker build -f deploy/Dockerfile --build-arg NODE_IMAGE=node:20-slim --build-arg UV_IMAGE=uv:local --build-arg HTTP_PROXY= --build-arg HTTPS_PROXY= --build-arg http_proxy= --build-arg https_proxy= -t hanbao:latest .`
@@ -52,7 +52,7 @@ hanbao（中文"函包"）是 fork 自 **QwenPaw v2.0.1（Apache-2.0）** 的个
 | `docs/lifecycle-management.md` | 全生命周期管理 | 版本号 / 阶段准出标准基准 |
 | `docs/license-compliance.md` | 开源许可合规规范 | **每阶段开工前必读 §4 检查项**，未过不进下一阶段 |
 | `docs/CHANGES-FROM-UPSTREAM.md` | 与上游差异记录 | 改动证据；每次改动须同步追加 |
-| `docs/known-issues.md` | 已知问题追踪 | **I-001~I-030**，全部已解决/已确认（无未闭合代码项） |
+| `docs/known-issues.md` | 已知问题追踪 | **I-001~I-033**，全部已解决/已确认（无未闭合代码项） |
 | `README_zh.md`（顶部派生说明块） | 项目门面 | 上游正文原样保留，阶段 2 品牌改造再替换 |
 | `LICENSE` / `NOTICE` | 许可文件 | **永不动**，Apache-2.0 合规红线 |
 
@@ -75,12 +75,12 @@ hanbao（中文"函包"）是 fork 自 **QwenPaw v2.0.1（Apache-2.0）** 的个
 
 ## 四、当前可运行产物（截至 2026-08-24）
 
-- 镜像 **`hanbao:latest` = `1067ffd5c99f`**（1.74GB，本轮回测重建，含 039fa49+5ed0391+MD 维护；验收全绿）
+- 镜像 **`hanbao:latest` 已瘦身至 1.23GB**（2026-08-25 回测重建，含 6.aa/6.ab + I-029/I-030/I-033 收尾；验收全绿）
 - 用户日常容器 `hanbao`（8088，带数据）仍跑旧镜像 `4b9b782c5d9b`；验证容器 `hanbao_verify2`（8091，`531ecf90e1ff`）可预览
 - 基线 commit `9b86a976fffdc37b871fe31a7b689a8b6463c5b4`（`9b86a97`），tag `upstream/v2.0.1`（纯净上游 2846 文件）
 - 查看 hanbao 全部改动：`git diff upstream/v2.0.1..HEAD`
 
-> 注：上游 XFCE4 桌面 + Chromium + 桌面端整条线 + 10 个频道 SDK 已全部砍除（阶段4 瘦身 + 08-21 减法），镜像从 4.02GB 降到 1.74GB。
+> 注：上游 XFCE4 桌面 + Chromium + 桌面端整条线 + 10 个频道 SDK 已全部砍除（阶段4 瘦身 + 08-21 减法），镜像从 4.02GB 降到 1.23GB。
 
 ---
 
@@ -94,7 +94,7 @@ hanbao（中文"函包"）是 fork 自 **QwenPaw v2.0.1（Apache-2.0）** 的个
 
 ## 六、已知问题（known-issues.md，I-001~I-028 全部 🟢 已解决/已确认）
 
-**全部已解决 ✅**（截至 2026-08-24 收尾）：I-001~I-026 历史项全部闭环；I-027（桌面线收尾：删悬空 `/api/desktop/shutdown` 端点 + 孤儿 tauri 测试，2026-08-21 `d9a9875`）、I-028（前端界面两轮水墨化美化，2026-08-24 `a87fb07`+`59220ad` 已重建验收）、I-029（ChannelDrawer 被砍频道死代码清理，2026-08-24 `5ed0391`）、I-030（auth.py 死白名单条目 + 隐藏 remeLightMemory TAB，2026-08-24 `039fa49`）。I-029/I-030 已提交、**待本轮「测一下」重建验收**。
+**全部已解决 ✅**（截至 2026-08-26）：I-001~I-031 历史项全部闭环；I-027（桌面线收尾，2026-08-21 `d9a9875`）、I-028（前端两轮水墨化，2026-08-24 已重建验收）、I-029（ChannelDrawer 死代码清理，2026-08-24 `5ed0391`）、I-030（运行配置页清理，2026-08-24 `039fa49`）、I-031（header 占位修复，2026-08-24 `e27acfa`）、I-032（运行配置页下线，2026-08-25）、I-033（删除 append_file/delegate_external_agent 及对应前端卡片/测试，2026-08-25）。I-029~I-033 已随 2026-08-25 前端收敛构建部署验收全绿。
 
 **重要变更（本交接时刻已落地，新会话勿重复）**：
 - **桌面端整条线已砍除**（2026-08-21 `e9c6d08` + 2026-08-24 收尾 `d9a9875`）：Header/App 桌面死代码、pywebview/tauri mock、`scripts/pack-tauri/`、7 个桌面 GitHub Actions、`@tauri-apps/*` 依赖（package-lock 残留 43 处待 npm 自动清）全部清除。
@@ -104,7 +104,7 @@ hanbao（中文"函包"）是 fork 自 **QwenPaw v2.0.1（Apache-2.0）** 的个
 - **I-029 ChannelDrawer 死代码清理（2026-08-24 `5ed0391`）**：删 10 频道 `case` 块(667 行)+3 const+useEffect（noUnusedLocals 须连带删），活频道逻辑不受影响。
 - **I-030 运行配置页清理（2026-08-24 `039fa49`）**：`auth.py` `_PUBLIC_PATHS` 删漏清的 `/api/desktop/shutdown`；运行配置页隐藏记忆后端 TAB，仅留 reactAgent（时区）。
 
-**唯一未闭合的对外事项**：阶段5 真正 `fnpack build` + fnOS 实测上架（脚手架已建，代码层面无阻塞）。
+**唯一未闭合的对外事项**：阶段5 真正 `fnpack build` + fnOS 实测上架（脚手架已建，代码层面无阻塞；2026-08-26 上线前全检收尾：清 browser_use 悬空引用、修 e2e 缩进、升级 cryptography、删 LspError 孤儿类、前端卡片去注册）。
 
 ---
 

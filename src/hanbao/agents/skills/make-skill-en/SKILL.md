@@ -265,7 +265,7 @@ in sequence** should go into the batch.
 
   `${steps.<index>.<path>}` is not limited to script calls — any tool's
   arguments can reference previous steps' output. For example, pass
-  `read_file` results to `write_file`, or feed a `browser_use` snapshot
+  `read_file` results to `write_file`, or feed a webpage fetched via `execute_shell_command` (curl)
   into `execute_shell_command`.
 
   Example — take a browser snapshot, extract keyword-matching content
@@ -295,8 +295,8 @@ in sequence** should go into the batch.
   ```json
   [
     {
-      "tool_name": "browser_use",
-      "arguments": {"action": "snapshot"}
+      "tool_name": "execute_shell_command",
+      "arguments": {"command": "curl -sL ${args.url} -o ${args.work_dir}/snapshot.txt"}
     },
     {
       "tool_name": "write_file",

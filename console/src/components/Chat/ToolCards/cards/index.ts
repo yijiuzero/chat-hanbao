@@ -11,6 +11,8 @@
 
 // [hanbao modification] AppendFileCard & DelegateExternalAgentCard removed
 // (their underlying tools append_file / delegate_external_agent were deleted).
+// [hanbao modification] BrowserUseCard & DesktopScreenshotCard removed
+// (their underlying tools browser_use / desktop_screenshot were deleted).
 import type React from "react";
 import type { ToolCallContent } from "../shared/types";
 
@@ -22,12 +24,7 @@ export { default as GrepSearchCard } from "./GrepSearchCard";
 export { default as GlobSearchCard } from "./GlobSearchCard";
 export { default as ViewImageCard } from "./ViewImageCard";
 export { default as ViewVideoCard } from "./ViewVideoCard";
-export { default as DesktopScreenshotCard } from "./DesktopScreenshotCard";
 export { default as SendFileCard } from "./SendFileCard";
-export {
-  default as BrowserUseCard,
-  BROWSER_TOOL_NAMES,
-} from "./BrowserUseCard";
 export { default as GetCurrentTimeCard } from "./GetCurrentTimeCard";
 export { default as SetTimezoneCard } from "./SetTimezoneCard";
 export { default as TokenUsageCard } from "./TokenUsageCard";
@@ -48,9 +45,7 @@ import GrepSearchCard from "./GrepSearchCard";
 import GlobSearchCard from "./GlobSearchCard";
 import ViewImageCard from "./ViewImageCard";
 import ViewVideoCard from "./ViewVideoCard";
-import DesktopScreenshotCard from "./DesktopScreenshotCard";
 import SendFileCard from "./SendFileCard";
-import BrowserUseCard from "./BrowserUseCard";
 import GetCurrentTimeCard from "./GetCurrentTimeCard";
 import SetTimezoneCard from "./SetTimezoneCard";
 import TokenUsageCard from "./TokenUsageCard";
@@ -63,7 +58,6 @@ import MaterializeSkillCard from "./MaterializeSkillCard";
 import ShellCard from "./ShellCard";
 
 // ── Common props type ─────────────────────────────────────────────────
-
 export interface BuiltinCardProps {
   content: ToolCallContent;
   isStreaming?: boolean;
@@ -86,21 +80,7 @@ export const BUILTIN_CARD_REGISTRY: Record<string, BuiltinCardComponent> = {
   // Media
   view_image: ViewImageCard,
   view_video: ViewVideoCard,
-  desktop_screenshot: DesktopScreenshotCard,
   send_file_to_user: SendFileCard,
-
-  // Browser
-  browser_use: BrowserUseCard,
-  browser_navigate: BrowserUseCard,
-  navigate: BrowserUseCard,
-  browser_click: BrowserUseCard,
-  click: BrowserUseCard,
-  browser_type: BrowserUseCard,
-  type: BrowserUseCard,
-  browser_snapshot: BrowserUseCard,
-  snapshot: BrowserUseCard,
-  browser_scroll: BrowserUseCard,
-  scroll: BrowserUseCard,
 
   // Time
   get_current_time: GetCurrentTimeCard,

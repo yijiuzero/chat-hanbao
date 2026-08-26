@@ -567,11 +567,7 @@ class DirectUrlDownloadRejectedError(AgentRuntimeErrorException):
         )
 
 
-class LspError(AgentRuntimeErrorException):
-    """Raised when the LSP server returns a JSON-RPC error or dies."""
-
-    def __init__(self, message: str = "LSP error") -> None:
-        super().__init__("LSP_ERROR", message)
+# [hanbao modification] LspError removed — LSP tooling deleted during stage-4 subtraction.
 
 
 # ==================== LLM API Exception Converter ====================

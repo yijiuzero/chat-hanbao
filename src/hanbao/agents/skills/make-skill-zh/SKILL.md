@@ -237,7 +237,7 @@ batch 的补充参考（见 2c），不是主要执行指令。
 
   `${steps.<index>.<path>}` 不只用于脚本调用——任何工具的参数都可以
   引用前面步骤的输出。例如将 `read_file` 的结果传给 `write_file`，
-  或将 `browser_use` snapshot 的内容传给 `execute_shell_command`。
+  或将网页内容用 `execute_shell_command` 配合 curl 抓取后传给后续步骤。
 
   示例——获取浏览器 snapshot，用独立 Python 脚本提取包含关键词的
   内容并写入文件。其中 `${args.keyword}` 等是调用 `run_tool_batch`
@@ -265,8 +265,8 @@ batch 的补充参考（见 2c），不是主要执行指令。
   ```json
   [
     {
-      "tool_name": "browser_use",
-      "arguments": {"action": "snapshot"}
+      "tool_name": "execute_shell_command",
+      "arguments": {"command": "curl -sL ${args.url} -o ${args.work_dir}/snapshot.txt"}
     },
     {
       "tool_name": "write_file",

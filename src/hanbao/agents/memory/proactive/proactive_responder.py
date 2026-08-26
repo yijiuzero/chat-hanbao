@@ -186,9 +186,10 @@ async def _execute_query(
     agent: Agent,
 ) -> ProactiveQueryResult:
     """Execute a query using available tools."""
+    # [hanbao modification] browser_use removed — dropped from preferred-tool ordering
     prompt = (
         f"Task: Answer: {query} using tools -- "
-        "`browser_use` primary, `execute_shell_command`/`read_file` "
+        "`web_search`/`web_fetch` for information, `execute_shell_command`/`read_file` "
         "only if essential.\n"
         "Self-check: Did you retrieve new, query-relevant data or "
         "complete given task?\n"
