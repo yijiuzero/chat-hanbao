@@ -1096,3 +1096,14 @@ _用户「要」触发：对 `plugins/bundle/cloudpaw/agents/{executor,orchestra
 - [双语] 仅 en/zh，无 id/ru/qa/local，与本次收敛决策一致。
 - [依赖] 全插件 grep `qa`/`local` agent 类型引用 0 命中，未引用已删的 `BUILTIN_QA` 机制；其引用的 `alicloud_cli` / `iac-code` / ACP Runner / Mission Mode 均属插件自身能力，仍有效。
 - [旁注] `cloudpaw/README*.md` 引用了 `raw.githubusercontent.com/agentscope-ai/QwenPaw/...` 的图片 URL（上游仓库地址，非正文商标）——属人格文档审计范围外，且仅为外链图片，不影响分发合规；若后续要做品牌彻底去上游化可单独处理。
+
+## 阶段 6.ae · Dockerfile 国内镜像源加速（2026-08-26）
+
+_背景：构建验证时直连 `deb.debian.org` / `npmjs.org` / `pypi.org` 在 CN 网络下极慢，buildx 卡死在 runtime 阶段 `apt-get install build-essential`（gcc 工具链，约 480s 无输出）。注入国内镜像源实现无代理直连构建；同时保留原代理 ARG/ENV 通道，代理环境仍可用 `--build-arg HTTP_PROXY=...` 覆盖。该改动对飞牛 FPK 的无代理 `fnpack build` 环境同样有利。_
+
+- [修改] `deploy/Dockerfile` — 三处注入国内镜像源，均带 `[hanbao modification]` 标注：
+  - console-builder 阶段 `npm ci` 前新增 `RUN npm config set registry https://registry.npmmirror.com`
+  - runtime 阶段（`python:3.12-slim`, trixie）首次 `apt-get update` 前新增 `RUN sed -i 's|deb.debian.org|mirrors.aliyun.com|g' /etc/apt/sources.list.d/debian.sources`（Debian 13 用 deb822 源，格式经 `docker run --rm python:3.12-slim` 核实）
+  - `uv pip install --no-cache-dir .` 改为 `uv pip install --no-cache-dir -i https://pypi.tuna.tsinghua.edu.cn/simple .`
+- [验证] sed 替换目标经容器内 `cat /etc/apt/sources.list.d/debian.sources` 核实 deb822 格式正确（两处 `URIs: http://deb.debian.org/...`）；构建重启验证中。
+- [合规] 未触碰 `LICENSE` / `NOTICE` / 红线文档；代理通道保留，重写分发（镜像/FPK）仍随附 LICENSE + NOTICE。

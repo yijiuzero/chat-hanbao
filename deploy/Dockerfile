@@ -33,6 +33,9 @@ ARG NODE_BUILD_HEAP_MB=4096
 ENV NODE_OPTIONS=--max-old-space-size=${NODE_BUILD_HEAP_MB}
 # Install deps first → cached unless package.json / package-lock.json change.
 COPY console/package.json console/package-lock.json /app/console/
+# [hanbao modification] Use npmmirror (China) so `npm ci` works on direct
+# (no-proxy) builds — npmjs.org is slow/unreliable over direct CN connections.
+RUN npm config set registry https://registry.npmmirror.com
 RUN cd /app/console && npm ci --include=dev
 # Copy source and build → only runs when console/ files change.
 COPY console /app/console
@@ -57,6 +60,11 @@ ARG HTTPS_PROXY
 ARG http_proxy
 ARG https_proxy
 ENV HTTP_PROXY=${HTTP_PROXY} HTTPS_PROXY=${HTTPS_PROXY} http_proxy=${http_proxy} https_proxy=${https_proxy}
+
+# [hanbao modification] Use Aliyun's Debian mirror for direct (no-proxy) builds.
+# Debian 13 (trixie) ships deb822 sources at /etc/apt/sources.list.d/debian.sources;
+# swap the upstream host so apt-get update/install don't stall on deb.debian.org.
+RUN sed -i 's|deb.debian.org|mirrors.aliyun.com|g' /etc/apt/sources.list.d/debian.sources
 
 # ENV variables
 ENV NODE_ENV=production
@@ -120,7 +128,7 @@ ENV PYTHONPATH=/app/src
 # apt-mark manual keeps the runtime packages safe from the subsequent autoremove.
 RUN apt-get update && apt-get install -y --no-install-recommends \
         build-essential git libssl-dev \
-    && uv pip install --no-cache-dir . \
+    && uv pip install --no-cache-dir -i https://pypi.tuna.tsinghua.edu.cn/simple . \
     && rm -rf ./build \
     && apt-mark manual curl supervisor gettext-base python3 python3-venv fonts-wqy-zenhei \
     && apt-get purge -y build-essential gcc g++ make git libssl-dev \
