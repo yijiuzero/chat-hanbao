@@ -16,9 +16,9 @@
 - daemon 在跑；**`hanbao:latest` 已瘦身至 1.23GB**（2026-08-25 前端收敛构建部署验收全绿：含 6.aa/6.ab + I-029/I-030/I-033 收尾；`<title>hanbao Console</title>`、auth/status `{"enabled":true,"has_users":true}`、err.log 零 traceback；数据卷 `hanbao-data`/`hanbao-secrets`/`hanbao-backups` 全部保留）
 - **✅ 用户日常部署的 `hanbao` 容器（8088）已切到 `hanbao:latest`（1.23GB，2026-08-25 前端收敛重建后按用户拍板「先停旧再起新」切换，数据卷 `hanbao-data`/`hanbao-secrets`/`hanbao-backups` 全部保留，`has_users:true` 确认账号数据未丢）**。部署铁律：重建后先 `docker stop hanbao && docker rm hanbao` 再挂同名卷起重容器，AI 已获授权自动执行此流程。
 - **⚠️ 验证容器 `hanbao_verify2`（8091，`531ecf90e1ff`）可能仍在运行** → http://localhost:8091 可预览；`docker rm -f hanbao_verify2` 停。
-- **🔴 构建铁律新增（2026-08-24 实测）：`docker build` 必须清掉宿主代理 env**——shell 里 `HTTP_PROXY/HTTPS_PROXY=127.0.0.1:7897` 会被自动注入构建容器，Clash 没起时 npm/pip 全走死代理假死。命令：
-  `docker build -f deploy/Dockerfile --build-arg NODE_IMAGE=node:20-slim --build-arg UV_IMAGE=uv:local --build-arg HTTP_PROXY= --build-arg HTTPS_PROXY= --build-arg http_proxy= --build-arg https_proxy= -t hanbao:latest .`
-  （`node:20-slim` 替代默认 ACR 的 `agentscope/node:slim`，后者因 Clash 对 aliyuncs 授权 EOF 拉不动；`uv:local` 用本地缓存省一次拉取）
+- **🔴 构建铁律（2026-08-24 实测 + 2026-08-26 修正）：构建必须走代理**——宿主若有死 Clash（`HTTP_PROXY=127.0.0.1:7897`）会被注入构建容器致 npm/pip 假死；但**当前 Docker Desktop 已配 daemon 代理 `http.docker.internal:3128`**，且 `deploy/Dockerfile` 已声明 `ARG HTTP_PROXY/HTTPS_PROXY`（构建期注入 RUN，否则 apt 报 "no Release file"）。正确命令（经 daemon 代理）：
+  `docker build -f deploy/Dockerfile --build-arg NODE_IMAGE=node:20-slim --build-arg UV_IMAGE=uv:local --build-arg HTTP_PROXY=http.docker.internal:3128 --build-arg HTTPS_PROXY=http.docker.internal:3128 --build-arg http_proxy=http.docker.internal:3128 --build-arg https_proxy=http.docker.internal:3128 -t hanbao:latest .`
+  （`node:20-slim` 替代默认 ACR 的 `agentscope/node:slim`，后者因 Clash 对 aliyuncs 授权 EOF 拉不动；`uv:local` 用本地缓存省一次拉取。无代理环境（如飞牛 fnpack build）省略 proxy 四个 build-arg 即可走直连。）
 
 **待办（下轮优先）**
 1. **阶段5 真正 `fnpack build` + fnOS 实测上架**——脚手架已按官方规范建好（docker-project 形态），剩封装+飞牛实测

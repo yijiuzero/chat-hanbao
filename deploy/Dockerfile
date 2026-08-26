@@ -2,6 +2,16 @@
 ARG NODE_IMAGE=agentscope-registry.ap-southeast-1.cr.aliyuncs.com/agentscope/node:slim
 ARG UV_IMAGE=agentscope-registry.ap-southeast-1.cr.aliyuncs.com/agentscope/uv:latest
 
+# [hanbao modification] Proxy passthrough for builds behind a proxy (e.g. Docker
+# Desktop's http.docker.internal:3128). Declared globally so every stage can opt in.
+# Defaults to empty; pass via --build-arg only when the build host needs a proxy.
+# Without these, BuildKit does not inject HTTP_PROXY into RUN steps, so apt/pip/npm
+# cannot reach the network on proxied hosts (apt fails with "no Release file").
+ARG HTTP_PROXY=""
+ARG HTTPS_PROXY=""
+ARG http_proxy=""
+ARG https_proxy=""
+
 # -----------------------------------------------------------------------------
 # Stage 1: build console frontend (dist not committed in repo).
 # -----------------------------------------------------------------------------
@@ -9,6 +19,12 @@ ARG UV_IMAGE=agentscope-registry.ap-southeast-1.cr.aliyuncs.com/agentscope/uv:la
 # (cached unless package.json changes), then copy source and build.
 FROM ${NODE_IMAGE} AS console-builder
 WORKDIR /app
+# [hanbao modification] expose proxy to npm in this stage (inherits global ARG)
+ARG HTTP_PROXY
+ARG HTTPS_PROXY
+ARG http_proxy
+ARG https_proxy
+ENV HTTP_PROXY=${HTTP_PROXY} HTTPS_PROXY=${HTTPS_PROXY} http_proxy=${http_proxy} https_proxy=${https_proxy}
 # [hanbao modification] Raise Node heap limit for the console build.
 # `tsc -b && vite build` exhausts Node's default old-space on machines with
 # ~8GB available to the Docker VM, aborting with SIGABRT (exit 134).
@@ -34,6 +50,13 @@ FROM ${UV_IMAGE} AS uv-src
 # static assets served by FastAPI, so Node is not needed at runtime. The uv
 # binary is still sourced from the agentscope/uv image via the uv-src stage.
 FROM python:3.12-slim
+
+# [hanbao modification] expose proxy to apt/uv/pip in this stage (inherits global ARG)
+ARG HTTP_PROXY
+ARG HTTPS_PROXY
+ARG http_proxy
+ARG https_proxy
+ENV HTTP_PROXY=${HTTP_PROXY} HTTPS_PROXY=${HTTPS_PROXY} http_proxy=${http_proxy} https_proxy=${https_proxy}
 
 # ENV variables
 ENV NODE_ENV=production
