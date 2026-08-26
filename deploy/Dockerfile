@@ -128,7 +128,7 @@ ENV PYTHONPATH=/app/src
 # apt-mark manual keeps the runtime packages safe from the subsequent autoremove.
 RUN apt-get update && apt-get install -y --no-install-recommends \
         build-essential git libssl-dev \
-    && uv pip install --no-cache-dir -i https://pypi.tuna.tsinghua.edu.cn/simple . \
+    && uv pip install --no-cache-dir -i https://mirrors.aliyun.com/pypi/simple/ . \
     && rm -rf ./build \
     && apt-mark manual curl supervisor gettext-base python3 python3-venv fonts-wqy-zenhei \
     && apt-get purge -y build-essential gcc g++ make git libssl-dev \

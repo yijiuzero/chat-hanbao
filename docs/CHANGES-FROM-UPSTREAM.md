@@ -1104,6 +1104,7 @@ _背景：构建验证时直连 `deb.debian.org` / `npmjs.org` / `pypi.org` 在 
 - [修改] `deploy/Dockerfile` — 三处注入国内镜像源，均带 `[hanbao modification]` 标注：
   - console-builder 阶段 `npm ci` 前新增 `RUN npm config set registry https://registry.npmmirror.com`
   - runtime 阶段（`python:3.12-slim`, trixie）首次 `apt-get update` 前新增 `RUN sed -i 's|deb.debian.org|mirrors.aliyun.com|g' /etc/apt/sources.list.d/debian.sources`（Debian 13 用 deb822 源，格式经 `docker run --rm python:3.12-slim` 核实）
-  - `uv pip install --no-cache-dir .` 改为 `uv pip install --no-cache-dir -i https://pypi.tuna.tsinghua.edu.cn/simple .`
-- [验证] sed 替换目标经容器内 `cat /etc/apt/sources.list.d/debian.sources` 核实 deb822 格式正确（两处 `URIs: http://deb.debian.org/...`）；构建重启验证中。
+  - `uv pip install --no-cache-dir .` 改为 `uv pip install --no-cache-dir -i https://mirrors.aliyun.com/pypi/simple/ .`
+  - _（2026-08-26 修正）原 `pypi.tuna.tsinghua.edu.cn` 在构建时拉 `certifi` 抽风超时（124s×3 retries 失败），已切 Aliyun PyPI 源；对飞牛 FPK 无代理 `fnpack build` 环境同样更稳。_
+- [验证] sed 替换目标经容器内 `cat /etc/apt/sources.list.d/debian.sources` 核实 deb822 格式正确（两处 `URIs: http://deb.debian.org/...`）；Aliyun PyPI 源构建已验证通过（镜像产出 + 冒烟全绿）。
 - [合规] 未触碰 `LICENSE` / `NOTICE` / 红线文档；代理通道保留，重写分发（镜像/FPK）仍随附 LICENSE + NOTICE。
