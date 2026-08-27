@@ -1118,3 +1118,14 @@ _背景：用户要求全局「默认 LLM」出厂为空且可在 UI 上清空�
 - [修改] `console/src/pages/Settings/Models/components/sections/ModelsSection.tsx` — 新增 `handleClear` 与「清除默认模型」危险按钮（带 `[hanbao modification]` 标注）。
 - [修改] `console/src/locales/zh.json` / `en.json` — `models` 段新增 `clearDefaultLlm`、`llmModelCleared`。
 - [文档] `docs/known-issues.md` 登记 I-035；I-034 状态更新为已解决（真机验证通过）。
+
+## 阶段 6.ag · 品牌展示名统一为 hanbao + 登录页去水墨文案（2026-08-27）
+
+_用户要求：飞牛应用中心显示名直接叫 hanbao（不要「函包 hanbao」）；登录/注册页品牌也用 hanbao，且不要通过文字表达水墨风格（原标语「墨痕未干，对话已成。家庭本地 · 水墨文人对话」很违和）。_
+
+- [修改] `deploy/fpk/manifest` — `display_name` 由 `函包 hanbao` 改为 `hanbao`。
+- [修改] `console/src/pages/Login/index.tsx`：
+  - 左栏品牌主标题「函包」→ `hanbao`；删除冗余副标「HANBAO」与诗句标语「墨痕未干，对话已成。」；底标由「家庭本地 · 水墨文人对话」改为「家庭本地 · 私人 AI 聊天助手」（仅保留事实定位，去文字层面的风格表达）。
+  - 左栏与右卡两枚朱砂闲章去掉内填「函」字，改为纯装饰印记（边框 + 旋转，无文字）。
+- [合规] 改动文件均含 `[hanbao modification]` 标注；图标 `console/public/online.svg`（Mikasa 肖像 = hanbao 图标）按红线零碰触、保持不变。
+- [文档] `docs/known-issues.md` 登记 I-036（🟢 已解决）。

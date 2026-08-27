@@ -145,15 +145,9 @@ export default function LoginPage() {
                 height: 44,
                 borderRadius: 8,
                 border: "1.5px solid rgba(242,238,228,0.55)",
-                fontFamily: "var(--font-serif)",
-                fontSize: 22,
-                fontWeight: 600,
-                color: "#F2EEE4",
                 transform: "rotate(-5deg)",
               }}
-            >
-              函
-            </span>
+            />
           </div>
           <div style={{ position: "relative" }}>
             <h1
@@ -166,30 +160,8 @@ export default function LoginPage() {
                 color: "#F2EEE4",
               }}
             >
-              函包
+              hanbao
             </h1>
-            <p
-              style={{
-                margin: 0,
-                fontSize: 13,
-                letterSpacing: "0.3em",
-                color: "rgba(242,238,228,0.7)",
-              }}
-            >
-              HANBAO
-            </p>
-            <p
-              style={{
-                margin: "18px 0 0",
-                fontSize: 14,
-                lineHeight: 1.9,
-                color: "rgba(242,238,228,0.78)",
-              }}
-            >
-              墨痕未干，
-              <br />
-              对话已成。
-            </p>
           </div>
           <p
             style={{
@@ -199,7 +171,7 @@ export default function LoginPage() {
               color: "rgba(242,238,228,0.45)",
             }}
           >
-            家庭本地 · 水墨文人对话
+            家庭本地 · 私人 AI 聊天助手
           </p>
         </aside>
 
@@ -218,7 +190,7 @@ export default function LoginPage() {
             overflow: "hidden",
           }}
         >
-          {/* [hanbao modification] 朱砂闲章（函）：落于卡片右上角，呼应「函包」品牌 */}
+          {/* [hanbao modification] 朱砂闲章：落于卡片右上角，纯装饰水墨印记 */}
           <span
             aria-hidden
             style={{
@@ -229,21 +201,11 @@ export default function LoginPage() {
               height: 34,
               borderRadius: 6,
               border: `1.5px solid ${isDark ? "rgba(192,57,43,0.55)" : "rgba(158,43,37,0.55)"}`,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: isDark ? "rgba(192,57,43,0.6)" : "rgba(158,43,37,0.6)",
-              fontFamily: "var(--font-serif)",
-              fontSize: 16,
-              fontWeight: 600,
-              opacity: 0.85,
               transform: "rotate(-5deg)",
               pointerEvents: "none",
               userSelect: "none",
             }}
-          >
-            函
-          </span>
+          />
           <div style={{ marginBottom: 28 }}>
             <img
               src={isDark ? "/logo-dark.svg" : "/logo-light.svg"}
