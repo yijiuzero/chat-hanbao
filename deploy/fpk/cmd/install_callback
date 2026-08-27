@@ -13,38 +13,54 @@
 # 为兼容真实环境，本脚本不做 set -e：任何异常仅告警，绝不中断安装。
 # ============================================================
 
-APP_DEST="${TRIM_APPDEST:-}"
-PKG_ETC="${TRIM_PKGETC:-}"
+write_env() {
+  target="$1"
+  mkdir -p "$(dirname "$target")" 2>/dev/null
+  {
+    echo "# hanbao FPK 安装向导注入的凭据（install_callback 生成，勿手改）"
+    echo "HANBAO_AUTH_ENABLED=true"
+    if [ -n "${HANBAO_AUTH_USERNAME:-}" ]; then
+      echo "HANBAO_AUTH_USERNAME=${HANBAO_AUTH_USERNAME}"
+    fi
+    if [ -n "${HANBAO_AUTH_PASSWORD:-}" ]; then
+      echo "HANBAO_AUTH_PASSWORD=${HANBAO_AUTH_PASSWORD}"
+    fi
+  } > "$target" 2>/dev/null
+  if [ -f "$target" ]; then
+    echo "[hanbao] 凭据已写入 $target"
+    return 0
+  else
+    echo "[hanbao][warn] 凭据写入失败：$target" >&2
+    return 1
+  fi
+}
 
-if [ -z "${APP_DEST}" ]; then
-  echo "[hanbao][warn] TRIM_APPDEST 未注入，无法写入 app/docker/hanbao.env" >&2
-  exit 0
+# 主目标：TRIM_APPDEST/app/docker/hanbao.env（docker-project 下 app/docker/ 的落地路径）
+if [ -n "${TRIM_APPDEST:-}" ]; then
+  write_env "${TRIM_APPDEST}/docker/hanbao.env"
 fi
 
-ENV_LINK="${APP_DEST}/docker/hanbao.env"
-mkdir -p "${APP_DEST}/docker" 2>/dev/null
-
-{
-  echo "# hanbao FPK 安装向导注入的凭据（install_callback 生成，勿手改）"
-  echo "HANBAO_AUTH_ENABLED=true"
-  if [ -n "${HANBAO_AUTH_USERNAME:-}" ]; then
-    echo "HANBAO_AUTH_USERNAME=${HANBAO_AUTH_USERNAME}"
+# 兜底：直接写飞牛实际映射的绝对路径（兼容变量未注入的情况）
+for fallback in \
+  "/vol1/@appcenter/hanbao/docker/hanbao.env" \
+  "/vol2/@appcenter/hanbao/docker/hanbao.env" \
+  "/vol1/@appconf/hanbao/docker/hanbao.env" \
+  "/vol2/@appconf/hanbao/docker/hanbao.env"
+do
+  parent="$(dirname "$fallback")"
+  grandparent="$(dirname "$parent")"
+  if [ -d "$parent" ] || [ -d "$grandparent" ]; then
+    write_env "$fallback"
   fi
-  if [ -n "${HANBAO_AUTH_PASSWORD:-}" ]; then
-    echo "HANBAO_AUTH_PASSWORD=${HANBAO_AUTH_PASSWORD}"
-  fi
-} > "${ENV_LINK}" 2>/dev/null
-
-if [ -f "${ENV_LINK}" ]; then
-  echo "[hanbao] 凭据已写入 ${ENV_LINK}"
-else
-  echo "[hanbao][warn] 凭据写入失败：${ENV_LINK}" >&2
-fi
+done
 
 # 若 TRIM_PKGETC 存在，额外复制一份到持久目录，供升级时恢复
-if [ -n "${PKG_ETC}" ]; then
-  mkdir -p "${PKG_ETC}" 2>/dev/null
-  cp -f "${ENV_LINK}" "${PKG_ETC}/hanbao.env" 2>/dev/null && echo "[hanbao] 凭据已备份到 ${PKG_ETC}/hanbao.env"
+if [ -n "${TRIM_PKGETC:-}" ]; then
+  mkdir -p "${TRIM_PKGETC}" 2>/dev/null
+  if [ -n "${TRIM_APPDEST:-}" ] && [ -f "${TRIM_APPDEST}/docker/hanbao.env" ]; then
+    cp -f "${TRIM_APPDEST}/docker/hanbao.env" "${TRIM_PKGETC}/hanbao.env" 2>/dev/null \
+      && echo "[hanbao] 凭据已备份到 ${TRIM_PKGETC}/hanbao.env"
+  fi
 fi
 
 exit 0

@@ -2,32 +2,54 @@
 # ============================================================
 # hanbao FPK 升级回调（upgrade_callback）
 #
-# 飞牛在"升级后"调用本脚本。升级时 app/docker 被新包覆盖，需从 TRIM_PKGETC
-# 持久目录恢复凭据到 app/docker/hanbao.env（compose 通过 ./hanbao.env 读取）。
-# 离线镜像由 fnOS 自动 reload。不做 set -e，任何异常仅告警不中断升级。
+# 飞牛在"升级后"调用本脚本。升级时 app/docker 被新包覆盖，需重建凭据文件。
+# 优先从 TRIM_PKGETC 持久备份恢复；否则生成最小默认 env，避免 compose 因
+# env_file 缺失而失败。离线镜像由 fnOS 自动 reload。不做 set -e，任何异常
+# 仅告警不中断升级。
 # ============================================================
 
-APP_DEST="${TRIM_APPDEST:-}"
-PKG_ETC="${TRIM_PKGETC:-}"
-
-if [ -z "${APP_DEST}" ]; then
-  echo "[hanbao][warn] TRIM_APPDEST 未注入，无法恢复 app/docker/hanbao.env" >&2
-  exit 0
-fi
-
-ENV_LINK="${APP_DEST}/docker/hanbao.env"
-ENV_BACKUP="${PKG_ETC}/hanbao.env"
-
-mkdir -p "${APP_DEST}/docker" 2>/dev/null
-
-if [ -n "${PKG_ETC}" ] && [ -f "${ENV_BACKUP}" ]; then
-  cp -f "${ENV_BACKUP}" "${ENV_LINK}" 2>/dev/null && echo "[hanbao] 已从 ${ENV_BACKUP} 恢复凭据到 ${ENV_LINK}"
-else
-  # 没有持久备份时生成一个最小默认 env，避免 compose 因 env_file 找不到而失败
+write_default_env() {
+  target="$1"
+  mkdir -p "$(dirname "$target")" 2>/dev/null
   {
-    echo "# hanbao FPK 升级后默认凭据（用户未在安装向导填写或备份丢失）"
+    echo "# hanbao FPK 升级后默认凭据（备份丢失或 TRIM_PKGETC 未注入）"
     echo "HANBAO_AUTH_ENABLED=true"
-  } > "${ENV_LINK}" 2>/dev/null && echo "[hanbao] 已生成默认凭据 ${ENV_LINK}"
+  } > "$target" 2>/dev/null
+  if [ -f "$target" ]; then
+    echo "[hanbao] 已生成默认凭据 $target"
+  else
+    echo "[hanbao][warn] 默认凭据写入失败：$target" >&2
+  fi
+}
+
+copy_or_default() {
+  target="$1"
+  backup="$2"
+  mkdir -p "$(dirname "$target")" 2>/dev/null
+  if [ -n "$backup" ] && [ -f "$backup" ]; then
+    cp -f "$backup" "$target" 2>/dev/null && echo "[hanbao] 已从 $backup 恢复凭据到 $target"
+  else
+    write_default_env "$target"
+  fi
+}
+
+# 主目标
+if [ -n "${TRIM_APPDEST:-}" ]; then
+  copy_or_default "${TRIM_APPDEST}/docker/hanbao.env" "${TRIM_PKGETC:-}/hanbao.env"
 fi
+
+# 兜底绝对路径
+for fallback in \
+  "/vol1/@appcenter/hanbao/docker/hanbao.env" \
+  "/vol2/@appcenter/hanbao/docker/hanbao.env" \
+  "/vol1/@appconf/hanbao/docker/hanbao.env" \
+  "/vol2/@appconf/hanbao/docker/hanbao.env"
+do
+  parent="$(dirname "$fallback")"
+  grandparent="$(dirname "$parent")"
+  if [ -d "$parent" ] || [ -d "$grandparent" ]; then
+    copy_or_default "$fallback" "${TRIM_PKGETC:-}/hanbao.env"
+  fi
+done
 
 exit 0

@@ -6,6 +6,46 @@
 # docker-project 声明自动 docker load + docker compose up，应用生命周期脚本
 # 不应手动调用 docker。安装期脚本执行环境无 docker 客户端/daemon，手动 docker
 # load 会导致脚本非 0 退出 -> fnOS 报"执行脚本出错且原因未知"。
-# 故 install_init 仅作占位；凭据注入在 install_callback 完成。
+#
+# install_init 在 compose up 之前执行，负责提前生成 app/docker/hanbao.env
+# （即使 install_callback 因故未执行或被吞变量，也能保证 compose 的 env_file 存在）。
+# 若用户在安装向导填写了 HANBAO_AUTH_USERNAME/PASSWORD，install_callback 会再覆盖。
 # ============================================================
+
+write_env() {
+  target="$1"
+  mkdir -p "$(dirname "$target")" 2>/dev/null
+  {
+    echo "# hanbao FPK 安装初始化生成（install_init），请勿手改"
+    echo "HANBAO_AUTH_ENABLED=true"
+    if [ -n "${HANBAO_AUTH_USERNAME:-}" ]; then
+      echo "HANBAO_AUTH_USERNAME=${HANBAO_AUTH_USERNAME}"
+    fi
+    if [ -n "${HANBAO_AUTH_PASSWORD:-}" ]; then
+      echo "HANBAO_AUTH_PASSWORD=${HANBAO_AUTH_PASSWORD}"
+    fi
+  } > "$target" 2>/dev/null
+}
+
+# 优先写入 TRIM_APPDEST（若飞牛注入）
+if [ -n "${TRIM_APPDEST:-}" ]; then
+  write_env "${TRIM_APPDEST}/docker/hanbao.env"
+  echo "[hanbao] install_init 已写 ${TRIM_APPDEST}/docker/hanbao.env"
+fi
+
+# 兜底：直接写飞牛实际映射的绝对路径（docker-project 下 app/docker/ 的落地路径）
+for fallback in \
+  "/vol1/@appcenter/hanbao/docker/hanbao.env" \
+  "/vol2/@appcenter/hanbao/docker/hanbao.env" \
+  "/vol1/@appconf/hanbao/docker/hanbao.env" \
+  "/vol2/@appconf/hanbao/docker/hanbao.env"
+do
+  if [ -d "$(dirname "$fallback")" ] || [ -d "$(dirname "$(dirname "$fallback")")" ]; then
+    write_env "$fallback"
+    if [ -f "$fallback" ]; then
+      echo "[hanbao] install_init 兜底写入 $fallback"
+    fi
+  fi
+done
+
 exit 0
