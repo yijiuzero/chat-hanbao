@@ -5,27 +5,24 @@
 # 飞牛在完成安装向导后调用本脚本。向导字段以同名环境变量传入（无 TRIM_ 前缀）：
 #   HANBAO_AUTH_USERNAME / HANBAO_AUTH_PASSWORD
 #
-# 本脚本只做一件事：把向导收集的管理员凭据持久化到 TRIM_PKGETC/hanbao.env
-# （飞牛持久目录，升级不丢），并把 app/docker/hanbao.env 软链到该持久文件，
-# 作为 TRIM_PKGETC 未在 compose 中展开的回退（compose 改回 ./hanbao.env 即经
-# 软链读到持久凭据）。接 I-007 默认开认证 + auto_register_from_env 首启自动建
-# 管理员账号，消除局域网抢注窗口。用户留空则不写用户名/密码，走首启注册页。
-# 注意：离线镜像 tar 由 fnOS 按 docker-project 声明自动 load，本脚本不调 docker。
+# 本脚本把向导收集的管理员凭据写入 app/docker/hanbao.env，供 compose 通过
+# env_file: ./hanbao.env 注入容器。接 I-007 默认开认证 + auto_register_from_env
+# 首启自动建管理员账号，消除局域网抢注窗口。用户留空则不写用户名/密码，走首启注册页。
+#
+# 离线镜像 tar 由 fnOS 按 docker-project 声明自动 load，本脚本不调 docker。
 # 为兼容真实环境，本脚本不做 set -e：任何异常仅告警，绝不中断安装。
 # ============================================================
 
 APP_DEST="${TRIM_APPDEST:-}"
 PKG_ETC="${TRIM_PKGETC:-}"
 
-ENV_FILE="${PKG_ETC}/hanbao.env"
-ENV_LINK="${APP_DEST}/docker/hanbao.env"
-
-if [ -z "${PKG_ETC}" ]; then
-  echo "[hanbao][warn] TRIM_PKGETC 未注入，跳过凭据持久化；compose 将走 ./hanbao.env 回退或首启注册页" >&2
+if [ -z "${APP_DEST}" ]; then
+  echo "[hanbao][warn] TRIM_APPDEST 未注入，无法写入 app/docker/hanbao.env" >&2
   exit 0
 fi
 
-mkdir -p "${PKG_ETC}" "${APP_DEST}/docker" 2>/dev/null
+ENV_LINK="${APP_DEST}/docker/hanbao.env"
+mkdir -p "${APP_DEST}/docker" 2>/dev/null
 
 {
   echo "# hanbao FPK 安装向导注入的凭据（install_callback 生成，勿手改）"
@@ -36,13 +33,18 @@ mkdir -p "${PKG_ETC}" "${APP_DEST}/docker" 2>/dev/null
   if [ -n "${HANBAO_AUTH_PASSWORD:-}" ]; then
     echo "HANBAO_AUTH_PASSWORD=${HANBAO_AUTH_PASSWORD}"
   fi
-} > "${ENV_FILE}" 2>/dev/null
+} > "${ENV_LINK}" 2>/dev/null
 
-# 软链回退：compose 若用 ./hanbao.env，则经由软链读到持久凭据（升级不丢）
-if [ -n "${APP_DEST}" ]; then
-  rm -f "${ENV_LINK}" 2>/dev/null
-  ln -s "${ENV_FILE}" "${ENV_LINK}" 2>/dev/null
-  echo "[hanbao] 凭据已写入 ${ENV_FILE}（并软链 ${ENV_LINK}）"
+if [ -f "${ENV_LINK}" ]; then
+  echo "[hanbao] 凭据已写入 ${ENV_LINK}"
+else
+  echo "[hanbao][warn] 凭据写入失败：${ENV_LINK}" >&2
+fi
+
+# 若 TRIM_PKGETC 存在，额外复制一份到持久目录，供升级时恢复
+if [ -n "${PKG_ETC}" ]; then
+  mkdir -p "${PKG_ETC}" 2>/dev/null
+  cp -f "${ENV_LINK}" "${PKG_ETC}/hanbao.env" 2>/dev/null && echo "[hanbao] 凭据已备份到 ${PKG_ETC}/hanbao.env"
 fi
 
 exit 0
