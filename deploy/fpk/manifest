@@ -24,3 +24,5 @@ desktop_applaunchname=hanbao.main
 service_port=8088
 checkport=true
 ctl_stop=true
+
+changelog=首个飞牛 NAS 版本（v0.1.0）。本地运行的私人 AI 聊天助手，数据自控、仅依赖云端 OpenAI 兼容 API。\n- 支持微信 + OneBot 渠道接入\n- 离线内嵌镜像，安装无需外网拉取\n- 默认开启访问认证，首启自动建管理员账号\n- 对话与配置持久化于应用数据卷
