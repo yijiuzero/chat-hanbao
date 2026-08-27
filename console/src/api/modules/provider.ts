@@ -73,6 +73,15 @@ export const providerApi = {
       return result;
     }),
 
+  // [hanbao modification] clear the global default LLM (set it to empty)
+  clearActiveLlm: () =>
+    request<ActiveModelsInfo>("/models/active", {
+      method: "DELETE",
+    }).then((result) => {
+      activeModelPromises.clear();
+      return result;
+    }),
+
   /* ---- Custom provider CRUD ---- */
 
   createCustomProvider: (body: CreateCustomProviderRequest) =>

@@ -1108,3 +1108,13 @@ _背景：构建验证时直连 `deb.debian.org` / `npmjs.org` / `pypi.org` 在 
   - _（2026-08-26 修正）原 `pypi.tuna.tsinghua.edu.cn` 在构建时拉 `certifi` 抽风超时（124s×3 retries 失败），已切 Aliyun PyPI 源；对飞牛 FPK 无代理 `fnpack build` 环境同样更稳。_
 - [验证] sed 替换目标经容器内 `cat /etc/apt/sources.list.d/debian.sources` 核实 deb822 格式正确（两处 `URIs: http://deb.debian.org/...`）；Aliyun PyPI 源构建已验证通过（镜像产出 + 冒烟全绿）。
 - [合规] 未触碰 `LICENSE` / `NOTICE` / 红线文档；代理通道保留，重写分发（镜像/FPK）仍随附 LICENSE + NOTICE。
+
+## 阶段 6.af · 全局默认 LLM 支持 UI 清空（2026-08-27）
+
+_背景：用户要求全局「默认 LLM」出厂为空且可在 UI 上清空回空。后端 `active_llm` 出厂默认已为 `None`，缺的是清除入口。_
+
+- [修改] `src/hanbao/app/routers/providers.py` — 新增 `DELETE /models/active` 端点，复用已有 `ProviderManager.clear_active_model()`（带 `[hanbao modification]` 标注）。
+- [修改] `console/src/api/modules/provider.ts` — 新增 `clearActiveLlm()`（带 `[hanbao modification]` 标注）。
+- [修改] `console/src/pages/Settings/Models/components/sections/ModelsSection.tsx` — 新增 `handleClear` 与「清除默认模型」危险按钮（带 `[hanbao modification]` 标注）。
+- [修改] `console/src/locales/zh.json` / `en.json` — `models` 段新增 `clearDefaultLlm`、`llmModelCleared`。
+- [文档] `docs/known-issues.md` 登记 I-035；I-034 状态更新为已解决（真机验证通过）。

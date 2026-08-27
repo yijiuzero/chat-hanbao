@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { SaveOutlined } from "@ant-design/icons";
+import { SaveOutlined, DeleteOutlined } from "@ant-design/icons";
 import { Select, Button } from "@agentscope-ai/design";
 import type { ModelSlotRequest } from "../../../../../api/types";
 import api from "../../../../../api";
@@ -126,6 +126,25 @@ export const ModelsSection = React.memo(function ModelsSection({
     }
   };
 
+  // [hanbao modification] allow clearing the global default LLM from the UI
+  const handleClear = async () => {
+    setSaving(true);
+    try {
+      await api.clearActiveLlm();
+      message.success(t("models.llmModelCleared"));
+      setDirty(false);
+      setSelectedProviderId(undefined);
+      setSelectedModel(undefined);
+      onSaved();
+    } catch (error) {
+      const errMsg =
+        error instanceof Error ? error.message : t("models.failedToSave");
+      message.error(errMsg);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const isActive =
     currentSlot &&
     currentSlot.provider_id === selectedProviderId &&
@@ -185,6 +204,17 @@ export const ModelsSection = React.memo(function ModelsSection({
           >
             {isActive ? t("models.saved") : t("models.save")}
           </Button>
+          {activeModels?.active_llm && (
+            <Button
+              danger
+              loading={saving}
+              onClick={handleClear}
+              block
+              icon={<DeleteOutlined />}
+            >
+              {t("models.clearDefaultLlm")}
+            </Button>
+          )}
         </div>
       </div>
     </div>

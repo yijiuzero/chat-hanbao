@@ -1642,6 +1642,8 @@
     "selectProvider": "Select provider (must be authorized)",
     "selectModel": "Select a model",
     "llmModelUpdated": "LLM Model updated",
+    "clearDefaultLlm": "Clear default model",
+    "llmModelCleared": "Default LLM cleared",
     "failedToSave": "Failed to save",
     "freeModelWarningTitle": "Free Model Notice",
     "freeModelWarningMessage": "Free models may have limited availability. Please refer to the provider's terms of service:",

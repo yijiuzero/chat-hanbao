@@ -42,7 +42,8 @@
 | [I-031](#i-031) | header 被删模块占位：GitHub 后空 `<span>` + 双分隔线导致中间空一截 | 🟢 极低 | header 布局收尾（已修复） | 🟢 已解决（2026-08-24 `e27acfa`） |
 | [I-032](#i-032) | 运行配置页下线：时区调整移入侧栏设置面板、整页删除 | 🟢 极低 | 界面收尾（已修复） | 🟢 已解决（2026-08-25） |
 | [I-033](#i-033) | 删除 `append_file` 与 `delegate_external_agent` 两个后端工具及对应前端卡片/测试 | 🟢 极低 | 工具集减法（已修复） | 🟢 已解决（2026-08-25） |
-| [I-034](#i-034) | FPK native 形态 `cmd/main` 执行 `docker load` 因权限失败 | 🔥 高 | 阶段 5 FPK 真机验证 | 🟡 处理中 |
+| [I-034](#i-034) | FPK native 形态 `cmd/main` 执行 `docker load` 因权限失败 | 🔥 高 | 阶段 5 FPK 真机验证 | 🟢 已解决（2026-08-27 真机验证通过） |
+| [I-035](#i-035) | 全局默认 LLM 支持在 UI 清空（新增 DELETE /active 端点 + 清除按钮） | 🟢 极低 | UI 增强 | 🟢 已解决（2026-08-27） |
 
 ---
 
@@ -1054,7 +1055,7 @@ grep 全仓复核：`Agent/Config`、`useAgentConfig`、`ReactAgentCard`、`/age
 
 ## I-034 · FPK native 形态 `cmd/main` 执行 `docker load` 因权限失败
 
-**严重度**：🔥 高 &nbsp;|&nbsp; **状态**：🟡 处理中 &nbsp;|&nbsp; **必须处理时机**：阶段 5 FPK 真机验证
+**严重度**：🔥 高 &nbsp;|&nbsp; **状态**：🟢 已解决（2026-08-27 真机验证通过） &nbsp;|&nbsp; **必须处理时机**：阶段 5 FPK 真机验证
 
 ### 现象
 真机安装 hanbao FPK 后点击「启用」，弹窗报错：
@@ -1084,3 +1085,22 @@ grep 全仓复核：`Agent/Config`、`useAgentConfig`、`ReactAgentCard`、`/age
 ### 风险/后续
 - `run-as: root` 是官方文档标注的"仅建议官方合作开发者使用"的权限模式；但社区多个第三方离线镜像 FPK（MiBee NVR、1Panel v2、Lucky 等）实测手动安装可行。
 - 若未来飞牛收紧该模式导致安装被拒，可回退为 `run-as: package` + `join-groups: ["docker"]`，但需先验证目标系统存在 `docker` 组且飞牛会生效附加组。
+
+## I-035 · 全局默认 LLM 支持在 UI 清空
+
+**严重度**：🟢 极低 &nbsp;|&nbsp; **状态**：🟢 已解决（2026-08-27） &nbsp;|&nbsp; **必须处理时机**：阶段 6 界面打磨
+
+### 背景
+用户要求全局「默认 LLM」出厂即为空，且能在 UI 上把已设置的默认值清空回空，让每个 Agent 在聊天页自行选择模型。后端 `active_llm` 出厂默认本就是 `None`（`provider_manager` 初始化 `self.active_model = None`），但前端 `ModelsSection` 没有清除入口，且 `canSave` 强制两个 Select 都必须选值，无法把已设的默认改回空。
+
+### 处理方案
+- [后端] `src/hanbao/app/routers/providers.py` 新增 `DELETE /models/active` 端点，复用已有 `ProviderManager.clear_active_model()`（无参即清全局），返回最新 `ActiveModelsInfo`。带 `[hanbao modification]` 标注。
+- [前端 api] `console/src/api/modules/provider.ts` 新增 `clearActiveLlm()`（`DELETE /models/active`）。带 `[hanbao modification]` 标注。
+- [前端 UI] `console/src/pages/Settings/Models/components/sections/ModelsSection.tsx`：
+  - 新增 `handleClear`：调用 `api.clearActiveLlm()`，成功后清空本地选择并触发 `onSaved()`；
+  - 当 `activeModels?.active_llm` 存在时，在保存按钮下方显示「清除默认模型」危险按钮（`DeleteOutlined`）。带 `[hanbao modification]` 标注。
+- [文案] `zh.json` / `en.json` 的 `models` 段新增 `clearDefaultLlm`（清除默认模型 / Clear default model）与 `llmModelCleared`（已清除默认 LLM / Default LLM cleared）。
+
+### 验收
+- 未设置默认时，`activeModels.active_llm` 为 `null`，pill 显示 `— / —`，清除按钮不显示。
+- 已设置默认后，点「清除默认模型」→ 调 `DELETE /models/active` → 全局默认清空，pill 回到 `— / —`，聊天页各 Agent 使用各自选择。

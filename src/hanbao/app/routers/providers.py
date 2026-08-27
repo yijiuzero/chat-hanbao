@@ -778,6 +778,26 @@ async def set_active_model(
     )
 
 
+@router.delete(
+    "/active",
+    response_model=ActiveModelsInfo,
+    summary="Clear active LLM",
+)
+async def clear_active_model_endpoint(
+    request: Request,
+    manager: ProviderManager = Depends(get_provider_manager),
+) -> ActiveModelsInfo:
+    """Clear the global default LLM, setting it to empty.
+
+    [hanbao modification] Allow the UI to unset the global default model so
+    that each Agent can fall back to its own chat-page selection. Agents
+    with their own active_model set are unaffected; only the global default
+    is cleared.
+    """
+    manager.clear_active_model()
+    return _active_models_info(manager, manager.get_active_model())
+
+
 # =============================================================================
 # OpenRouter-specific endpoints for model discovery with filtering
 # =============================================================================
