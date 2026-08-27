@@ -7,7 +7,6 @@
 # 镜像由 install_callback 预载（docker load 内置 tar，配合 compose pull_policy:never
 # 实现离线运行，不依赖外部镜像仓库）。
 # ============================================================
-set -eu
 
 CONTAINER_NAME="hanbao"
 

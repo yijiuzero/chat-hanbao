@@ -5,38 +5,28 @@
 # 飞牛在完成安装向导后调用本脚本。向导字段以同名环境变量传入（无 TRIM_ 前缀）：
 #   HANBAO_AUTH_USERNAME / HANBAO_AUTH_PASSWORD
 #
-# 本脚本做两件事：
-#   1) 预载内置镜像 tar（docker load），已存在则跳过；配合 compose pull_policy:never
-#      实现离线运行，不向外部仓库拉取。
-#   2) 把向导收集的管理员凭据持久化到 TRIM_PKGETC/hanbao.env（飞牛持久目录，升级不丢）。
-#      同时把 app/docker/hanbao.env 软链到该持久文件，作为 TRIM_PKGETC 未在 compose 中
-#      展开的回退（compose 改回 ./hanbao.env 即经软链读到持久凭据）。接 I-007 默认开认证
-#      + auto_register_from_env 首启自动建管理员账号，消除局域网抢注窗口。用户留空则不写
-#      用户名/密码，走首启注册页。
+# 本脚本只做一件事：把向导收集的管理员凭据持久化到 TRIM_PKGETC/hanbao.env
+# （飞牛持久目录，升级不丢），并把 app/docker/hanbao.env 软链到该持久文件，
+# 作为 TRIM_PKGETC 未在 compose 中展开的回退（compose 改回 ./hanbao.env 即经
+# 软链读到持久凭据）。接 I-007 默认开认证 + auto_register_from_env 首启自动建
+# 管理员账号，消除局域网抢注窗口。用户留空则不写用户名/密码，走首启注册页。
+# 注意：离线镜像 tar 由 fnOS 按 docker-project 声明自动 load，本脚本不调 docker。
+# 为兼容真实环境，本脚本不做 set -e：任何异常仅告警，绝不中断安装。
 # ============================================================
-set -eu
 
-APP_DEST="${TRIM_APPDEST:?install_callback: TRIM_APPDEST 未设置}"
-PKG_ETC="${TRIM_PKGETC:?install_callback: TRIM_PKGETC 未设置}"
+APP_DEST="${TRIM_APPDEST:-}"
+PKG_ETC="${TRIM_PKGETC:-}"
 
-IMAGE_TAR="${APP_DEST}/docker/hanbao-amd64.tar"
-IMAGE_NAME="hanbao:latest"
 ENV_FILE="${PKG_ETC}/hanbao.env"
 ENV_LINK="${APP_DEST}/docker/hanbao.env"
 
-# 1) 预载镜像（离线，不依赖外网）
-if docker image inspect "${IMAGE_NAME}" >/dev/null 2>&1; then
-  echo "[hanbao] 镜像 ${IMAGE_NAME} 已存在，跳过 docker load"
-elif [ -f "${IMAGE_TAR}" ]; then
-  echo "[hanbao] >>> docker load -i ${IMAGE_TAR}"
-  docker load -i "${IMAGE_TAR}"
-else
-  echo "[hanbao] 未找到镜像 ${IMAGE_NAME} 且 ${IMAGE_TAR} 不存在" >&2
-  exit 1
+if [ -z "${PKG_ETC}" ]; then
+  echo "[hanbao][warn] TRIM_PKGETC 未注入，跳过凭据持久化；compose 将走 ./hanbao.env 回退或首启注册页" >&2
+  exit 0
 fi
 
-# 2) 持久化向导凭据到 TRIM_PKGETC（升级不丢）；并软链 ./hanbao.env 作为回退
-mkdir -p "${PKG_ETC}" "${APP_DEST}/docker"
+mkdir -p "${PKG_ETC}" "${APP_DEST}/docker" 2>/dev/null
+
 {
   echo "# hanbao FPK 安装向导注入的凭据（install_callback 生成，勿手改）"
   echo "HANBAO_AUTH_ENABLED=true"
@@ -46,10 +36,13 @@ mkdir -p "${PKG_ETC}" "${APP_DEST}/docker"
   if [ -n "${HANBAO_AUTH_PASSWORD:-}" ]; then
     echo "HANBAO_AUTH_PASSWORD=${HANBAO_AUTH_PASSWORD}"
   fi
-} > "${ENV_FILE}"
+} > "${ENV_FILE}" 2>/dev/null
 
 # 软链回退：compose 若用 ./hanbao.env，则经由软链读到持久凭据（升级不丢）
-rm -f "${ENV_LINK}"
-ln -s "${ENV_FILE}" "${ENV_LINK}"
+if [ -n "${APP_DEST}" ]; then
+  rm -f "${ENV_LINK}" 2>/dev/null
+  ln -s "${ENV_FILE}" "${ENV_LINK}" 2>/dev/null
+  echo "[hanbao] 凭据已写入 ${ENV_FILE}（并软链 ${ENV_LINK}）"
+fi
 
-echo "[hanbao] 凭据已写入 ${ENV_FILE}（并软链 ${ENV_LINK}）"
+exit 0

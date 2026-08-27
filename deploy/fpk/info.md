@@ -18,8 +18,8 @@
 - 渠道：微信 + OneBot（QQ / 钉钉 / 飞书 / Telegram 已关闭）
 
 ## 阶段5 FPK 脚手架进度（2026-08-19 已按官方规范校正）
-- 形态拍板：**docker-project**（2026-08-19 拉取 developer.fnnas.com 官方规范后，由首版的 native 改为 docker-project）。官方规范仅以 docker-project 作为容器应用标准路径，`config/resource` 的 `docker-project` 声明即飞牛接管容器生命周期的开关；离线镜像担忧由 `pull_policy: never` + `install_callback` 预载内置 tar 解决（全程不拉外网）。
-- 已落地且经官方 schema 校正：`manifest`（INI：`appname`/`display_name`/`service_port` 等）、`wizard/` 目录（install/config/upgrade/uninstall 四个 JSON 数组向导）、`config/resource`（`docker-project` JSON）、`config/privilege`（package 用户 JSON）、`cmd/main`（status-only，容器由飞牛管理）、`install_callback`（预载镜像 tar + 写 `$TRIM_PKGETC/hanbao.env`）、`app/docker/docker-compose.yaml`（env_file 注入凭据 + `$TRIM_PKGVAR` 持久化工作目录）、`app/ui/config`（`.url` 入口）、图标 `ICON.PNG`/`ICON_256.PNG` + `app/ui/images/*`。
+- 形态拍板：**docker-project**（2026-08-19 拉取 developer.fnnas.com 官方规范后，由首版的 native 改为 docker-project）。官方规范仅以 docker-project 作为容器应用标准路径，`config/resource` 的 `docker-project` 声明即飞牛接管容器生命周期的开关；**离线镜像由 fnOS 按 docker-project 声明自动 `docker load` 内置 tar + `docker compose up`（全程不拉外网）**，`pull_policy: never` 作为双保险。应用生命周期脚本**不应、也不能手动调 docker**（安装期脚本执行环境无 docker 客户端，手动 load 必非 0 退出 → 触发"执行脚本出错且原因未知"）。
+- 已落地且经官方 schema 校正：`manifest`（INI：`appname`/`display_name`/`service_port` 等）、`wizard/` 目录（install/config/upgrade/uninstall 四个 JSON 数组向导）、`config/resource`（`docker-project` JSON）、`config/privilege`（package 用户 JSON）、`cmd/main`（status-only，容器由飞牛管理）、`install_callback`（仅写 `$TRIM_PKGETC/hanbao.env` 凭据，**不调 docker**）、`app/docker/docker-compose.yaml`（env_file 注入凭据 + `$TRIM_PKGVAR` 持久化工作目录）、`app/ui/config`（`.url` 入口）、图标 `ICON.PNG`/`ICON_256.PNG` + `app/ui/images/*`。
 - 凭据闭环：wizard 收集 `HANBAO_AUTH_USERNAME`/`HANBAO_AUTH_PASSWORD` → `install_callback` 持久化 `$TRIM_PKGETC/hanbao.env` → compose `env_file` 注入容器（接 I-007 默认开认证，首启 `auto_register_from_env` 自动建账号，消除局域网抢注窗口）。
 
 ## 待飞牛实测 / 打包（schema 已校正，剩工程验证）
@@ -27,21 +27,33 @@
 - ✅ 图标规格：64×64（`ICON.PNG`）+ 256×256（`ICON_256.PNG`），另 `app/ui/images/icon_64.png` / `icon_256.png` 供桌面入口，符合规范。
 - 数据存储目录：compose 挂载 `$TRIM_PKGVAR`（飞牛 @appdata 应用数据卷）→ 容器内 `/app/working`，对话与配置持久化（替代原 named volume）。
 - 更新机制：FPK 覆盖更新（含新镜像 tar 落 `app/docker/hanbao-amd64.tar`）已设计；版本管理随 `.fpk` 版本号走。
-- ⏳ 剩余工程验证：`fnpack build` 本地打包校验、`fnOS 测试机安装 + 镜像 load + 容器启动 + cmd/main status` 实测（需用户飞牛设备 + `deploy/save-image.sh` 先导出 tar）。
+- ✅ `fnpack build` 本地打包校验：已于 2026-08-27 用 fnpack-1.2.3-windows-amd64 成功产出 `hanbao.fpk`（265M，含离线镜像 tar），校验全过。
+- ⏳ 剩余工程验证：`fnOS 测试机安装 + 镜像 load + 容器启动 + cmd/main status` 实测（需用户飞牛设备）。
 - ⚠️ 一处待 fnOS 实测确认：compose `env_file: ${TRIM_PKGETC}/hanbao.env` 中 `TRIM_PKGETC` 是否由飞牛在 docker-project 执行时展开；若否，回退为 compose 改用相对路径 `./hanbao.env` 即可——`install_callback` 已将该路径软链到 `$TRIM_PKGETC/hanbao.env`（同一持久文件，升级不丢），无需 install_callback 再额外写文件。
+
+## 安装失败根因与修复（2026-08-27 飞牛真机实测踩坑）
+> 首版 `hanbao.fpk` 在飞牛应用中心安装报 **"执行脚本出错且原因未知"**。
+
+- **根因**：docker-project 形态下 fnOS **在应用生命周期脚本的执行环境里不提供 docker 客户端/daemon**；镜像由系统按 `config/resource` 自动 load。我此前为"加固"风险#1 在 `install_init` 与 `install_callback` 里手动 `docker load -i`，脚本一执行就非 0 退出，`set -eu` 立刻让脚本崩，fnOS 把 stderr 吞掉只报"原因未知"。这是典型的方向反了——手动 load 反而破坏了安装。
+- **修复（提交于 2026-08-27）**：
+  1. `cmd/install_init`、`cmd/install_callback`、`cmd/upgrade_callback` 全部移除 `docker` 调用，镜像加载彻底交还 fnOS。
+  2. `install_callback` / `upgrade_callback` 去掉 `set -eu`、改用 `${VAR:-}` 默认值，任何异常仅告警不中断安装（避免真机变量名未实测时再次硬崩）。
+  3. `cmd/main` 去掉 `set -eu`（与官方模板一致）；`status` 的 `docker inspect` 本就在 `if` 条件中、`set -e` 不生效，逻辑安全。
+  4. `config/resource` 补齐 `data-share` 段（对齐官方 docker 模板）。
+- **结论**：脚本不再触碰 docker 后，安装应可越过"执行脚本出错"。若仍失败，多半是镜像未被 fnOS 自动 load（见下方 Checklist B 的 `No such image` 分支，届时需改 native 形态）。
 
 ## 飞牛真机实测 Checklist（fnpack build 后上机验证）
 > 目标：在飞牛测试机跑通 `fnpack build` 产物 `.fpk` 的安装与运行，并确认两个 fnOS 运行时行为。
 > 本小节随 `6310dff` 新增；两项风险结论确认后请回填此处与今日日志。
 
 ### A. 打包（Linux / 飞牛开发机）
-- [ ] `fnpack build deploy/fpk` 成功产出 `hanbao-0.1.0.fpk`，无 schema 报错
+- [ ] `fnpack build deploy/fpk` 成功产出 `hanbao.fpk`，无 schema 报错
 - [ ] 产物内含离线镜像 tar（266MB），`manifest` 的 `changelog` 字段被正确读取展示
 
 ### B. 安装（fnOS 应用中心「手动安装」侧载）
 - [ ] 应用中心选中 `.fpk`，向导正常展示（管理员账号 / 密码两项，可留空）
-- [ ] 安装完成后镜像已 load：`docker images | grep hanbao`（= install_callback 已执行）
-  - 若报 `No such image` → ⚠️ 触发风险#1：docker-project 在 install_callback 之前就 `compose up`；需改回 native 形态（cmd/main 自管 `docker load`+`docker compose up`）或确认 fnOS 实际顺序
+- [ ] 安装完成后镜像已 load：`docker images | grep hanbao`（= fnOS 已按 docker-project 自动 load 内置 tar，应用脚本不负责 load）
+  - 若报 `No such image` → ⚠️ fnOS 未自动 load 离线镜像（罕见）；需改回 native 形态（cmd/main 自管 `docker load`+`docker compose up`），或确认 `app/docker/hanbao-amd64.tar` 命名/位置符合 fnOS 预期
 - [ ] 容器启动：`docker ps` 见 `hanbao` running，且 `cmd/main status` 退出码 0
 
 ### C. 凭据注入（风险#2：TRIM_PKGETC 是否展开）

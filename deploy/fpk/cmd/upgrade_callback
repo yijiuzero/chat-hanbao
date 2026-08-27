@@ -3,29 +3,20 @@
 # hanbao FPK 升级回调（upgrade_callback）
 #
 # 飞牛在"升级后"调用本脚本。升级时 app/docker 被新包覆盖，需重建凭据软链
-# （持久凭据文件 TRIM_PKGETC/hanbao.env 不受影响），并兜底预载镜像以防万一。
+# （持久凭据文件 TRIM_PKGETC/hanbao.env 不受影响）。离线镜像由 fnOS 自动 reload。
+# 不做 set -e，任何异常仅告警不中断升级。
 # ============================================================
-set -eu
 
-APP_DEST="${TRIM_APPDEST:?upgrade_callback: TRIM_APPDEST 未设置}"
-PKG_ETC="${TRIM_PKGETC:?upgrade_callback: TRIM_PKGETC 未设置}"
+APP_DEST="${TRIM_APPDEST:-}"
+PKG_ETC="${TRIM_PKGETC:-}"
 
-IMAGE_TAR="${APP_DEST}/docker/hanbao-amd64.tar"
-IMAGE_NAME="hanbao:latest"
 ENV_FILE="${PKG_ETC}/hanbao.env"
 ENV_LINK="${APP_DEST}/docker/hanbao.env"
 
-# 升级后 app/docker 被覆盖，重建指向持久凭据的软链（TRIM_PKGETC 中的真源仍在）
-if [ -f "${ENV_FILE}" ]; then
-  rm -f "${ENV_LINK}"
-  ln -s "${ENV_FILE}" "${ENV_LINK}"
+if [ -n "${PKG_ETC}" ] && [ -n "${APP_DEST}" ] && [ -f "${ENV_FILE}" ]; then
+  rm -f "${ENV_LINK}" 2>/dev/null
+  ln -s "${ENV_FILE}" "${ENV_LINK}" 2>/dev/null
   echo "[hanbao] 已重建凭据软链 ${ENV_LINK} -> ${ENV_FILE}"
-fi
-
-# 兜底预载镜像（正常已在安装/升级前 load，此处仅防异常）
-if ! docker image inspect "${IMAGE_NAME}" >/dev/null 2>&1 && [ -f "${IMAGE_TAR}" ]; then
-  echo "[hanbao] >>> docker load -i ${IMAGE_TAR} (upgrade fallback)"
-  docker load -i "${IMAGE_TAR}"
 fi
 
 exit 0
