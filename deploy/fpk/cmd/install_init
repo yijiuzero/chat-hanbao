@@ -2,12 +2,11 @@
 # ============================================================
 # hanbao FPK 安装初始化（install_init）
 #
-# 飞牛 docker-project 形态下，离线镜像 tar 由 fnOS 系统按 config/resource 的
-# docker-project 声明自动 docker load + docker compose up，应用生命周期脚本
-# 不应手动调用 docker。安装期脚本执行环境无 docker 客户端/daemon，手动 docker
-# load 会导致脚本非 0 退出 -> fnOS 报"执行脚本出错且原因未知"。
+# 本应用为 native 形态，容器启停由 cmd/main 自行负责；install_init 只写凭据、不碰 docker。
+# 安装期脚本执行环境通常无 docker 客户端/daemon，手动 docker 调用会导致脚本非 0 退出 ->
+# fnOS 报"执行脚本出错且原因未知"。
 #
-# install_init 在 compose up 之前执行，负责提前生成 app/docker/hanbao.env
+# install_init 在 install_callback 之前执行，负责提前生成 app/docker/hanbao.env
 # （即使 install_callback 因故未执行或被吞变量，也能保证 compose 的 env_file 存在）。
 # 若用户在安装向导填写了 HANBAO_AUTH_USERNAME/PASSWORD，install_callback 会再覆盖。
 # ============================================================
@@ -33,7 +32,7 @@ if [ -n "${TRIM_APPDEST:-}" ]; then
   echo "[hanbao] install_init 已写 ${TRIM_APPDEST}/docker/hanbao.env"
 fi
 
-# 兜底：直接写飞牛实际映射的绝对路径（docker-project 下 app/docker/ 的落地路径）
+# 兜底：直接写飞牛实际映射的绝对路径（native 形态下 app/docker/ 的落地路径）
 for fallback in \
   "/vol1/@appcenter/hanbao/docker/hanbao.env" \
   "/vol2/@appcenter/hanbao/docker/hanbao.env" \

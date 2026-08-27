@@ -17,9 +17,9 @@
 - 镜像体积（当前）：~1.78GB（venv 瘦身第一刀后；原 800MB 目标经实测评估极难达成；经用户 2026-08-19 拍板保留全部渠道 SDK 不砍，镜像维持 1.78GB，≤1.5GB 目标作废）
 - 渠道：微信 + OneBot（QQ / 钉钉 / 飞书 / Telegram 已关闭）
 
-## 阶段5 FPK 脚手架进度（2026-08-19 已按官方规范校正）
-- 形态拍板：**docker-project**（2026-08-19 拉取 developer.fnnas.com 官方规范后，由首版的 native 改为 docker-project）。官方规范仅以 docker-project 作为容器应用标准路径，`config/resource` 的 `docker-project` 声明即飞牛接管容器生命周期的开关；**离线镜像由 fnOS 按 docker-project 声明自动 `docker load` 内置 tar + `docker compose up`（全程不拉外网）**，`pull_policy: never` 作为双保险。应用生命周期脚本**不应、也不能手动调 docker**（安装期脚本执行环境无 docker 客户端，手动 load 必非 0 退出 → 触发"执行脚本出错且原因未知"）。
-- 已落地且经官方 schema 校正：`manifest`（INI：`appname`/`display_name`/`service_port` 等）、`wizard/` 目录（install/config/upgrade/uninstall 四个 JSON 数组向导）、`config/resource`（`docker-project` + `data-share` JSON）、`config/privilege`（package 用户 JSON）、`cmd/main`（status-only，容器由飞牛管理）、`install_callback`（写 `app/docker/hanbao.env` 实体凭据，**不调 docker**）、`app/docker/docker-compose.yaml`（`env_file: ./hanbao.env` 注入凭据 + `$TRIM_PKGVAR` 持久化工作目录）、`app/ui/config`（`.url` 入口）、图标 `ICON.PNG`/`ICON_256.PNG` + `app/ui/images/*`。
+## 阶段5 FPK 脚手架进度（已按官方规范校正，2026-08-27 改为 native 形态）
+- 形态拍板：**native**（2026-08-27 飞牛真机实测确认 docker-project 不会自动 load 内置离线镜像 tar，改为 native 形态由 `cmd/main` 自管 `docker load` + `docker compose up/down`）。`config/resource` 只声明 `data-share`，飞牛把本应用视为 native 应用，容器生命周期由 `cmd/main` 负责。
+- 已落地且经官方 schema 校正：`manifest`（INI：`appname`/`display_name`/`service_port` 等）、`wizard/` 目录（install/config/upgrade/uninstall 四个 JSON 数组向导）、`config/resource`（`data-share` JSON）、`config/privilege`（package 用户 JSON）、`cmd/main`（native 形态：start/stop/status 自管容器）、`install_callback`（写 `app/docker/hanbao.env` 实体凭据，**不碰 docker**）、`app/docker/docker-compose.yaml`（`env_file: ./hanbao.env` 注入凭据 + `$TRIM_PKGVAR` 持久化工作目录）、`app/ui/config`（`.url` 入口）、图标 `ICON.PNG`/`ICON_256.PNG` + `app/ui/images/*`。
 - 凭据闭环：wizard 收集 `HANBAO_AUTH_USERNAME`/`HANBAO_AUTH_PASSWORD` → `install_init` + `install_callback` 双写 `app/docker/hanbao.env` 实体文件 → compose `env_file: ./hanbao.env` 注入容器（接 I-007 默认开认证，首启 `auto_register_from_env` 自动建账号，消除局域网抢注窗口）。 additionally：
   - `app/docker/hanbao.env` 预置默认文件（随包分发），即使生命周期脚本因故未执行，compose 也不会因 env_file 缺失而失败。
   - 脚本写入时除 `TRIM_APPDEST` 外，还兜底写入 `/vol1/@appcenter/hanbao/docker/hanbao.env` 等绝对路径（兼容变量未注入的情况）。
@@ -32,32 +32,36 @@
 - 更新机制：FPK 覆盖更新（含新镜像 tar 落 `app/docker/hanbao-amd64.tar`）已设计；版本管理随 `.fpk` 版本号走。
 - ✅ `fnpack build` 本地打包校验：已于 2026-08-27 用 fnpack-1.2.3-windows-amd64 成功产出 `hanbao.fpk`（265M，含离线镜像 tar），校验全过。
 - ⏳ 剩余工程验证：`fnOS 测试机安装 + 镜像 load + 容器启动 + cmd/main status` 实测（需用户飞牛设备）。
-- ✅ **2026-08-27 飞牛真机实测**：compose 中 `${TRIM_PKGETC}` **确实会被展开为 `/vol1/@appconf/hanbao`**；但 `install_callback` 执行时该变量**未被注入**，导致凭据没写到该路径。当前已改为稳妥方案：compose `env_file: ./hanbao.env`，`install_callback` 实体写入 `app/docker/hanbao.env`，同时可选备份到 `$TRIM_PKGETC/hanbao.env`（若变量存在）。安装可靠性优先，升级持久化依赖该备份是否存在。
+- ✅ **2026-08-27 飞牛真机实测**：compose 中 `${TRIM_PKGETC}` **确实会被展开为 `/vol1/@appconf/hanbao`**；但 `install_callback` 执行时该变量**未被注入**，导致凭据没写到该路径。当前已改为稳妥方案：compose `env_file: ./hanbao.env`，`install_callback` 实体写入 `app/docker/hanbao.env`，同时可选备份到 `$TRIM_PKGETC/hanbao.env`（若变量存在）。
+- ✅ **2026-08-27 飞牛真机实测**：docker-project 形态下 fnOS **不会自动 load 内置离线镜像 tar**，安装报 `No such image`。已改为 **native 形态**，由 `cmd/main` 在 start 时 `docker load` + `docker compose up`。
 
 ## 安装失败根因与修复（2026-08-27 飞牛真机实测踩坑）
 > 首版 `hanbao.fpk` 在飞牛应用中心安装报 **"执行脚本出错且原因未知"**。
 
-- **根因**：docker-project 形态下 fnOS **在应用生命周期脚本的执行环境里不提供 docker 客户端/daemon**；镜像由系统按 `config/resource` 自动 load。我此前为"加固"风险#1 在 `install_init` 与 `install_callback` 里手动 `docker load -i`，脚本一执行就非 0 退出，`set -eu` 立刻让脚本崩，fnOS 把 stderr 吞掉只报"原因未知"。这是典型的方向反了——手动 load 反而破坏了安装。
-- **修复（提交于 2026-08-27）**：
-  1. `cmd/install_init`、`cmd/install_callback`、`cmd/upgrade_callback` 全部移除 `docker` 调用，镜像加载彻底交还 fnOS。
-  2. `install_callback` / `upgrade_callback` 去掉 `set -eu`、改用 `${VAR:-}` 默认值，任何异常仅告警不中断安装（避免真机变量名未实测时再次硬崩）。
-  3. `cmd/main` 去掉 `set -eu`（与官方模板一致）；`status` 的 `docker inspect` 本就在 `if` 条件中、`set -e` 不生效，逻辑安全。
-  4. `config/resource` 补齐 `data-share` 段（对齐官方 docker 模板）。
-- **结论**：脚本不再触碰 docker 后，安装应可越过"执行脚本出错"。若仍失败，多半是镜像未被 fnOS 自动 load（见下方 Checklist B 的 `No such image` 分支，届时需改 native 形态）。
+- **根因**：docker-project 形态下 fnOS **在应用生命周期脚本的执行环境里不提供 docker 客户端/daemon**。我此前为"加固"风险#1 在 `install_init` 与 `install_callback` 里手动 `docker load -i`，脚本一执行就非 0 退出，`set -eu` 立刻让脚本崩，fnOS 把 stderr 吞掉只报"原因未知"。
+- **修复**：`cmd/install_init`、`cmd/install_callback`、`cmd/upgrade_callback` 全部移除 `docker` 调用；`install_callback` / `upgrade_callback` 去掉 `set -eu`、改用 `${VAR:-}` 默认值，任何异常仅告警不中断安装。
 
-## 安装失败根因与修复 #3（2026-08-27 飞牛真机实测踩坑）
+## 安装失败根因与修复 #2：改 native 形态（2026-08-27 飞牛真机实测踩坑）
+> 移除脚本内 docker 调用后，安装报 **"No such image: hanbao:latest"**。
+
+- **根因**：docker-project 形态下 fnOS **并不会自动 `docker load` 内置离线镜像 tar**（与官方文档/模板暗示不符，或当前 fnOS 版本对 docker-project 的离线 tar 支持有限）。compose up 时镜像缺失，直接报 `No such image`。
+- **修复**：把应用形态从 `docker-project` 改为 **`native`**：
+  1. `config/resource` 去掉 `docker-project`，只保留 `data-share`。
+  2. `cmd/main` 重写：start 时先 `docker load -i app/docker/hanbao-amd64.tar`，再 `docker compose up -d`；stop 时 `docker compose down`；status 时检查容器运行状态。
+  3. `app/docker/docker-compose.yaml` 端口映射固定为 `8088:8088`（native 形态由 main 负责，无需 TRIM_SERVICE_PORT 展开）。
+  4. `manifest` / `install_callback` / `install_init` / `upgrade_callback` 注释同步改为 native 形态。
+- **结论**：镜像加载不再依赖 fnOS 自动机制，改由 `cmd/main` 在启动时显式 load，离线安装闭环完成。
+
+## 安装失败根因与修复 #3：env file 兜底（2026-08-27 飞牛真机实测踩坑）
 > 第二版 `hanbao.fpk` 安装报 **"env file /vol1/@appcenter/hanbao/docker/hanbao.env not found"**。
 
-- **根因**：compose 读的是正确的相对路径 `./hanbao.env`（展开为 `/vol1/@appcenter/hanbao/docker/hanbao.env`），但 `install_callback` 没有把文件写到该位置。原因可能是：
-  - docker-project 形态下 `install_callback` 未被执行；或
-  - 执行时 `TRIM_APPDEST` 变量未注入；或
-  - 脚本写入失败但错误被 fnOS 吞掉。
-- **修复（提交 `待填`）**：
-  1. `app/docker/hanbao.env` 预置默认文件（随 FPK 分发），保证 compose 的 `env_file` 永远存在。
-  2. `install_init` 承担主责：在 compose up 之前写入 `app/docker/hanbao.env`，并兜底 `/vol1/@appcenter/hanbao/docker/hanbao.env`。
-  3. `install_callback` 同样多重路径兜底写入，覆盖 install_init 的默认内容（注入用户填写的 wizard 凭据）。
+- **根因**：compose 读的是正确的相对路径 `./hanbao.env`（展开为 `/vol1/@appcenter/hanbao/docker/hanbao.env`），但 `install_callback` 没有把文件写到该位置（docker-project 下 `install_callback` 可能未执行或 `TRIM_APPDEST` 未注入）。
+- **修复**：
+  1. `app/docker/hanbao.env` 预置默认文件（随 FPK 分发）。
+  2. `install_init` 在 install_callback 之前写入 `app/docker/hanbao.env`，并兜底 `/vol1/@appcenter/hanbao/docker/hanbao.env` 等绝对路径。
+  3. `install_callback` 同样多重路径兜底写入，覆盖默认内容注入 wizard 凭据。
   4. `upgrade_callback` 同样多重路径恢复/生成默认 env。
-- **结论**： env_file 不再依赖任一单个变量或脚本的执行顺序，安装成功率大幅提升。
+- **结论**：env_file 不再依赖任一单个变量或脚本执行顺序。
 
 ## 飞牛真机实测 Checklist（fnpack build 后上机验证）
 > 目标：在飞牛测试机跑通 `fnpack build` 产物 `.fpk` 的安装与运行，并确认两个 fnOS 运行时行为。
@@ -69,9 +73,9 @@
 
 ### B. 安装（fnOS 应用中心「手动安装」侧载）
 - [ ] 应用中心选中 `.fpk`，向导正常展示（管理员账号 / 密码两项，可留空）
-- [ ] 安装完成后镜像已 load：`docker images | grep hanbao`（= fnOS 已按 docker-project 自动 load 内置 tar，应用脚本不负责 load）
-  - 若报 `No such image` → ⚠️ fnOS 未自动 load 离线镜像（罕见）；需改回 native 形态（cmd/main 自管 `docker load`+`docker compose up`），或确认 `app/docker/hanbao-amd64.tar` 命名/位置符合 fnOS 预期
-- [ ] 容器启动：`docker ps` 见 `hanbao` running，且 `cmd/main status` 退出码 0
+- [ ] 安装完成后点击「启动」或自动启动，`cmd/main start` 成功：`docker images | grep hanbao` 能看到镜像，`docker ps` 见 `hanbao` running
+  - 若报 `No such image` → 检查 `app/docker/hanbao-amd64.tar` 是否被打包进 `.fpk`、tar 内是否有 `hanbao:latest` 标签
+- [ ] `cmd/main status` 退出码 0
 
 ### C. 凭据注入
 - [x] compose 改用 `env_file: ./hanbao.env`（相对 `app/docker/`），`install_callback` 实体写入 `app/docker/hanbao.env`，安装时不受 `TRIM_PKGETC` 变量注入影响
@@ -82,7 +86,7 @@
 - [ ] 对话与配置数据仍在（`$TRIM_PKGVAR` 应用数据卷）
 
 ### E. 收尾
-- [ ] 两项风险确认结论回填本文件 + 今日日志（决定是否需要 native 形态回退）
+- [ ] 回填实测结论到本文件 + 今日日志
 
 ## 合规备忘（上架必带）
 - `LICENSE` / `NOTICE` / `CHANGES-FROM-UPSTREAM.md` 已随镜像分发（I-002）

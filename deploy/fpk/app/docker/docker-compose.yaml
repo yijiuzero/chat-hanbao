@@ -1,7 +1,7 @@
-# hanbao FPK docker-project 形态编排
-# 镜像随 FPK 内置 tar 分发，由 fnOS 按 docker-project 声明自动 load；
-# pull_policy: never 不拉外网。
-# 凭据由 env_file 从 ./hanbao.env 注入（install_callback 写入 app/docker/ 下实体文件）。
+# hanbao FPK native 形态编排
+# 容器由 cmd/main 负责启动；本文件仅声明容器运行参数。
+# 镜像随 FPK 内置 tar 分发，cmd/main start 时 docker load；pull_policy: never 不拉外网。
+# 凭据由 env_file 从 ./hanbao.env 注入（install_callback/install_init 写入 app/docker/ 下实体文件）。
 # 工作目录挂载 $TRIM_PKGVAR（应用数据卷），对话与配置持久化。
 
 services:
@@ -12,7 +12,7 @@ services:
     restart: unless-stopped
     pull_policy: never
     ports:
-      - "${TRIM_SERVICE_PORT}:8088"
+      - "8088:8088"
     env_file:
       - ./hanbao.env
     environment:

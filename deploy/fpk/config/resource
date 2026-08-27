@@ -1,12 +1,4 @@
 {
-  "docker-project": {
-    "projects": [
-      {
-        "name": "hanbao",
-        "path": "docker"
-      }
-    ]
-  },
   "data-share": {
     "shares": [
       {

@@ -9,7 +9,7 @@
 # env_file: ./hanbao.env 注入容器。接 I-007 默认开认证 + auto_register_from_env
 # 首启自动建管理员账号，消除局域网抢注窗口。用户留空则不写用户名/密码，走首启注册页。
 #
-# 离线镜像 tar 由 fnOS 按 docker-project 声明自动 load，本脚本不调 docker。
+# 本应用为 native 形态，容器启停由 cmd/main 自行负责；install_callback 只写凭据、不碰 docker。
 # 为兼容真实环境，本脚本不做 set -e：任何异常仅告警，绝不中断安装。
 # ============================================================
 
@@ -35,7 +35,7 @@ write_env() {
   fi
 }
 
-# 主目标：TRIM_APPDEST/app/docker/hanbao.env（docker-project 下 app/docker/ 的落地路径）
+# 主目标：TRIM_APPDEST/app/docker/hanbao.env（native 形态下 app/docker/ 的落地路径）
 if [ -n "${TRIM_APPDEST:-}" ]; then
   write_env "${TRIM_APPDEST}/docker/hanbao.env"
 fi

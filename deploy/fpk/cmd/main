@@ -1,35 +1,117 @@
 #!/bin/sh
 # ============================================================
-# hanbao FPK docker-project 形态生命周期控制器
+# hanbao FPK native 形态生命周期控制器
 #
-# 飞牛按 config/resource 的 docker-project 声明自动管理容器启停/重启/升级，
-# 因此本脚本 start/stop 无需操作（exit 0），仅 status 探测容器运行状态。
-# 镜像由 install_callback 预载（docker load 内置 tar，配合 compose pull_policy:never
-# 实现离线运行，不依赖外部镜像仓库）。
+# 飞牛按 config/resource 的 data-share 声明把本应用视为 native 应用，
+# 容器启停/重启/升级由本脚本自行负责（start/stop/status）。
+# 内置离线镜像 tar 随 FPK 分发，start 时先 docker load 再 docker compose up，
+# 全程不依赖外部镜像仓库。
+#
+# 注意：脚本不 set -e，任何异常先把用户可见错误写到 TRIM_TEMP_LOGFILE，
+# 再返回对应退出码，避免 fnOS 静默吞错只报"原因未知"。
 # ============================================================
 
+APP_DEST="${TRIM_APPDEST:-}"
+if [ -z "$APP_DEST" ]; then
+  # native 形态下脚本工作目录通常就是应用目录，兜底
+  APP_DEST="$(pwd)"
+fi
+
+DOCKER_DIR="${APP_DEST}/docker"
+COMPOSE_FILE="${DOCKER_DIR}/docker-compose.yaml"
+IMAGE_TAR="${DOCKER_DIR}/hanbao-amd64.tar"
+IMAGE_NAME="hanbao:latest"
 CONTAINER_NAME="hanbao"
+
+log_err() {
+  echo "[hanbao][main][err] $1" > "${TRIM_TEMP_LOGFILE:-/dev/stderr}"
+}
+
+log_info() {
+  echo "[hanbao][main] $1"
+}
+
+image_loaded() {
+  docker image inspect "${IMAGE_NAME}" >/dev/null 2>&1
+}
 
 is_running() {
   docker inspect "${CONTAINER_NAME}" 2>/dev/null | grep -q '"Status": "running"'
 }
 
-case "${1:-start}" in
-  start)
-    # 容器由飞牛 docker-project 机制启动，此处无需操作
+cmd_start() {
+  if is_running; then
+    log_info "容器 ${CONTAINER_NAME} 已在运行"
     exit 0
-    ;;
-  stop)
-    exit 0
-    ;;
-  status)
+  fi
+
+  if ! image_loaded; then
+    if [ -f "${IMAGE_TAR}" ]; then
+      log_info "正在加载离线镜像 ${IMAGE_TAR} ..."
+      docker load -i "${IMAGE_TAR}" 2>&1 || {
+        log_err "docker load 失败：${IMAGE_TAR}"
+        exit 1
+      }
+    else
+      log_err "未找到离线镜像 tar：${IMAGE_TAR}"
+      exit 1
+    fi
+  else
+    log_info "镜像 ${IMAGE_NAME} 已存在，跳过 docker load"
+  fi
+
+  if [ ! -f "${COMPOSE_FILE}" ]; then
+    log_err "未找到 compose 文件：${COMPOSE_FILE}"
+    exit 1
+  fi
+
+  log_info "启动容器 ..."
+  cd "${DOCKER_DIR}" || { log_err "无法进入 ${DOCKER_DIR}"; exit 1; }
+  docker compose -f "${COMPOSE_FILE}" up -d 2>&1 || {
+    log_err "docker compose up 失败"
+    exit 1
+  }
+
+  # 简单等待容器进入 running
+  for i in 1 2 3 4 5 6 7 8 9 10; do
     if is_running; then
+      log_info "容器启动成功"
       exit 0
     fi
-    exit 3
+    sleep 1
+  done
+  log_err "容器未能在 10s 内进入 running 状态"
+  exit 1
+}
+
+cmd_stop() {
+  if [ ! -f "${COMPOSE_FILE}" ]; then
+    exit 0
+  fi
+  cd "${DOCKER_DIR}" 2>/dev/null || exit 0
+  docker compose -f "${COMPOSE_FILE}" down 2>&1 || true
+  exit 0
+}
+
+cmd_status() {
+  if is_running; then
+    exit 0
+  fi
+  exit 3
+}
+
+case "${1:-start}" in
+  start)
+    cmd_start
+    ;;
+  stop)
+    cmd_stop
+    ;;
+  status)
+    cmd_status
     ;;
   *)
-    echo "Unknown command: $1" > "${TRIM_TEMP_LOGFILE:-/dev/stderr}"
+    log_err "Unknown command: $1"
     exit 1
     ;;
 esac

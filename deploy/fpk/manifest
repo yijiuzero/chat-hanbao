@@ -1,8 +1,9 @@
 # ============================================================
 # 飞牛 FPK 应用清单（manifest）— INI 格式，key=value
 # 官方规范: https://developer.fnnas.com/docs/core-concepts/manifest/
-# 形态: docker-project（飞牛按 config/resource 的 docker-project 声明接管容器生命周期）
-# 离线镜像: install_callback 预载内置 tar，compose pull_policy: never，全程不拉外网
+# 形态: native（飞牛按 config/resource 的 data-share 声明把本应用视为 native 应用，
+#       容器启停/重启/升级由 cmd/main 自行负责）
+# 离线镜像: 内置 hanbao-amd64.tar，cmd/main start 时 docker load，compose pull_policy: never
 # 来源: 派生自 QwenPaw v2.1.0 (Apache-2.0)，二次开发 hanbao
 # ============================================================
 
