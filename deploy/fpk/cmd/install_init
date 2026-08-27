@@ -1,0 +1,29 @@
+#!/bin/sh
+# ============================================================
+# hanbao FPK 安装初始化（install_init）
+#
+# 飞牛在"安装向导前"调用本脚本——先于 install_callback 与 docker-project 的
+# compose up。这里负责预载内置离线镜像 tar（docker load），确保容器启动前
+# 镜像已就位，配合 compose pull_policy:never 实现离线安装、不依赖外部仓库。
+# 凭据注入在 install_callback 完成（TRIM_PKGETC 持久化 + 软链回退）。
+# 本脚本与 install_callback 的 load 段互为双保险：无论 fnOS 实际调用顺序如何，
+# 镜像都会被加载。若实测发现 docker-project 仍抢跑（compose up 先于本脚本），
+# 需改回 native 形态（cmd/main 自行 docker load + compose up）。
+# ============================================================
+set -eu
+
+APP_DEST="${TRIM_APPDEST:?install_init: TRIM_APPDEST 未设置}"
+
+IMAGE_TAR="${APP_DEST}/docker/hanbao-amd64.tar"
+IMAGE_NAME="hanbao:latest"
+
+# 预载镜像（离线，不依赖外网）；已存在则跳过
+if docker image inspect "${IMAGE_NAME}" >/dev/null 2>&1; then
+  echo "[hanbao] 镜像 ${IMAGE_NAME} 已存在，跳过 docker load"
+elif [ -f "${IMAGE_TAR}" ]; then
+  echo "[hanbao] >>> docker load -i ${IMAGE_TAR}"
+  docker load -i "${IMAGE_TAR}"
+else
+  echo "[hanbao] 未找到镜像 ${IMAGE_NAME} 且 ${IMAGE_TAR} 不存在" >&2
+  exit 1
+fi
