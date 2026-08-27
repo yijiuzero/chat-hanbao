@@ -4,7 +4,7 @@
 #
 #  飞牛 FPK「docker-project 形态」自带镜像模式（上架飞牛官方应用中心）：
 #    镜像 tar 随 FPK 内置，由 FPK 内的 install_callback 在安装时 `docker load`
-#    （见 deploy/fpk/install_callback），随后飞牛按 config/resource 的 docker-project
+#    （见 deploy/fpk/cmd/install_callback），随后飞牛按 config/resource 的 docker-project
 #    声明接管容器生命周期；compose 设 pull_policy: never，全程不向外部仓库拉取。
 #    更新时发布新 FPK 包（内含新镜像 tar）覆盖即可，更新也走 FPK。
 #
