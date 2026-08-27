@@ -30,6 +30,32 @@
 - ⏳ 剩余工程验证：`fnpack build` 本地打包校验、`fnOS 测试机安装 + 镜像 load + 容器启动 + cmd/main status` 实测（需用户飞牛设备 + `deploy/save-image.sh` 先导出 tar）。
 - ⚠️ 一处待 fnOS 实测确认：compose `env_file: ${TRIM_PKGETC}/hanbao.env` 中 `TRIM_PKGETC` 是否由飞牛在 docker-project 执行时展开；若否，回退为 compose 改用相对路径 `./hanbao.env` 即可——`install_callback` 已将该路径软链到 `$TRIM_PKGETC/hanbao.env`（同一持久文件，升级不丢），无需 install_callback 再额外写文件。
 
+## 飞牛真机实测 Checklist（fnpack build 后上机验证）
+> 目标：在飞牛测试机跑通 `fnpack build` 产物 `.fpk` 的安装与运行，并确认两个 fnOS 运行时行为。
+> 本小节随 `6310dff` 新增；两项风险结论确认后请回填此处与今日日志。
+
+### A. 打包（Linux / 飞牛开发机）
+- [ ] `fnpack build deploy/fpk` 成功产出 `hanbao-0.1.0.fpk`，无 schema 报错
+- [ ] 产物内含离线镜像 tar（266MB），`manifest` 的 `changelog` 字段被正确读取展示
+
+### B. 安装（fnOS 应用中心「手动安装」侧载）
+- [ ] 应用中心选中 `.fpk`，向导正常展示（管理员账号 / 密码两项，可留空）
+- [ ] 安装完成后镜像已 load：`docker images | grep hanbao`（= install_callback 已执行）
+  - 若报 `No such image` → ⚠️ 触发风险#1：docker-project 在 install_callback 之前就 `compose up`；需改回 native 形态（cmd/main 自管 `docker load`+`docker compose up`）或确认 fnOS 实际顺序
+- [ ] 容器启动：`docker ps` 见 `hanbao` running，且 `cmd/main status` 退出码 0
+
+### C. 凭据注入（风险#2：TRIM_PKGETC 是否展开）
+- [ ] compose 成功读到 `${TRIM_PKGETC}/hanbao.env`（容器内 `HANBAO_AUTH_ENABLED=true` 生效）
+  - 若 compose 报 env_file 找不到 / 变量未展开 → ⚠️ 触发风险#2：把 `app/docker/docker-compose.yaml` 第18行回退为 `./hanbao.env`（install_callback 已将其软链到同一持久文件，无需改 install_callback）
+- [ ] 桌面入口「函包 hanbao」打开 Web Console，首启用向导账号自动建档 / 或走注册页
+
+### D. 升级持久化（凭据与数据不丢）
+- [ ] 升到下一版本 `.fpk` 后，旧管理员凭据仍在（`$TRIM_PKGETC` 持久目录未被 app/ 覆盖）
+- [ ] 对话与配置数据仍在（`$TRIM_PKGVAR` 应用数据卷）
+
+### E. 收尾
+- [ ] 两项风险确认结论回填本文件 + 今日日志（决定是否需要 native 形态回退）
+
 ## 合规备忘（上架必带）
 - `LICENSE` / `NOTICE` / `CHANGES-FROM-UPSTREAM.md` 已随镜像分发（I-002）
 - 依赖树无 GPL / AGPL / SSPL 强传染（审计闭合，commit `3da3ae4`）
