@@ -42,6 +42,7 @@
 | [I-031](#i-031) | header 被删模块占位：GitHub 后空 `<span>` + 双分隔线导致中间空一截 | 🟢 极低 | header 布局收尾（已修复） | 🟢 已解决（2026-08-24 `e27acfa`） |
 | [I-032](#i-032) | 运行配置页下线：时区调整移入侧栏设置面板、整页删除 | 🟢 极低 | 界面收尾（已修复） | 🟢 已解决（2026-08-25） |
 | [I-033](#i-033) | 删除 `append_file` 与 `delegate_external_agent` 两个后端工具及对应前端卡片/测试 | 🟢 极低 | 工具集减法（已修复） | 🟢 已解决（2026-08-25） |
+| [I-034](#i-034) | FPK native 形态 `cmd/main` 执行 `docker load` 因权限失败 | 🔥 高 | 阶段 5 FPK 真机验证 | 🟡 处理中 |
 
 ---
 
@@ -1046,3 +1047,40 @@ grep 全仓复核：`Agent/Config`、`useAgentConfig`、`ReactAgentCard`、`/age
 - grep 全仓：后端 `src/hanbao`（除 `agents/acp/` 子系统内历史注释/docstring，无害）、`tests/`、`console/src` 中 `append_file` / `delegate_external_agent` 功能引用**零残留**（仅 acp 子系统注释提及，因该子系统保留故不清理）。
 - 所有修改文件加 `[hanbao modification]` 标记。
 - 前端 `tsc`/`vite` 编译待「测一下」镜像重建确认（低风险纯删减）。
+
+---
+
+<a id="i-034"></a>
+
+## I-034 · FPK native 形态 `cmd/main` 执行 `docker load` 因权限失败
+
+**严重度**：🔥 高 &nbsp;|&nbsp; **状态**：🟡 处理中 &nbsp;|&nbsp; **必须处理时机**：阶段 5 FPK 真机验证
+
+### 现象
+真机安装 hanbao FPK 后点击「启用」，弹窗报错：
+```
+[hanbao][main][err] docker load 失败：/vol1/@appcenter/hanbao/docker/hanbao-amd64.tar
+```
+
+### 根因
+- 本应用为 **native 形态**，容器启停由 `cmd/main` 自行负责，启动阶段需要执行 `docker load` + `docker compose up`。
+- `config/privilege` 原设置为 `run-as: package`，应用以专用用户运行；该用户不在宿主机 `docker` 组，无法访问 Docker daemon socket（`/var/run/docker.sock` 通常为 `root:docker 660`）。
+- 参考同类离线镜像 FPK 实践（MiBee NVR、1Panel v2、Lucky 等），第三方应用要在生命周期脚本里调用 docker，通常需要 `run-as: root`。
+
+### 处理方案
+1. `deploy/fpk/config/privilege`：`run-as` 由 `package` 改为 `root`。
+2. `deploy/fpk/cmd/main`：
+   - 改用 `/bin/bash`；
+   - 增加持久日志 `${TRIM_PKGVAR}/hanbao-main.log`，完整记录 `docker version/load/compose` 的输出；
+   - `run_docker` 封装：失败时把 stderr 第一行回写到 `TRIM_TEMP_LOGFILE`，避免 UI 只显示"原因未知"；
+   - 启动前先 `docker version` 探测 daemon 连通性。
+3. 重新 `fnpack build` 产出 `hanbao.fpk`。
+
+### 验收
+- 真机侧载新 FPK 后，启用不再报 `docker load 失败`。
+- 容器成功进入 running，8088 端口可访问。
+- 若仍失败，读取 `/vol1/@appdata/hanbao/hanbao-main.log` 可见 Docker 真实错误。
+
+### 风险/后续
+- `run-as: root` 是官方文档标注的"仅建议官方合作开发者使用"的权限模式；但社区多个第三方离线镜像 FPK（MiBee NVR、1Panel v2、Lucky 等）实测手动安装可行。
+- 若未来飞牛收紧该模式导致安装被拒，可回退为 `run-as: package` + `join-groups: ["docker"]`，但需先验证目标系统存在 `docker` 组且飞牛会生效附加组。

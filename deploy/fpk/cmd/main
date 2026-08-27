@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # ============================================================
 # hanbao FPK native 形态生命周期控制器
 #
@@ -7,8 +7,9 @@
 # 内置离线镜像 tar 随 FPK 分发，start 时先 docker load 再 docker compose up，
 # 全程不依赖外部镜像仓库。
 #
-# 注意：脚本不 set -e，任何异常先把用户可见错误写到 TRIM_TEMP_LOGFILE，
-# 再返回对应退出码，避免 fnOS 静默吞错只报"原因未知"。
+# 注意：native 形态需要访问 Docker daemon，因此 config/privilege 使用 run-as: root。
+# 脚本不 set -e，任何异常先把用户可见错误写到 TRIM_TEMP_LOGFILE，
+# 并把完整诊断日志写到持久日志（TRIM_PKGVAR/hanbao-main.log）。
 # ============================================================
 
 APP_DEST="${TRIM_APPDEST:-}"
@@ -22,13 +23,40 @@ COMPOSE_FILE="${DOCKER_DIR}/docker-compose.yaml"
 IMAGE_TAR="${DOCKER_DIR}/hanbao-amd64.tar"
 IMAGE_NAME="hanbao:latest"
 CONTAINER_NAME="hanbao"
+LOG_FILE="${TRIM_PKGVAR:-/tmp}/hanbao-main.log"
+
+log() {
+  echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*" >> "$LOG_FILE" 2>&1
+}
 
 log_err() {
-  echo "[hanbao][main][err] $1" > "${TRIM_TEMP_LOGFILE:-/dev/stderr}"
+  local msg="$1"
+  log "ERROR: $msg"
+  # 用户可见的对话框只展示最后一行错误；持久日志保留完整信息
+  echo "[hanbao][main][err] $msg" > "${TRIM_TEMP_LOGFILE:-/dev/stderr}"
 }
 
 log_info() {
+  log "INFO: $1"
   echo "[hanbao][main] $1"
+}
+
+# 执行 docker 子命令，并把完整输出（含 stderr）追加到日志；失败时把第一行错误抛给 UI
+run_docker() {
+  log "EXEC: docker $*"
+  local output
+  output=$(docker "$@" 2>&1)
+  local rc=$?
+  if [ -n "$output" ]; then
+    echo "$output" >> "$LOG_FILE"
+  fi
+  if [ $rc -ne 0 ]; then
+    local first_line
+    first_line=$(echo "$output" | head -n1)
+    log_err "docker $* 失败: ${first_line:-未知错误}（详情见 ${LOG_FILE}）"
+    return $rc
+  fi
+  return 0
 }
 
 image_loaded() {
@@ -40,39 +68,53 @@ is_running() {
 }
 
 cmd_start() {
+  log "===== start ===== APP_DEST=${APP_DEST} TRIM_PKGVAR=${TRIM_PKGVAR:-<unset>}"
+
+  # 0. 确认能连上 Docker daemon（最常见的失败原因是权限/守护进程未启动）
+  if ! run_docker version; then
+    log_err "无法连接 Docker daemon，请确认 Docker 服务已启动且当前用户有权访问 /var/run/docker.sock"
+    exit 1
+  fi
+
   if is_running; then
     log_info "容器 ${CONTAINER_NAME} 已在运行"
     exit 0
   fi
 
+  # 1. 加载离线镜像（幂等：镜像已存在则跳过）
   if ! image_loaded; then
-    if [ -f "${IMAGE_TAR}" ]; then
-      log_info "正在加载离线镜像 ${IMAGE_TAR} ..."
-      docker load -i "${IMAGE_TAR}" 2>&1 || {
-        log_err "docker load 失败：${IMAGE_TAR}"
-        exit 1
-      }
-    else
+    if [ ! -f "${IMAGE_TAR}" ]; then
       log_err "未找到离线镜像 tar：${IMAGE_TAR}"
       exit 1
     fi
+    log_info "正在加载离线镜像 ${IMAGE_TAR} ..."
+    if ! run_docker load -i "${IMAGE_TAR}"; then
+      # run_docker 已经把错误写入 TRIM_TEMP_LOGFILE
+      exit 1
+    fi
+    if ! image_loaded; then
+      log_err "docker load 声称成功，但镜像 ${IMAGE_NAME} 仍未找到"
+      exit 1
+    fi
+    log "镜像 ${IMAGE_NAME} 加载完成"
   else
     log_info "镜像 ${IMAGE_NAME} 已存在，跳过 docker load"
   fi
 
+  # 2. 确认 compose 文件存在
   if [ ! -f "${COMPOSE_FILE}" ]; then
     log_err "未找到 compose 文件：${COMPOSE_FILE}"
     exit 1
   fi
 
+  # 3. 启动容器
   log_info "启动容器 ..."
   cd "${DOCKER_DIR}" || { log_err "无法进入 ${DOCKER_DIR}"; exit 1; }
-  docker compose -f "${COMPOSE_FILE}" up -d 2>&1 || {
-    log_err "docker compose up 失败"
+  if ! run_docker compose -f "${COMPOSE_FILE}" up -d; then
     exit 1
-  }
+  fi
 
-  # 简单等待容器进入 running
+  # 4. 等待容器进入 running
   for i in 1 2 3 4 5 6 7 8 9 10; do
     if is_running; then
       log_info "容器启动成功"
@@ -85,11 +127,12 @@ cmd_start() {
 }
 
 cmd_stop() {
+  log "===== stop ====="
   if [ ! -f "${COMPOSE_FILE}" ]; then
     exit 0
   fi
   cd "${DOCKER_DIR}" 2>/dev/null || exit 0
-  docker compose -f "${COMPOSE_FILE}" down 2>&1 || true
+  run_docker compose -f "${COMPOSE_FILE}" down || true
   exit 0
 }
 
