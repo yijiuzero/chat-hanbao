@@ -28,7 +28,7 @@
 - 数据存储目录：compose 挂载 `$TRIM_PKGVAR`（飞牛 @appdata 应用数据卷）→ 容器内 `/app/working`，对话与配置持久化（替代原 named volume）。
 - 更新机制：FPK 覆盖更新（含新镜像 tar 落 `app/docker/hanbao-amd64.tar`）已设计；版本管理随 `.fpk` 版本号走。
 - ⏳ 剩余工程验证：`fnpack build` 本地打包校验、`fnOS 测试机安装 + 镜像 load + 容器启动 + cmd/main status` 实测（需用户飞牛设备 + `deploy/save-image.sh` 先导出 tar）。
-- ⚠️ 一处待 fnOS 实测确认：compose `env_file: ${TRIM_PKGETC}/hanbao.env` 中 `TRIM_PKGETC` 是否由飞牛在 docker-project 执行时展开；若否，回退为 `install_callback` 额外写 `app/docker/hanbao.env` 并改用相对路径 `./hanbao.env`。
+- ⚠️ 一处待 fnOS 实测确认：compose `env_file: ${TRIM_PKGETC}/hanbao.env` 中 `TRIM_PKGETC` 是否由飞牛在 docker-project 执行时展开；若否，回退为 compose 改用相对路径 `./hanbao.env` 即可——`install_callback` 已将该路径软链到 `$TRIM_PKGETC/hanbao.env`（同一持久文件，升级不丢），无需 install_callback 再额外写文件。
 
 ## 合规备忘（上架必带）
 - `LICENSE` / `NOTICE` / `CHANGES-FROM-UPSTREAM.md` 已随镜像分发（I-002）

@@ -8,10 +8,11 @@
 # 本脚本做两件事：
 #   1) 预载内置镜像 tar（docker load），已存在则跳过；配合 compose pull_policy:never
 #      实现离线运行，不向外部仓库拉取。
-#   2) 把向导收集的管理员凭据持久化到 hanbao.env，双写 $TRIM_PKGETC 与
-#      $TRIM_APPDEST/docker（供 docker-compose 通过 ./hanbao.env 注入容器，
-#      见 app/docker/docker-compose.yaml）。接 I-007 默认开认证 + auto_register_from_env
-#      首启自动建管理员账号，消除局域网抢注窗口。用户留空则不写用户名/密码，走首启注册页。
+#   2) 把向导收集的管理员凭据持久化到 TRIM_PKGETC/hanbao.env（飞牛持久目录，升级不丢）。
+#      同时把 app/docker/hanbao.env 软链到该持久文件，作为 TRIM_PKGETC 未在 compose 中
+#      展开的回退（compose 改回 ./hanbao.env 即经软链读到持久凭据）。接 I-007 默认开认证
+#      + auto_register_from_env 首启自动建管理员账号，消除局域网抢注窗口。用户留空则不写
+#      用户名/密码，走首启注册页。
 # ============================================================
 set -eu
 
@@ -21,6 +22,7 @@ PKG_ETC="${TRIM_PKGETC:?install_callback: TRIM_PKGETC 未设置}"
 IMAGE_TAR="${APP_DEST}/docker/hanbao-amd64.tar"
 IMAGE_NAME="hanbao:latest"
 ENV_FILE="${PKG_ETC}/hanbao.env"
+ENV_LINK="${APP_DEST}/docker/hanbao.env"
 
 # 1) 预载镜像（离线，不依赖外网）
 if docker image inspect "${IMAGE_NAME}" >/dev/null 2>&1; then
@@ -33,9 +35,7 @@ else
   exit 1
 fi
 
-# 2) 持久化向导凭据（留空则只写 HANBAO_AUTH_ENABLED=true）
-#    双写：PKG_ETC（飞牛 TRIM_PKGETC 展开时）+ app/docker（compose 用相对路径 ./hanbao.env 回退）
-#    无论飞牛是否展开 TRIM_PKGETC，容器都能读到凭据，I-007 首启自动建账号闭环不漏
+# 2) 持久化向导凭据到 TRIM_PKGETC（升级不丢）；并软链 ./hanbao.env 作为回退
 mkdir -p "${PKG_ETC}" "${APP_DEST}/docker"
 {
   echo "# hanbao FPK 安装向导注入的凭据（install_callback 生成，勿手改）"
@@ -46,6 +46,10 @@ mkdir -p "${PKG_ETC}" "${APP_DEST}/docker"
   if [ -n "${HANBAO_AUTH_PASSWORD:-}" ]; then
     echo "HANBAO_AUTH_PASSWORD=${HANBAO_AUTH_PASSWORD}"
   fi
-} | tee "${ENV_FILE}" "${APP_DEST}/docker/hanbao.env" >/dev/null
+} > "${ENV_FILE}"
 
-echo "[hanbao] 凭据已写入 ${ENV_FILE}"
+# 软链回退：compose 若用 ./hanbao.env，则经由软链读到持久凭据（升级不丢）
+rm -f "${ENV_LINK}"
+ln -s "${ENV_FILE}" "${ENV_LINK}"
+
+echo "[hanbao] 凭据已写入 ${ENV_FILE}（并软链 ${ENV_LINK}）"

@@ -1,6 +1,8 @@
 # hanbao FPK docker-project 形态编排
 # 镜像随 FPK 内置 tar 分发，由 install_callback 预载；pull_policy: never 不拉外网。
-# 凭据由 env_file 从 ./hanbao.env 注入（install_callback 生成在 app/docker/ 下，相对路径不依赖 TRIM_PKGETC 展开）。
+# 凭据由 env_file 从 ${TRIM_PKGETC}/hanbao.env 注入（install_callback 写入飞牛持久目录
+# TRIM_PKGETC，升级时 app/ 被新包覆盖也不丢失）。若真机实测发现 fnOS 未在 compose 中
+# 展开 TRIM_PKGETC，回退为 ./hanbao.env 即可——install_callback 已将其软链到同一持久文件。
 # 工作目录挂载 $TRIM_PKGVAR（应用数据卷），对话与配置持久化。
 
 services:
@@ -13,7 +15,7 @@ services:
     ports:
       - "${TRIM_SERVICE_PORT}:8088"
     env_file:
-      - ./hanbao.env
+      - ${TRIM_PKGETC}/hanbao.env
     environment:
       - HANBAO_PORT=8088
       - HANBAO_WORKING_DIR=/app/working
