@@ -41,7 +41,7 @@ class OpenRouterProvider(Provider):
     )
 
     _DEFAULT_HEADERS = {
-        "HTTP-Referer": "https://qwenpaw.agentscope.io/",
+        "HTTP-Referer": "https://github.com/yijiuzero/chat-hanbao",  # [hanbao modification] 品牌改名：去掉上游域名 qwenpaw.agentscope.io
         "X-OpenRouter-Title": "Hanbao",
         "X-OpenRouter-Categories": _OPENROUTER_CATEGORIES,
         "User-Agent": "Hanbao/1.1",

@@ -1,6 +1,6 @@
 // ── URLs ──────────────────────────────────────────────────────────────────
 
-export const PYPI_URL = "https://pypi.org/pypi/qwenpaw/json";
+export const PYPI_URL = "https://pypi.org/pypi/hanbao/json"; // [hanbao modification] 品牌改名：qwenpaw → hanbao
 
 export const GITHUB_URL = "https://github.com/yijiuzero/chat-hanbao" as const;
 

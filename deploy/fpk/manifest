@@ -12,6 +12,7 @@ version=0.1.0
 display_name=hanbao
 desc=飞牛 NAS 上的私人 AI 聊天助手（微信 + OneBot 渠道）。本地运行、数据自控，仅依赖云端 OpenAI 兼容 API。
 source=thirdparty
+license=Apache-2.0  # [hanbao modification] 阶段5合规：声明分发许可（license-compliance.md §4）
 platform=x86
 
 maintainer=泽零 / Zeling

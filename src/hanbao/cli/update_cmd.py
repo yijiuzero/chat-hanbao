@@ -29,7 +29,7 @@ from .process_utils import (
     _process_table,
 )
 
-_PYPI_JSON_URL = "https://pypi.org/pypi/qwenpaw/json"
+_PYPI_JSON_URL = "https://pypi.org/pypi/hanbao/json"  # [hanbao modification] 品牌改名：qwenpaw → hanbao
 
 
 def _subprocess_text_kwargs() -> dict[str, Any]:

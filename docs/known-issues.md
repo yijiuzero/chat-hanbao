@@ -1136,3 +1136,35 @@ grep 全仓复核：`Agent/Config`、`useAgentConfig`、`ReactAgentCard`、`/age
 
 ### 风险/后续
 - 本次仅改用户指定的两个展示面（飞牛显示名 + 登录页）。README / 文档里「函包」作为中文展示名仍可保留或后续统一，需用户确认是否要全域改 `hanbao`；图标 `console/public/online.svg`（Mikasa 肖像 = hanbao 图标）按红线零碰触、保持不变。
+
+---
+
+### I-037 · FPK 分发物合规补全 + 上游品牌残留清理（2026-08-28）
+
+**严重度**：🔴 高（合规红线） &nbsp;|&nbsp; **状态**：🟢 已解决（2026-08-28） &nbsp;|&nbsp; **必须处理时机**：阶段 5 FPK 打包 / 阶段 7 上架前
+
+### 现象（全模块合规扫描发现）
+- `hanbao.fpk` 包内**未随附 LICENSE / NOTICE / CHANGES-FROM-UPSTREAM.md**（违反 `license-compliance.md` §4 阶段5 与 §8）。Apache-2.0 二进制分发同样必须随附 LICENSE（§7 误区表）。
+- `manifest` 缺 `license=Apache-2.0` 字段（§4 阶段5 明确要求）。
+- 品牌改名（QwenPaw→hanbao）漏网三处对外引用：
+  - `src/hanbao/cli/update_cmd.py` 的 `_PYPI_JSON_URL` 仍指向 `qwenpaw` PyPI（更新检查会查错包）。
+  - `console/src/layouts/constants.ts` 的 `PYPI_URL` 同上。
+  - `src/hanbao/providers/openrouter_provider.py` 的 `HTTP-Referer` 仍带 `qwenpaw.agentscope.io` 上游域名（对外请求头暴露上游标识）。
+- 其余全仓命中（AgentScope 注释 / `@agentscope-ai/*` 外部库 import / DashScope 真实服务名 / 内部变量名）均属合法引用（R2 红线保留外部库名；§8 要求展示上游仓库链接），不视为违规。
+
+### 处理方案
+1. 合规文件随附：`LICENSE` 放 `deploy/fpk/`（顶层，fnpack 自动打包）；`NOTICE` 与 `CHANGES-FROM-UPSTREAM.md` 放 `deploy/fpk/app/`（进 app.tgz，因 fnpack 仅打包约定文件 + 顶层 LICENSE，忽略顶层其他文件）。重新 `fnpack build` 验证三者均在包内。
+2. `deploy/fpk/manifest` 增 `license=Apache-2.0`（带 `[hanbao modification]` 注释）。
+3. 三处品牌残留改为 hanbao 标识，均带 `[hanbao modification]` 标注：
+   - `update_cmd.py` `_PYPI_JSON_URL` → `https://pypi.org/pypi/hanbao/json`
+   - `constants.ts` `PYPI_URL` → 同上
+   - `openrouter_provider.py` `HTTP-Referer` → `https://github.com/yijiuzero/chat-hanbao`
+
+### 验收
+- `tar -tzf hanbao.fpk`：顶层含 `LICENSE`；`app.tgz` 内含 `NOTICE` + `CHANGES-FROM-UPSTREAM.md`。
+- `manifest` 含 `license = Apache-2.0`。
+- 全仓对外可见商标（QwenPaw/AgentScope/Qwen/通义）仅存于合法内部引用与上游仓库链接，无暗示官方背书的展示。
+
+### 风险/后续
+- `website/`（125+ 篇 Docusaurus 文档站）的品牌残留本次未扫描（量太大），建议后续单独一轮审计；若上架需官网级品牌一致，再处理。
+- 关于页是否实际可访问 LICENSE（§4 阶段6）尚未实现，作为上架前可选增强项记录。
