@@ -5,18 +5,14 @@ interface FollowUsProps {
   lang: Lang;
 }
 
+// [hanbao modification] The upstream `@agentscope_ai` X entry was removed
+// (hanbao has no official X account yet). Only the Xiaohongshu link remains.
 const links = [
   {
     key: "xiaohongshu",
     icon: "🍠",
     href: "https://xhslink.com/m/4dw1MpY7Xta",
     label: "AgentScope",
-  },
-  {
-    key: "x",
-    icon: "𝕏",
-    href: "https://x.com/agentscope_ai",
-    label: "@agentscope_ai",
   },
 ] as const;
 
@@ -109,11 +105,7 @@ export function FollowUs({ lang }: FollowUsProps) {
               }}
             >
               <span aria-hidden>{item.icon}</span>
-              {item.key === "x" ? (
-                <span>：</span>
-              ) : (
-                <span>{t(lang, `follow.${item.key}`)}</span>
-              )}
+              <span>{t(lang, `follow.${item.key}`)}</span>
               <a
                 href={item.href}
                 target="_blank"

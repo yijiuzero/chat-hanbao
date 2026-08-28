@@ -7,11 +7,6 @@ import { useTranslation } from "react-i18next";
 import { useSiteLanguage } from "@/i18n/SiteLanguageContext";
 import { useSiteConfig } from "@/config-context";
 import { GitHubIcon, BlogIcon, NoteIcon, AgentScopePlatformIcon } from "./Icon";
-import {
-  CommunityBenefitsMobileList,
-  CommunityBenefitsPanel,
-  CommunityBenefitsTriggerLabel,
-} from "./NavCommunityBenefits";
 
 const AGENTSCOPE_PLATFORM_URL = "https://platform.agentscope.io/";
 
@@ -60,11 +55,7 @@ export function Nav() {
   const { t, i18n } = useTranslation();
   const isZh = i18n.resolvedLanguage === "zh";
   const [open, setOpen] = useState(false);
-  const [benefitsOpen, setBenefitsOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
-  const [moreBenefitsOpen, setMoreBenefitsOpen] = useState(false);
-  const [mobileBenefitsOpen, setMobileBenefitsOpen] = useState(false);
-  const benefitsRef = useRef<HTMLDivElement>(null);
   const moreRef = useRef<HTMLDivElement>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const docsBase = docsPath.replace(/\/$/, "") || "/docs";
@@ -76,35 +67,16 @@ export function Nav() {
     }
   };
 
-  const openBenefits = () => {
-    clearCloseTimer();
-    setBenefitsOpen(true);
-  };
-
-  const scheduleCloseBenefits = () => {
-    clearCloseTimer();
-    closeTimerRef.current = setTimeout(() => {
-      setBenefitsOpen(false);
-      closeTimerRef.current = null;
-    }, 120);
-  };
-
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Node;
-      if (benefitsRef.current && !benefitsRef.current.contains(target)) {
-        setBenefitsOpen(false);
-      }
       if (moreRef.current && !moreRef.current.contains(target)) {
         setMoreOpen(false);
-        setMoreBenefitsOpen(false);
       }
     };
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
-      setBenefitsOpen(false);
       setMoreOpen(false);
-      setMoreBenefitsOpen(false);
     };
     document.addEventListener("mousedown", handleClickOutside);
     document.addEventListener("keydown", handleEscape);
@@ -153,35 +125,6 @@ export function Nav() {
     </Link>
   );
 
-  const desktopBenefits = (
-    <div
-      ref={benefitsRef}
-      className="relative hidden xl:block"
-      onMouseEnter={openBenefits}
-      onMouseLeave={scheduleCloseBenefits}
-    >
-      <button
-        type="button"
-        className={`${navLinkOrangeClass} cursor-pointer border-0 bg-transparent pt-2`}
-        aria-expanded={benefitsOpen}
-        aria-haspopup="true"
-        onClick={() => setBenefitsOpen((v) => !v)}
-      >
-        <CommunityBenefitsTriggerLabel open={benefitsOpen} />
-      </button>
-      {benefitsOpen && (
-        <div
-          className="absolute left-1/2 top-full z-100 mt-2 -translate-x-1/2 rounded-xl border border-neutral-100 bg-white shadow-[0_12px_40px_rgba(0,0,0,0.12)]"
-          role="menu"
-          onMouseEnter={openBenefits}
-          onMouseLeave={scheduleCloseBenefits}
-        >
-          <CommunityBenefitsPanel onNavigate={() => setBenefitsOpen(false)} />
-        </div>
-      )}
-    </div>
-  );
-
   return (
     <header className="sticky top-0 z-99 border-b border-border bg-white">
       <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-2 px-4 md:px-0 lg:gap-3">
@@ -220,8 +163,7 @@ export function Nav() {
             {agentscopeLink}
           </span>
 
-          {/* xl+: community benefits + release notes inline */}
-          {desktopBenefits}
+          {/* xl+: release notes inline */}
           <span className="hidden xl:contents">
             {releaseNotesLink(navLinkOrangeClass)}
           </span>
@@ -268,25 +210,6 @@ export function Nav() {
                     <AgentScopeLogo />
                     <span>{t("nav.agentscopeTeam")}</span>
                   </a>
-                </div>
-
-                <div className="px-1">
-                  <button
-                    type="button"
-                    className={`${moreMenuItemClass} cursor-pointer border-0 bg-transparent pt-2 text-left`}
-                    aria-expanded={moreBenefitsOpen}
-                    onClick={() => setMoreBenefitsOpen((v) => !v)}
-                  >
-                    <CommunityBenefitsTriggerLabel open={moreBenefitsOpen} />
-                  </button>
-                  {moreBenefitsOpen && (
-                    <CommunityBenefitsMobileList
-                      onNavigate={() => {
-                        setMoreBenefitsOpen(false);
-                        setMoreOpen(false);
-                      }}
-                    />
-                  )}
                 </div>
 
                 <div className="px-1 pt-0.5">
@@ -376,25 +299,6 @@ export function Nav() {
           <AgentScopeLogo />
           <span>{t("nav.agentscopeTeam")}</span>
         </a>
-
-        <div>
-          <button
-            type="button"
-            className={`${navLinkOrangeClass} w-full cursor-pointer border-0 bg-transparent pt-2 text-left`}
-            aria-expanded={mobileBenefitsOpen}
-            onClick={() => setMobileBenefitsOpen((v) => !v)}
-          >
-            <CommunityBenefitsTriggerLabel open={mobileBenefitsOpen} />
-          </button>
-          {mobileBenefitsOpen && (
-            <CommunityBenefitsMobileList
-              onNavigate={() => {
-                setMobileBenefitsOpen(false);
-                setOpen(false);
-              }}
-            />
-          )}
-        </div>
 
         <button
           type="button"

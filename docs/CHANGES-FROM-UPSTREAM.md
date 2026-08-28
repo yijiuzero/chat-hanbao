@@ -1150,6 +1150,10 @@ _背景：I-037 风险项明确 `website/` 品牌残留留作后续单独审计�
 - [修改] `website/src/data/testimonials.ts` — 移除 mock 证言中 "Python + AgentScope" 上游背书措辞。
 - [修改] `website/src/i18n/locales/{zh,en,pt-BR}.json` — `clientVoices` 中阿里云/通义背书（t1 头衔、t2、t6 文本）移除；`footer.copyright` 由虚假法律主体 "© 2026 Qwenpaw PRIVATE LIMITED" → "© 2026 hanbao"；`heroLine`（三语种）由 "Qwen Personal Agent Workstation / Qwen 的智识，Paw 的温度" 改为中性表述 "个人智能体工作台 / 有温度的数码陪伴"（用户拍板：去掉 Qwen 关联，R4 边界）。
 - [修改] `Nav.tsx`/`Footer.tsx`/`Contributors.tsx`/`FinalCTA.tsx`/`FAQ.tsx`/`QuickStart.tsx` — GitHub / releases / issues 链接由 `agentscope-ai/QwenPaw` → `yijiuzero/chat-hanbao`；QuickStart 安装脚本由 `qwenpaw.agentscope.io/install.*` → `raw.githubusercontent.com/yijiuzero/chat-hanbao/main/scripts/install.*`；各文件加 `[hanbao modification]` 头注释。
+- [修改] `QuickStart.tsx` — `DOCKER_IMAGE` 由 `agentscope/hanbao:latest` → `hanbao:latest`（上游 `agentscope` 命名空间非 hanbao 所有，FPK 已内置镜像）。
+- [修改] `Downloads/constants.ts` — `CDN_BASE` 由 `https://download.qwenpaw.agentscope.io` → `https://raw.githubusercontent.com/yijiuzero/chat-hanbao/main`（hanbao 无自建 CDN，下载元数据托管为后续 TODO）。
+- [删除] `NavCommunityBenefits.tsx` — 含上游 `opc.aliyun.com/qwenpaw` 阿里权益页链接；导航「社区福利」入口整体移除，Nav.tsx 去除对应 import/状态/三处面板与点击外部/ESC 逻辑。
+- [修改] `FollowUs.tsx`/`Footer.tsx` — 移除上游 `@agentscope_ai` X 账号链接（Footer 同步移除未使用的 `XIcon` import）。
 - [保留] `public/docs`、`public/blog`、`public/release-notes` 中的上游仓库/issue 链接与 `qwenpaw.agentscope.io` 文档链接 — 按 §8 必须展示上游出处，作署名保留，不在本轮改动。
-- [待决策] `DOCKER_IMAGE=agentscope/hanbao`、`FeatureDemoGallery` 文档 URL、`Downloads` CDN_BASE、NavCommunityBenefits 阿里权益页、FollowUs/Footer 的 `@agentscope_ai` 社媒账号 — 见 I-038（逐项分别决策）。
+- [待决策] `FeatureDemoGallery.tsx` 8 处文档 URL（`qwenpaw.agentscope.io/docs/...`）— 见 I-038（逐项分别决策，涉及 §8 上游署名）。Footer/FollowUs 其余上游社媒（Discord/钉钉/小红书/微信/抖音）暂留，待统一清理。
 - [文档] `docs/known-issues.md` 登记 I-038。

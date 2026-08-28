@@ -34,7 +34,10 @@ type QuickStartProps = {
   docsBase: string;
 };
 
-const DOCKER_IMAGE = "agentscope/hanbao:latest";
+// [hanbao modification] Image name changed from upstream `agentscope/hanbao`
+// to the local `hanbao` image. The FPK bundles the image, so `docker pull`
+// is not required for end users.
+const DOCKER_IMAGE = "hanbao:latest";
 const AGENTSCOPE_PLATFORM_URL = "https://platform.agentscope.io/";
 const MODELSCOPE_URL =
   "https://modelscope.cn/studios/fork?target=yijiuzero/chat-hanbao";

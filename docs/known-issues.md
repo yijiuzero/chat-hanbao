@@ -1171,7 +1171,7 @@ grep 全仓复核：`Agent/Config`、`useAgentConfig`、`ReactAgentCard`、`/age
 
 ## I-038 · website/ 文档站上游品牌残留清理（2026-08-28）
 
-**严重度**：🟠 中（品牌合规，上架前必须） &nbsp;|&nbsp; **状态**：🟡 进行中（heroLine 已改中性表述；功能性上游链接 DOCKER_IMAGE / Downloads CDN / 阿里权益页 / @agentscope_ai 社媒 / FeatureDemoGallery 文档 URL 待逐项决策） &nbsp;|&nbsp; **必须处理时机**：阶段 7 上架前
+**严重度**：🟠 中（品牌合规，上架前必须） &nbsp;|&nbsp; **状态**：🟡 进行中（heroLine + 4 项功能性上游链接已解决：DOCKER_IMAGE→hanbao:latest、Downloads CDN→GitHub raw、阿里权益页入口移除并删 NavCommunityBenefits.tsx、@agentscope_ai 社媒移除；FeatureDemoGallery 文档 URL 待决，另余上游社媒残量待清理） &nbsp;|&nbsp; **必须处理时机**：阶段 7 上架前
 
 ### 现象（website/ 审计）
 - `website/index.html` 的 `canonical` / `og:url` / `og:image`·`twitter:image` 指向可爬取上游域名 `qwenpaw.agentscope.io`；含 3 个搜索引擎站点验证 token（属上游站点）。
@@ -1187,18 +1187,24 @@ grep 全仓复核：`Agent/Config`、`useAgentConfig`、`ReactAgentCard`、`/age
 4. 全部组件 GitHub/releases/issues/install 链接改 hanbao 仓库；install 脚本指向 `raw.githubusercontent.com/yijiuzero/chat-hanbao/main/scripts/install.*`。
 5. 各改动文件加 `[hanbao modification]` 标注，未做全仓 `sed`（遵守 R2）。
 6. heroLine（zh/en/pt-BR 三语种）改中性表述：去掉 "Qwen Personal Agent Workstation / Qwen 的智识，Paw 的温度" 关联，改为 "个人智能体工作台 / 有温度的数码陪伴"。理由：R4 红线，避免暗示与 Qwen/通义 的关联背书（用户拍板：改为中性表述）。
+7. `QuickStart.tsx` 的 `DOCKER_IMAGE` 由 `agentscope/hanbao:latest` → `hanbao:latest`（上游 `agentscope` 命名空间非 hanbao 所有；FPK 已内置镜像，`docker pull` 非必需）。
+8. `Downloads/constants.ts` 的 `CDN_BASE` 由 `https://download.qwenpaw.agentscope.io` → `https://raw.githubusercontent.com/yijiuzero/chat-hanbao/main`（hanbao 无自建 CDN；下载元数据托管为后续 TODO，见下「待决策·残量」）。
+9. 导航「社区福利」入口整体移除：删 `NavCommunityBenefits.tsx`（含上游 `opc.aliyun.com/qwenpaw` 权益页链接），Nav.tsx 去除 import / 状态 / 三处面板与点击外部 / ESC 处理中的相关逻辑。
+10. FollowUs.tsx 与 Footer.tsx 的上游 `@agentscope_ai` X 账号链接移除（Footer 同步移除未使用的 `XIcon` import）。
 
 ### 保留项（§8 上游署名，不改）
 - `public/docs`、`public/blog`、`public/release-notes` 内上游仓库/issue 链接与 `qwenpaw.agentscope.io` 文档链接 — 必须展示上游出处。
 
 ### 待决策（未改，需用户拍板）
-- **`DOCKER_IMAGE = "agentscope/hanbao:latest"`**：Docker Hub `agentscope` 命名空间非 hanbao 所有，上架前需决定是否自建 `hanbao` 命名空间或改本地镜像名。
-- **`FeatureDemoGallery.tsx` 8 处文档 URL**（`qwenpaw.agentscope.io/docs/...`）：指向本地文档站还是保留上游署名链接。
-- **`Downloads/constants.ts` `CDN_BASE = "https://download.qwenpaw.agentscope.io"`**：功能性下载 CDN，hanbao 暂无自建，是否暂留上游或改 GitHub Releases。
-- **`NavCommunityBenefits.tsx` `COMMUNITY_BENEFITS_URL`（`opc.aliyun.com/qwenpaw?...`）**：阿里云权益页功能性链接，是否保留或去除。
-- **FollowUs.tsx / Footer.tsx 的 `@agentscope_ai` 社媒账号**：上游 X 账号，是否替换为 hanbao 自有或移除。
+- **`FeatureDemoGallery.tsx` 8 处文档 URL**（`qwenpaw.agentscope.io/docs/...`）：指向本地文档站还是保留上游署名链接（涉及 §8 必须展示上游出处，单独评估）。
+
+### 待决策·残量（建议后续统一清理，未在本轮处理）
+- **Footer / FollowUs 仍含其他上游社媒**：Footer 的 Discord(`discord.gg/eYMpfnkG8h`)、钉钉群、小红书、微信、抖音，以及 FollowUs 的小红书链接 `label: "AgentScope"`（`xhslink.com/...`）——均指向上游 AgentScope 账号，与 `@agentscope_ai` 同源。本轮仅移除 X 账号，其余留待用户决定一并移除或保留。
+- **orphaned i18n key**：`nav.benefit1~4* / nav.communityBenefits / nav.communityBenefitsNew / follow.x / follow.xiaohongshu` 随入口删除变为死字符串（无害，待统一清理）。
+- **Downloads 元数据托管 TODO**：`CDN_BASE` 已改 GitHub raw 基址，但 `metadata/index.json` 尚未在仓库发布，下载页当前会走空态；需在仓库内维护该索引或改用 GitHub Releases API。
 
 ### 验收
-- `grep -rn "qwenpaw.agentscope.io" website/`：仅剩 `FeatureDemoGallery` 文档 URL、`Downloads` CDN、§8 署名文档（public/）、及 index.html 内 `[hanbao modification]` 自述注释；无 canonical/og 可爬取元信息。
+- `grep -rn "qwenpaw.agentscope.io" website/src`：仅剩 `FeatureDemoGallery` 文档 URL（待决策）；`Downloads` CDN 已改 GitHub raw；index.html 内仅剩 `[hanbao modification]` 自述注释；无 canonical/og 可爬取元信息。
+- `grep -rn "download.qwenpaw.agentscope.io\|opc.aliyun.com/qwenpaw\|agentscope_ai\|agentscope/hanbao" website/src`：零命中。
 - `grep -rn "函包\|墨痕未干\|水墨文人" website/`：零命中（品牌铁律）。
-- `website/src` 内 `agentscope-ai/QwenPaw` 链接零命中（仅剩待决策项与 `[hanbao modification]` 自述）。
+- `website/src` 内 `agentscope-ai/QwenPaw` 链接零命中（仅剩 `[hanbao modification]` 自述与 §8 署名）。

@@ -6,7 +6,6 @@ import { Link } from "react-router-dom";
 import { HanbaoMascot } from "@/components/HanbaoMascot";
 import {
   GitHubIcon,
-  XIcon,
   DiscordIcon,
   WChatIcon,
   DouyinIcon,
@@ -32,13 +31,6 @@ interface PoweredByLink {
 }
 
 const socialLinks: SocialLink[] = [
-  {
-    href: "https://x.com/agentscope_ai",
-    ariaLabel: "footer.social.x",
-    icon: <XIcon className="block" />,
-    qrCode:
-      "https://img.alicdn.com/imgextra/i1/O1CN01sWPF3o1Fp523692rJ_!!6000000000535-2-tps-400-400.png",
-  },
   {
     href: "https://github.com/yijiuzero/chat-hanbao",
     ariaLabel: "footer.social.github",
