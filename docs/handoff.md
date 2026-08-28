@@ -1,14 +1,14 @@
 # hanbao 项目续跑基准（会话交接）
 
 > 本文档是当前会话交付给后续会话的**唯一权威基准**。新会话须严格遵循，不重复返工已确认内容；与原设计冲突的技术决策，须先说明原因并征得确认后再实施。
-> 最后更新：2026-08-26 收尾 · 状态：阶段0~6 主体全部完成、包名全量改名落地、桌面端整条线已砍除、10 个频道已砍除仅留 8 个、I-019 文档改/创建自研工具落地、I-022 Tavily key 方案落地、前端两轮水墨化已重建验收；I-027~I-033 全部 🟢 已解决（运行配置页下线、append_file/delegate_external_agent 删除、前端导航收敛 6.aa/6.ab）；**hanbao:latest 已瘦身至 1.23GB（2026-08-25 前端收敛构建部署验收全绿、数据卷保留）**；**待办：阶段5 真正 `fnpack build` + fnOS 实测上架**。
+> 最后更新：2026-08-28 维护 · 状态：阶段 0~6 全部完成（FPK 真机验证通过 2026-08-27，native 形态 + run-as root，镜像 1.23GB）；包名全量改名落地、桌面端整条线已砍除、10 频道砍除仅留 8 个、前端两轮水墨化已重建验收；I-019/I-022 落地；I-027~I-036 全部 🟢 已解决（含 I-034 docker load 权限、I-035 默认 LLM UI 清空、I-036 品牌展示名统一 hanbao + 登录页去水墨文案）；**当前推进：阶段 7 上架飞牛应用中心**。
 
 ---
 
 ## 〇、当前环境实况（2026-08-24 深夜交接时刻，新会话必读）
 
 **Git**
-- HEAD = `5ed0391`（ChannelDrawer 死代码清理）；工作树干净；所有改动均已提交（未推送 origin/main）
+- HEAD = `fe1eddc`（品牌展示名统一 hanbao + 登录页去水墨文案，2026-08-27）；工作树干净；所有改动均已提交（未推送 origin/main）
 - 08-21~08-24 提交链（重大减法 + 美化 + 收尾）：`f8fdce0`(砍 10 频道) → `e9c6d08`(砍桌面端整条线) → `d9a9875`(桌面线收尾) → `59220ad`(前端全面水墨化第二轮) → `039fa49`(auth.py 死条目+remeLightMemory TAB 隐藏) → `5ed0391`(ChannelDrawer 死代码清理)
 - I-019(文档改/创建自研) / I-022(Tavily key) / 前端第一轮水墨美化(a87fb07) 也已提交
 
@@ -21,7 +21,7 @@
   （不覆盖 `NODE_IMAGE`/`UV_IMAGE`，沿用 Dockerfile 默认的阿里云 `agentscope/node:slim`、`agentscope/uv:latest`，经 Docker Desktop daemon 代理 `http.docker.internal:3128` 拉取——2026-08-25 实测 76s 成功。`uv:local` 不存在，勿用。无代理环境（如飞牛 fnpack build）省略 proxy 四个 build-arg 即可走直连。）
 
 **待办（下轮优先）**
-1. **阶段5 真正 `fnpack build` + fnOS 实测上架**——脚手架已按官方规范建好（docker-project 形态），剩封装+飞牛实测
+1. ✅ **阶段5 `fnpack build` + 阶段6 fnOS 真机验证已通过**（2026-08-27，native 形态 + run-as root，启用成功）；**下一步：阶段7 上架飞牛应用中心**（提交审核）
 2. 浏览器预览新界面（8091 或替换 8088 后）
 
 **铁律速查**（详见 .workbuddy/memory/MEMORY.md）
@@ -52,7 +52,7 @@ hanbao（中文"函包"）是 fork 自 **QwenPaw v2.0.1（Apache-2.0）** 的个
 | `docs/lifecycle-management.md` | 全生命周期管理 | 版本号 / 阶段准出标准基准 |
 | `docs/license-compliance.md` | 开源许可合规规范 | **每阶段开工前必读 §4 检查项**，未过不进下一阶段 |
 | `docs/CHANGES-FROM-UPSTREAM.md` | 与上游差异记录 | 改动证据；每次改动须同步追加 |
-| `docs/known-issues.md` | 已知问题追踪 | **I-001~I-033**，全部已解决/已确认（无未闭合代码项） |
+| `docs/known-issues.md` | 已知问题追踪 | **I-001~I-036**，全部已解决/已确认（无未闭合代码项） |
 | `README_zh.md`（顶部派生说明块） | 项目门面 | 上游正文原样保留，阶段 2 品牌改造再替换 |
 | `LICENSE` / `NOTICE` | 许可文件 | **永不动**，Apache-2.0 合规红线 |
 
@@ -65,7 +65,7 @@ hanbao（中文"函包"）是 fork 自 **QwenPaw v2.0.1（Apache-2.0）** 的个
 3. **包名策略 = 只改品牌展示层**（Web 标题 / 图标 / 文档）；Python 包名 `hanbao` 与 `HANBAO_*` 环境变量**保持不动**（避免上千处 import 改动与上游同步冲突）。
 4. **策略**：先完完整整移植跑通原版，再按需一点点改；不提前裁剪、不提前改名（用户原话）。
 5. **8 阶段路线**（阶段 1 已完成，后续依次推进）：
-   - 阶段 0 准备 ✅ → **阶段 1 构建跑通原版 ✅** → 阶段 2 品牌改造（主体 ✅）→ 阶段 3 删减定制（主体 ✅，收尾：I-024 Monaco 已清）→ **v2.1.0 修复移植 ✅（P0/P1 重点全清）** → 阶段 4 容器化（自建瘦身镜像）→ 阶段 5 FPK 打包 → 阶段 6 飞牛实测 → 阶段 7 上架
+   - 阶段 0 准备 ✅ → **阶段 1 构建跑通原版 ✅** → 阶段 2 品牌改造（主体 ✅）→ 阶段 3 删减定制（主体 ✅，收尾：I-024 Monaco 已清）→ **v2.1.0 修复移植 ✅（P0/P1 重点全清）** → 阶段 4 容器化（自建瘦身镜像 1.23GB）✅ → 阶段 5 FPK 打包（native 形态）✅ → 阶段 6 飞牛实测（真机验证通过）✅ → 阶段 7 上架（🟡 进行中）
 6. **目标架构 linux/amd64**（飞牛为 x86_64），与本机 Docker Desktop 一致，无需 buildx 交叉编译。
 7. **构建路径**：本机 Docker Desktop 构建+测试 → 全流程跑通 → 打 FPK → 上传飞牛。
 8. **基础镜像**：先用上游默认阿里云 ACR 源，拉不动再 `--build-arg` 换 Docker Hub。
@@ -76,7 +76,7 @@ hanbao（中文"函包"）是 fork 自 **QwenPaw v2.0.1（Apache-2.0）** 的个
 ## 四、当前可运行产物（截至 2026-08-24）
 
 - 镜像 **`hanbao:latest` 已瘦身至 1.23GB**（2026-08-25 回测重建，含 6.aa/6.ab + I-029/I-030/I-033 收尾；验收全绿）
-- 用户日常容器 `hanbao`（8088，带数据）仍跑旧镜像 `4b9b782c5d9b`；验证容器 `hanbao_verify2`（8091，`531ecf90e1ff`）可预览
+- 用户日常容器 `hanbao`（8088，带数据）已切到 `hanbao:latest`（1.23GB，2026-08-25 起重）；验证容器 `hanbao_verify2`（8091，`531ecf90e1ff`）曾用于预览，如仍在跑可 `docker rm -f hanbao_verify2` 停
 - 基线 commit `9b86a976fffdc37b871fe31a7b689a8b6463c5b4`（`9b86a97`），tag `upstream/v2.0.1`（纯净上游 2846 文件）
 - 查看 hanbao 全部改动：`git diff upstream/v2.0.1..HEAD`
 
@@ -104,7 +104,7 @@ hanbao（中文"函包"）是 fork 自 **QwenPaw v2.0.1（Apache-2.0）** 的个
 - **I-029 ChannelDrawer 死代码清理（2026-08-24 `5ed0391`）**：删 10 频道 `case` 块(667 行)+3 const+useEffect（noUnusedLocals 须连带删），活频道逻辑不受影响。
 - **I-030 运行配置页清理（2026-08-24 `039fa49`）**：`auth.py` `_PUBLIC_PATHS` 删漏清的 `/api/desktop/shutdown`；运行配置页隐藏记忆后端 TAB，仅留 reactAgent（时区）。
 
-**唯一未闭合的对外事项**：阶段5 真正 `fnpack build` + fnOS 实测上架（脚手架已建，代码层面无阻塞；2026-08-26 上线前全检收尾：清 browser_use 悬空引用、修 e2e 缩进、升级 cryptography、删 LspError 孤儿类、前端卡片去注册）。
+**✅ 已闭合**：阶段5 `fnpack build` + 阶段6 fnOS 真机验证（2026-08-27 启用成功，native 形态 + run-as root）。**当前唯一对外推进事项**：阶段7 上架飞牛应用中心（提交审核；上架资料须如实声明"基于 QwenPaw v2.1.0 Apache-2.0 二次开发"，见 license-compliance.md §8）。
 
 ---
 
