@@ -1148,8 +1148,8 @@ _背景：I-037 风险项明确 `website/` 品牌残留留作后续单独审计�
 - [修改] `website/index.html` — 删除可爬取上游元信息：`canonical` / `og:url` / `og:image`·`twitter:image` 指向 `qwenpaw.agentscope.io` 的链接改本地 `/hanbao_ip.png`；移除 3 个搜索引擎验证 token（Google/Bing/Baidu，属上游站点）。均加 `[hanbao modification]` 注释。
 - [修改] `website/src/config.ts` + `website/public/site.config.json` — `repoUrl` 由 `agentscope-ai/QwenPaw` → `github.com/yijiuzero/chat-hanbao`；`modelScopeForkUrl` target 由 `AgentScope/QwenPaw` → `yijiuzero/chat-hanbao`（hanbao 尚未发布 ModelScope studio，作占位，见 I-038）。
 - [修改] `website/src/data/testimonials.ts` — 移除 mock 证言中 "Python + AgentScope" 上游背书措辞。
-- [修改] `website/src/i18n/locales/{zh,en,pt-BR}.json` — `clientVoices` 中阿里云/通义背书（t1 头衔、t2、t6 文本）移除；`footer.copyright` 由虚假法律主体 "© 2026 Qwenpaw PRIVATE LIMITED" → "© 2026 hanbao"。
+- [修改] `website/src/i18n/locales/{zh,en,pt-BR}.json` — `clientVoices` 中阿里云/通义背书（t1 头衔、t2、t6 文本）移除；`footer.copyright` 由虚假法律主体 "© 2026 Qwenpaw PRIVATE LIMITED" → "© 2026 hanbao"；`heroLine`（三语种）由 "Qwen Personal Agent Workstation / Qwen 的智识，Paw 的温度" 改为中性表述 "个人智能体工作台 / 有温度的数码陪伴"（用户拍板：去掉 Qwen 关联，R4 边界）。
 - [修改] `Nav.tsx`/`Footer.tsx`/`Contributors.tsx`/`FinalCTA.tsx`/`FAQ.tsx`/`QuickStart.tsx` — GitHub / releases / issues 链接由 `agentscope-ai/QwenPaw` → `yijiuzero/chat-hanbao`；QuickStart 安装脚本由 `qwenpaw.agentscope.io/install.*` → `raw.githubusercontent.com/yijiuzero/chat-hanbao/main/scripts/install.*`；各文件加 `[hanbao modification]` 头注释。
 - [保留] `public/docs`、`public/blog`、`public/release-notes` 中的上游仓库/issue 链接与 `qwenpaw.agentscope.io` 文档链接 — 按 §8 必须展示上游出处，作署名保留，不在本轮改动。
-- [待决策] heroLine（"Qwen Personal Agent Workstation / Qwen 的智识"）、`DOCKER_IMAGE=agentscope/hanbao`、`FeatureDemoGallery` 文档 URL、`Downloads` CDN_BASE、NavCommunityBenefits 阿里权益页、FollowUs/Footer 的 `@agentscope_ai` 社媒账号 — 见 I-038。
+- [待决策] `DOCKER_IMAGE=agentscope/hanbao`、`FeatureDemoGallery` 文档 URL、`Downloads` CDN_BASE、NavCommunityBenefits 阿里权益页、FollowUs/Footer 的 `@agentscope_ai` 社媒账号 — 见 I-038（逐项分别决策）。
 - [文档] `docs/known-issues.md` 登记 I-038。

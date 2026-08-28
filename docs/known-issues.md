@@ -1171,7 +1171,7 @@ grep 全仓复核：`Agent/Config`、`useAgentConfig`、`ReactAgentCard`、`/age
 
 ## I-038 · website/ 文档站上游品牌残留清理（2026-08-28）
 
-**严重度**：🟠 中（品牌合规，上架前必须） &nbsp;|&nbsp; **状态**：🟡 进行中（代码/文案层已清理，待决策项未决） &nbsp;|&nbsp; **必须处理时机**：阶段 7 上架前
+**严重度**：🟠 中（品牌合规，上架前必须） &nbsp;|&nbsp; **状态**：🟡 进行中（heroLine 已改中性表述；功能性上游链接 DOCKER_IMAGE / Downloads CDN / 阿里权益页 / @agentscope_ai 社媒 / FeatureDemoGallery 文档 URL 待逐项决策） &nbsp;|&nbsp; **必须处理时机**：阶段 7 上架前
 
 ### 现象（website/ 审计）
 - `website/index.html` 的 `canonical` / `og:url` / `og:image`·`twitter:image` 指向可爬取上游域名 `qwenpaw.agentscope.io`；含 3 个搜索引擎站点验证 token（属上游站点）。
@@ -1186,12 +1186,12 @@ grep 全仓复核：`Agent/Config`、`useAgentConfig`、`ReactAgentCard`、`/age
 3. testimonials 去 AgentScope 背书；i18n 去阿里云/通义背书、copyright 改 `© 2026 hanbao`。
 4. 全部组件 GitHub/releases/issues/install 链接改 hanbao 仓库；install 脚本指向 `raw.githubusercontent.com/yijiuzero/chat-hanbao/main/scripts/install.*`。
 5. 各改动文件加 `[hanbao modification]` 标注，未做全仓 `sed`（遵守 R2）。
+6. heroLine（zh/en/pt-BR 三语种）改中性表述：去掉 "Qwen Personal Agent Workstation / Qwen 的智识，Paw 的温度" 关联，改为 "个人智能体工作台 / 有温度的数码陪伴"。理由：R4 红线，避免暗示与 Qwen/通义 的关联背书（用户拍板：改为中性表述）。
 
 ### 保留项（§8 上游署名，不改）
 - `public/docs`、`public/blog`、`public/release-notes` 内上游仓库/issue 链接与 `qwenpaw.agentscope.io` 文档链接 — 必须展示上游出处。
 
 ### 待决策（未改，需用户拍板）
-- **heroLine**：zh/en/pt-BR 的 "Qwen Personal Agent Workstation / Qwen 的智识，Paw 的温度" 是否保留 "Qwen" 关联表述（R4 边界）。
 - **`DOCKER_IMAGE = "agentscope/hanbao:latest"`**：Docker Hub `agentscope` 命名空间非 hanbao 所有，上架前需决定是否自建 `hanbao` 命名空间或改本地镜像名。
 - **`FeatureDemoGallery.tsx` 8 处文档 URL**（`qwenpaw.agentscope.io/docs/...`）：指向本地文档站还是保留上游署名链接。
 - **`Downloads/constants.ts` `CDN_BASE = "https://download.qwenpaw.agentscope.io"`**：功能性下载 CDN，hanbao 暂无自建，是否暂留上游或改 GitHub Releases。
