@@ -1,3 +1,4 @@
+// [hanbao modification] Repo/social links now point to github.com/yijiuzero/chat-hanbao; upstream QwenPaw references removed.
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -36,12 +37,12 @@ type QuickStartProps = {
 const DOCKER_IMAGE = "agentscope/hanbao:latest";
 const AGENTSCOPE_PLATFORM_URL = "https://platform.agentscope.io/";
 const MODELSCOPE_URL =
-  "https://modelscope.cn/studios/fork?target=AgentScope/QwenPaw";
+  "https://modelscope.cn/studios/fork?target=yijiuzero/chat-hanbao";
 const ALIYUN_ECS_URL =
   "https://computenest.console.aliyun.com/service/instance/create/cn-hangzhou?type=user&ServiceId=service-1ed84201799f40879884";
 const ALIYUN_DOC_URL = "https://developer.aliyun.com/article/1713682";
 const DESKTOP_RELEASES_URL =
-  "https://github.com/agentscope-ai/QwenPaw/releases";
+  "https://github.com/yijiuzero/chat-hanbao/releases";
 
 const METHOD_ORDER: InstallMethod[] = [
   "pip",
@@ -79,17 +80,17 @@ export const PIP_INSTALL_COMMANDS = [
 const COMMANDS = {
   pip: [...PIP_INSTALL_COMMANDS],
   scriptMac: [
-    "curl -fsSL https://qwenpaw.agentscope.io/install.sh | bash",
+    "curl -fsSL https://raw.githubusercontent.com/yijiuzero/chat-hanbao/main/scripts/install.sh | bash",
     "hanbao init --defaults",
     "hanbao app",
   ],
   scriptWinCmd: [
-    "curl -fsSL https://qwenpaw.agentscope.io/install.bat -o install.bat && install.bat",
+    "curl -fsSL https://raw.githubusercontent.com/yijiuzero/chat-hanbao/main/scripts/install.bat -o install.bat && install.bat",
     "hanbao init --defaults",
     "hanbao app",
   ],
   scriptWinPs: [
-    "irm https://qwenpaw.agentscope.io/install.ps1 | iex",
+    "irm https://raw.githubusercontent.com/yijiuzero/chat-hanbao/main/scripts/install.ps1 | iex",
     "hanbao init --defaults",
     "hanbao app",
   ],

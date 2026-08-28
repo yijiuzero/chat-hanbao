@@ -17,11 +17,15 @@ export const defaultConfig: SiteConfig = {
   projectName: "Hanbao",
   projectTaglineEn: "Works for you, grows with you",
   projectTaglineZh: "懂你所需，伴你左右",
-  repoUrl: "https://github.com/agentscope-ai/QwenPaw",
+  // [hanbao modification] repoUrl now points to the hanbao fork, not upstream.
+  repoUrl: "https://github.com/yijiuzero/chat-hanbao",
   docsPath: "/docs/",
   showTestimonials: true,
+  // [hanbao modification] ModelScope studio target changed from AgentScope/QwenPaw.
+  // NOTE: hanbao has no published ModelScope studio yet; this is a placeholder
+  // target until the official studio goes live (see docs/known-issues.md I-038).
   modelScopeForkUrl:
-    "https://modelscope.cn/studios/fork?target=AgentScope/QwenPaw",
+    "https://modelscope.cn/studios/fork?target=yijiuzero/chat-hanbao",
 };
 
 let cached: SiteConfig | null = null;

@@ -88,10 +88,10 @@
     "items": {
       "t1": {
         "text": "Hanbao is a truly out-of-the-box, general-purpose AI agent framework. As Hanbao's underlying capabilities continue to iterate, our self-developed business agents can also achieve a leap in intelligence, significantly reducing long-term maintenance costs and technical liabilities.",
-        "role": "Alibaba Cloud Development Engineer"
+        "role": "Senior Backend Engineer"
       },
       "t2": {
-        "text": "Alibaba Tongyi’s move this time is very solid. Hanbao strengthens the “local + cloud” dual-deployment model, which is highly practical in today’s environment where privacy sensitivity and computing demands coexist. The open-source strategy also reflects Alibaba’s openness in building its AI ecosystem.",
+        "text": "Hanbao strengthens the “local + cloud” dual-deployment model, which is highly practical in today’s environment where privacy sensitivity and computing demands coexist.",
         "role": "Developer"
       },
       "t3": {
@@ -107,7 +107,7 @@
         "role": "Developer"
       },
       "t6": {
-        "text": "The Hanbao open-source project from Tongyi Lab is truly impressive! It’s great to see that people are not only enjoying successful experiences while using it, but also sharing amusing mishaps—like trying to tidy up the desktop and accidentally deleting files. Open-source AI agent frameworks are extremely important for advancing the entire industry, and I look forward to seeing more innovative applications built on Hanbao.",
+        "text": "The Hanbao open-source project is truly impressive! It’s great to see that people are not only enjoying successful experiences while using it, but also sharing amusing mishaps—like trying to tidy up the desktop and accidentally deleting files. Open-source AI agent frameworks are extremely important for advancing the entire industry, and I look forward to seeing more innovative applications built on Hanbao.",
         "role": "Developer"
       }
     }
@@ -241,7 +241,7 @@
       "wechat": "WeChat",
       "douyin": "Douyin"
     },
-    "copyright": "© 2026 Qwenpaw PRIVATE LIMITED, All rights reserved.",
+    "copyright": "© 2026 hanbao. All rights reserved.",
     "poweredBy": {
       "p1": "Built by ",
       "p2": " with ",

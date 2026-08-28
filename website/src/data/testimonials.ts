@@ -2,6 +2,9 @@
  * Testimonials (community voices) data.
  * REAL_TESTIMONIALS: production-only; section is hidden when empty in build.
  * MOCK_TESTIMONIALS: dev-only; shown together with real in dev mode.
+ *
+ * [hanbao modification] Removed upstream "AgentScope" brand mention from mock
+ * testimonial copy to avoid implying upstream endorsement.
  */
 export interface TestimonialItem {
   avatar: string;
@@ -37,9 +40,9 @@ export const MOCK_TESTIMONIALS: TestimonialItem[] = [
   {
     avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=casey",
     quoteEn:
-      "Teams who want full control love it. Python + AgentScope, " +
-      "everything in our repo.",
-    quoteZh: "想完全掌控的团队用着很顺手，Python + AgentScope 全在自家仓库。",
+      "Teams who want full control love it. Pure Python, " +
+      "everything stays in our own repo.",
+    quoteZh: "想完全掌控的团队用着很顺手，纯 Python，全在自家仓库。",
     username: "@Ashwinreads",
     url: "https://x.com/iamsubhrajyoti/status/2009949389884920153",
   },

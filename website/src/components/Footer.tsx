@@ -1,3 +1,4 @@
+// [hanbao modification] Repo/social links now point to github.com/yijiuzero/chat-hanbao; upstream QwenPaw references removed.
 import { useState, type ReactNode, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -39,7 +40,7 @@ const socialLinks: SocialLink[] = [
       "https://img.alicdn.com/imgextra/i1/O1CN01sWPF3o1Fp523692rJ_!!6000000000535-2-tps-400-400.png",
   },
   {
-    href: "https://github.com/agentscope-ai/QwenPaw",
+    href: "https://github.com/yijiuzero/chat-hanbao",
     ariaLabel: "footer.social.github",
     icon: <GitHubIcon size={20} className="block text-orange-400" />,
     qrCode:

@@ -80,10 +80,10 @@
     "items": {
       "t1": {
         "text": "Hanbao e um framework de agente de IA de uso geral verdadeiramente pronto para uso. A medida que as capacidades subjacentes do Hanbao continuam a evoluir, nossos agentes de negocios desenvolvidos internamente tambem podem alcancar um salto em inteligencia, reduzindo significativamente os custos de manutencao de longo prazo e os passivos tecnicos.",
-        "role": "Engenheiro de Desenvolvimento, Alibaba Cloud"
+        "role": "Engenheiro de Backend"
       },
       "t2": {
-        "text": "O movimento da Alibaba Tongyi desta vez e muito solido. O Hanbao fortalece o modelo de implantacao dupla \"local + nuvem\", que e altamente pratico no ambiente atual onde a sensibilidade a privacidade e as demandas de computacao coexistem. A estrategia de codigo aberto tambem reflete a abertura da Alibaba na construcao de seu ecossistema de IA.",
+        "text": "O Hanbao fortalece o modelo de implantacao dupla local + nuvem, que e altamente pratico no ambiente atual onde a sensibilidade a privacidade e as demandas de computacao coexistem.",
         "role": "Desenvolvedor"
       },
       "t3": {
@@ -99,7 +99,7 @@
         "role": "Desenvolvedor"
       },
       "t6": {
-        "text": "O projeto de codigo aberto Hanbao do Tongyi Lab e realmente impressionante! E otimo ver que as pessoas nao estao apenas tendo experiencias de sucesso ao usa-lo, mas tambem compartilhando contratempos divertidos — como tentar organizar a area de trabalho e acidentalmente excluir arquivos. Frameworks de agente de IA de codigo aberto sao extremamente importantes para avancar toda a industria, e estou ansioso para ver mais aplicacoes inovadoras construidas sobre o Hanbao.",
+        "text": "O projeto de codigo aberto Hanbao e realmente impressionante! E otimo ver que as pessoas nao estao apenas tendo experiencias de sucesso ao usa-lo, mas tambem compartilhando contratempos divertidos — como tentar organizar a area de trabalho e acidentalmente excluir arquivos. Frameworks de agente de IA de codigo aberto sao extremamente importantes para avancar toda a industria, e estou ansioso para ver mais aplicacoes inovadoras construidas sobre o Hanbao.",
         "role": "Desenvolvedor"
       }
     }
@@ -231,7 +231,7 @@
       "wechat": "WeChat (Conta Oficial)",
       "youtube": "YouTube"
     },
-    "copyright": "© 2026 Qwenpaw PRIVATE LIMITED, Todos os direitos reservados.",
+    "copyright": "© 2026 hanbao. Todos os direitos reservados.",
     "poweredBy": {
       "p1": "Construido por ",
       "p2": " com ",

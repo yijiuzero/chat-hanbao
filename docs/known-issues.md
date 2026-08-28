@@ -1168,3 +1168,37 @@ grep 全仓复核：`Agent/Config`、`useAgentConfig`、`ReactAgentCard`、`/age
 ### 风险/后续
 - `website/`（125+ 篇 Docusaurus 文档站）的品牌残留本次未扫描（量太大），建议后续单独一轮审计；若上架需官网级品牌一致，再处理。
 - 关于页是否实际可访问 LICENSE（§4 阶段6）尚未实现，作为上架前可选增强项记录。
+
+## I-038 · website/ 文档站上游品牌残留清理（2026-08-28）
+
+**严重度**：🟠 中（品牌合规，上架前必须） &nbsp;|&nbsp; **状态**：🟡 进行中（代码/文案层已清理，待决策项未决） &nbsp;|&nbsp; **必须处理时机**：阶段 7 上架前
+
+### 现象（website/ 审计）
+- `website/index.html` 的 `canonical` / `og:url` / `og:image`·`twitter:image` 指向可爬取上游域名 `qwenpaw.agentscope.io`；含 3 个搜索引擎站点验证 token（属上游站点）。
+- `config.ts` / `site.config.json` 的 `repoUrl` 指向 `agentscope-ai/QwenPaw`（hanbao 自己仓库应指向 `yijiuzero/chat-hanbao`）。
+- `testimonials.ts` 含 "Python + AgentScope" 上游背书措辞。
+- i18n `clientVoices` 含阿里云/通义背书（"阿里云开发工程师"、"阿里通义这次出手很稳"、"通义实验室的 Hanbao"）；`footer.copyright` 为虚假法律主体 "© 2026 Qwenpaw PRIVATE LIMITED"。
+- Nav/Footer/Contributors/FinalCTA/FAQ/QuickStart 组件 GitHub·releases·issues·install 链接指向 `agentscope-ai/QwenPaw` / `qwenpaw.agentscope.io`。
+
+### 处理方案（已落地，本轮）
+1. index.html 可爬取元信息清掉，og:image 改本地 `/hanbao_ip.png`，验证 token 移除（均加 `[hanbao modification]`）。
+2. repoUrl / modelScopeForkUrl → `yijiuzero/chat-hanbao`（ModelScope 作占位，待发布 studio）。
+3. testimonials 去 AgentScope 背书；i18n 去阿里云/通义背书、copyright 改 `© 2026 hanbao`。
+4. 全部组件 GitHub/releases/issues/install 链接改 hanbao 仓库；install 脚本指向 `raw.githubusercontent.com/yijiuzero/chat-hanbao/main/scripts/install.*`。
+5. 各改动文件加 `[hanbao modification]` 标注，未做全仓 `sed`（遵守 R2）。
+
+### 保留项（§8 上游署名，不改）
+- `public/docs`、`public/blog`、`public/release-notes` 内上游仓库/issue 链接与 `qwenpaw.agentscope.io` 文档链接 — 必须展示上游出处。
+
+### 待决策（未改，需用户拍板）
+- **heroLine**：zh/en/pt-BR 的 "Qwen Personal Agent Workstation / Qwen 的智识，Paw 的温度" 是否保留 "Qwen" 关联表述（R4 边界）。
+- **`DOCKER_IMAGE = "agentscope/hanbao:latest"`**：Docker Hub `agentscope` 命名空间非 hanbao 所有，上架前需决定是否自建 `hanbao` 命名空间或改本地镜像名。
+- **`FeatureDemoGallery.tsx` 8 处文档 URL**（`qwenpaw.agentscope.io/docs/...`）：指向本地文档站还是保留上游署名链接。
+- **`Downloads/constants.ts` `CDN_BASE = "https://download.qwenpaw.agentscope.io"`**：功能性下载 CDN，hanbao 暂无自建，是否暂留上游或改 GitHub Releases。
+- **`NavCommunityBenefits.tsx` `COMMUNITY_BENEFITS_URL`（`opc.aliyun.com/qwenpaw?...`）**：阿里云权益页功能性链接，是否保留或去除。
+- **FollowUs.tsx / Footer.tsx 的 `@agentscope_ai` 社媒账号**：上游 X 账号，是否替换为 hanbao 自有或移除。
+
+### 验收
+- `grep -rn "qwenpaw.agentscope.io" website/`：仅剩 `FeatureDemoGallery` 文档 URL、`Downloads` CDN、§8 署名文档（public/）、及 index.html 内 `[hanbao modification]` 自述注释；无 canonical/og 可爬取元信息。
+- `grep -rn "函包\|墨痕未干\|水墨文人" website/`：零命中（品牌铁律）。
+- `website/src` 内 `agentscope-ai/QwenPaw` 链接零命中（仅剩待决策项与 `[hanbao modification]` 自述）。

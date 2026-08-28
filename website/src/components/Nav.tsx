@@ -1,3 +1,4 @@
+// [hanbao modification] Repo/social links now point to github.com/yijiuzero/chat-hanbao; upstream QwenPaw references removed.
 import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Menu, X, BookOpen, Globe, Download, Ellipsis } from "lucide-react";
@@ -203,7 +204,7 @@ export function Nav() {
             <span>{t("nav.blog")}</span>
           </Link>
           <a
-            href="https://github.com/agentscope-ai/QwenPaw"
+            href="https://github.com/yijiuzero/chat-hanbao"
             target="_blank"
             rel="noopener noreferrer"
             className={navLinkOrangeClass}
@@ -342,7 +343,7 @@ export function Nav() {
           <BlogIcon size={18} aria-hidden /> {t("nav.blog")}
         </Link>
         <a
-          href="https://github.com/agentscope-ai/QwenPaw"
+          href="https://github.com/yijiuzero/chat-hanbao"
           target="_blank"
           rel="noopener noreferrer"
           className={navLinkOrangeClass}

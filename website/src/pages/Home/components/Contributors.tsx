@@ -1,3 +1,4 @@
+// [hanbao modification] Repo/social links now point to github.com/yijiuzero/chat-hanbao; upstream QwenPaw references removed.
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { motion } from "motion/react";
@@ -235,12 +236,12 @@ export function Contributors() {
             <p>
               {t("contributors.noteLine2Prefix")}
               <a
-                href="https://github.com/agentscope-ai/QwenPaw"
+                href="https://github.com/yijiuzero/chat-hanbao"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-(--color-primary) ml-1"
               >
-                agentscope-ai/Hanbao
+                yijiuzero/chat-hanbao
               </a>
               .
             </p>

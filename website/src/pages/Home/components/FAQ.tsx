@@ -1,3 +1,4 @@
+// [hanbao modification] Repo/social links now point to github.com/yijiuzero/chat-hanbao; upstream QwenPaw references removed.
 import { type ReactNode, useMemo, useState } from "react";
 import { motion } from "motion/react";
 import { Link } from "react-router-dom";
@@ -104,7 +105,7 @@ export function FAQ() {
                     <li>
                       {t("homeFaq.quickStart.update.li5bPrefix")}{" "}
                       <a
-                        href="https://github.com/agentscope-ai/QwenPaw/releases"
+                        href="https://github.com/yijiuzero/chat-hanbao/releases"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-(--color-primary) no-underline transition hover:brightness-110"
@@ -148,7 +149,7 @@ export function FAQ() {
             <>
               {t("homeFaq.quickStart.upgrade.p1")}{" "}
               <a
-                href="https://github.com/agentscope-ai/QwenPaw/releases"
+                href="https://github.com/yijiuzero/chat-hanbao/releases"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-(--color-primary) no-underline transition hover:brightness-110"
@@ -343,7 +344,7 @@ export function FAQ() {
                 <li>
                   {t("homeFaq.troubleshooting.help.s2Prefix")}{" "}
                   <a
-                    href="https://github.com/agentscope-ai/QwenPaw/issues"
+                    href="https://github.com/yijiuzero/chat-hanbao/issues"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-(--color-primary) no-underline transition hover:brightness-110"

@@ -1140,3 +1140,16 @@ _背景：全模块合规扫描发现 `hanbao.fpk` 未随附 LICENSE/NOTICE/CHAN
 - [修改] `console/src/layouts/constants.ts` — `PYPI_URL` 同上。
 - [修改] `src/hanbao/providers/openrouter_provider.py` — `HTTP-Referer` 由 `qwenpaw.agentscope.io` → `github.com/yijiuzero/chat-hanbao`（带 `[hanbao modification]` 标注）。
 - [文档] `docs/known-issues.md` 登记 I-037（🔴 合规红线，🟢 已解决）；`website/` 品牌残留留作后续单独审计。
+
+## 阶段 6.ai · website/ 文档站上游品牌残留审计与清理（2026-08-28）
+
+_背景：I-037 风险项明确 `website/` 品牌残留留作后续单独审计。本轮对 website/ 代码与文案层（index.html / config.ts / site.config.json / testimonials.ts / i18n locales / Nav·Footer·Contributors·FinalCTA·FAQ·QuickStart 组件 / Ecosystem·FollowUs）做减法式品牌清理，目标是消除一切暗示「hanbao 即上游 QwenPaw / 获阿里·通义背书」的对外展示。_
+
+- [修改] `website/index.html` — 删除可爬取上游元信息：`canonical` / `og:url` / `og:image`·`twitter:image` 指向 `qwenpaw.agentscope.io` 的链接改本地 `/hanbao_ip.png`；移除 3 个搜索引擎验证 token（Google/Bing/Baidu，属上游站点）。均加 `[hanbao modification]` 注释。
+- [修改] `website/src/config.ts` + `website/public/site.config.json` — `repoUrl` 由 `agentscope-ai/QwenPaw` → `github.com/yijiuzero/chat-hanbao`；`modelScopeForkUrl` target 由 `AgentScope/QwenPaw` → `yijiuzero/chat-hanbao`（hanbao 尚未发布 ModelScope studio，作占位，见 I-038）。
+- [修改] `website/src/data/testimonials.ts` — 移除 mock 证言中 "Python + AgentScope" 上游背书措辞。
+- [修改] `website/src/i18n/locales/{zh,en,pt-BR}.json` — `clientVoices` 中阿里云/通义背书（t1 头衔、t2、t6 文本）移除；`footer.copyright` 由虚假法律主体 "© 2026 Qwenpaw PRIVATE LIMITED" → "© 2026 hanbao"。
+- [修改] `Nav.tsx`/`Footer.tsx`/`Contributors.tsx`/`FinalCTA.tsx`/`FAQ.tsx`/`QuickStart.tsx` — GitHub / releases / issues 链接由 `agentscope-ai/QwenPaw` → `yijiuzero/chat-hanbao`；QuickStart 安装脚本由 `qwenpaw.agentscope.io/install.*` → `raw.githubusercontent.com/yijiuzero/chat-hanbao/main/scripts/install.*`；各文件加 `[hanbao modification]` 头注释。
+- [保留] `public/docs`、`public/blog`、`public/release-notes` 中的上游仓库/issue 链接与 `qwenpaw.agentscope.io` 文档链接 — 按 §8 必须展示上游出处，作署名保留，不在本轮改动。
+- [待决策] heroLine（"Qwen Personal Agent Workstation / Qwen 的智识"）、`DOCKER_IMAGE=agentscope/hanbao`、`FeatureDemoGallery` 文档 URL、`Downloads` CDN_BASE、NavCommunityBenefits 阿里权益页、FollowUs/Footer 的 `@agentscope_ai` 社媒账号 — 见 I-038。
+- [文档] `docs/known-issues.md` 登记 I-038。
