@@ -31,6 +31,7 @@ MEMORY_GUIDANCE_ZH_TEMPLATE = """\
 - 学到关于主人的 durable 事实（如"主人周三要交水电费""ta 不吃香菜""孩子叫 XX"），**主动用 `edit_file` 补进 `PROFILE.md` 对应 section**，不必等主人要求。
 - 首次引导（BOOTSTRAP）会填一遍，但之后也要边聊边更新——画像越新越准。
 - 引用主人「当前」状态前，先确认是否近期（见时间感知）；旧笔记描述的是过去。
+- 写入画像/记忆时给每条事实加来源标签：主人明确说的标 `[user_stated]`，你推断但未确认的标 `[AI_inferred]`；角色扮演、虚构、创作内容**不要**写进记忆（仅当轮对话有效）。[hanbao modification] 记忆治理
 """
 
 MEMORY_GUIDANCE_EN_TEMPLATE = """\
@@ -56,7 +57,8 @@ Memories may come from different dates. Before asserting the user's CURRENT stat
 `PROFILE.md` is your **long-term understanding of your owner**: how to address them, preferences, family, important dates, habits, and things to avoid. This is what makes you "get" them.
 - When you learn a durable fact about your owner (e.g. "owner pays utilities every Wednesday", "they hate cilantro", "their kid is named XX"), **proactively `edit_file` it into the matching section of `PROFILE.md`** — you don't have to wait for them to ask.
 - The first-run bootstrap fills it once, but keep updating it as you talk — a fresher profile is a more accurate one.
-- Before asserting the owner's CURRENT state, confirm it's recent (see Time Awareness); old notes describe the past."""
+- Before asserting the owner's CURRENT state, confirm it's recent (see Time Awareness); old notes describe the past.
+- When writing to the profile/memory, tag each fact with its source: `[user_stated]` for things the owner explicitly said, `[AI_inferred]` for your unconfirmed inferences. Do NOT persist roleplay, fictional, or creative content into memory (it only belongs in the current turn). [hanbao modification] memory governance"""
 
 MEMORY_GUIDANCE_TEMPLATES = {
     "zh": MEMORY_GUIDANCE_ZH_TEMPLATE,

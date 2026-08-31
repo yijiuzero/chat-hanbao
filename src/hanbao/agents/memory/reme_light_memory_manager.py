@@ -20,6 +20,7 @@ from agentscope.message import ToolResultState
 from agentscope.tool import ToolChunk
 
 from .base_memory_manager import BaseMemoryManager, memory_registry
+from .memory_audit import MemoryAuditor  # [hanbao modification] req ⑤/②
 from .prompts import build_memory_guidance_prompt
 from .reme_config import get_reme_app_config
 from ..model_factory import create_model_and_formatter
@@ -70,6 +71,21 @@ _MEMORY_TIME_HINT = (
     "用户临时身体状态(如感冒/发烧/疲劳)默认短期，标注采集日期并"
     "默认有效期不超过7天；超期事实不应当作当前状态。仅长期偏好/"
     "身份事实才持久保留。"
+)
+
+# [hanbao modification] Source-tag + fiction-isolation + compression governance
+# (req ①③④). Injected into auto_memory / auto_dream hints, mirroring the
+# time-awareness hint above. Advisory: ReMe may honor it partially, but it
+# steers extraction toward provenance tags and away from persisting fiction.
+_MEMORY_SOURCE_HINT = (
+    "来源与可信度标注要求：提炼/整合每条事实时，在条目开头标注来源标签"
+    "——用户明确陈述的事实标 [user_stated]，由对话推断(未确认)的事实标 "
+    "[AI_inferred]，角色扮演/创作/虚构内容标 [AI_creative]。规则："
+    "① [AI_creative] 内容(含虚构情节、想象设定、角色扮演)严禁写入长期记忆"
+    "与每日笔记，只存在于当轮对话，不得沉淀为记忆；"
+    "② 压缩/做梦(dream)整合时保留原始来源标签不抹除，不得将 [AI_inferred] "
+    "提升为 [user_stated]；③ 当 [user_stated] 与 [AI_inferred] 冲突时，"
+    "保留 [user_stated]、丢弃 [AI_inferred]。"
 )
 
 
@@ -179,6 +195,7 @@ class ReMeLightMemoryManager(BaseMemoryManager):
         super().__init__(working_dir=working_dir, agent_id=agent_id)
         self._reme: "ReMe | None" = None
         self._reindex_lock = asyncio.Lock()
+        self._auditor = self._build_auditor()  # [hanbao modification] req ⑤/②
         logger.info(
             "ReMeLightMemoryManager init: agent_id=%s working_dir=%s",
             agent_id,
@@ -204,6 +221,22 @@ class ReMeLightMemoryManager(BaseMemoryManager):
             self._install_reme_result_hook()
         except Exception as exc:
             logger.warning("ReMe import failed; memory disabled: %s", exc)
+
+    # [hanbao modification] req ⑤/② — memory audit wiring ---------------
+    def _build_auditor(self) -> "MemoryAuditor | None":
+        """Build the append-only memory auditor, or None if unavailable."""
+        try:
+            agent_config = load_agent_config(self.agent_id)
+            rcfg = agent_config.running.reme_light_memory_config
+            return MemoryAuditor(
+                self.working_dir,
+                self.agent_id,
+                rcfg.daily_dir,
+                rcfg.digest_dir,
+            )
+        except Exception:
+            logger.warning("memory auditor disabled", exc_info=True)
+            return None
 
     async def start(self) -> None:
         """Start the embedded ReMe application."""
@@ -340,6 +373,22 @@ class ReMeLightMemoryManager(BaseMemoryManager):
     ) -> bool:
         if name not in INBOX_RESULT_JOB_NAMES:
             return False
+        # [hanbao modification] req ⑤/② — audit after any memory-changing job,
+        # independent of whether inbox push is enabled (audit must not depend
+        # on the inbox feature being on).
+        if self._auditor is not None:
+            try:
+                await asyncio.to_thread(
+                    self._auditor.scan_and_record,
+                    name,
+                    summary=str(getattr(response, "answer", "") or ""),
+                    session_id=str(kwargs.get("session_id") or ""),
+                    date=str(kwargs.get("date") or ""),
+                )
+            except Exception:
+                logger.warning(
+                    "memory audit failed: %s", name, exc_info=True,
+                )
         memory_config = self.get_memory_config()
         if not memory_config.inbox_push_enabled:
             logger.info(
@@ -514,8 +563,11 @@ class ReMeLightMemoryManager(BaseMemoryManager):
             messages=[msg.model_dump(mode="json") for msg in messages],
             session_id=_to_reme_session_id(session_id),
             memory_hint=_merge_memory_hint(
-                str(kwargs.get("memory_hint") or ""),
-                _MEMORY_TIME_HINT,  # [hanbao modification] P1 time-aware write
+                _merge_memory_hint(
+                    str(kwargs.get("memory_hint") or ""),
+                    _MEMORY_TIME_HINT,  # [hanbao modification] P1 time-aware write
+                ),
+                _MEMORY_SOURCE_HINT,  # [hanbao modification] req ①③④ source tags
             ),
         )
         if response is None:
@@ -599,8 +651,11 @@ class ReMeLightMemoryManager(BaseMemoryManager):
     async def dream(self, **kwargs: Any) -> None:
         """Run one ReMe auto-dream pass."""
         hint = _merge_memory_hint(
-            str(kwargs.get("hint") or ""),
-            _MEMORY_TIME_HINT,  # [hanbao modification] P1 time-aware write
+            _merge_memory_hint(
+                str(kwargs.get("hint") or ""),
+                _MEMORY_TIME_HINT,  # [hanbao modification] P1 time-aware write
+            ),
+            _MEMORY_SOURCE_HINT,  # [hanbao modification] req ①③④ source tags
         )
         response = await self._run_reme_job(
             "auto_dream",

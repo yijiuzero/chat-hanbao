@@ -1171,3 +1171,14 @@ _背景：I-038 仅覆盖 `website/src` 代码/文案层，`website/public/docs/
 - [修改] `website/public/docs/comparison.en.md` + `comparison.zh.md` — 安装方式对比「One-line script installation / 一行脚本安装」→「fnOS FPK install / 飞牛 FPK 安装」（hanbao 无上游式一键脚本）。
 - [保留] `release-notes/*`、`blog/*` 上游历史记录按 §8 保留；`pip install hanbao` 为正确包名不动；`practice-agent-team` 的 `higress.ai/hiclaw/install.sh` 第三方教程不动。
 - [文档] `docs/known-issues.md` 登记 I-039（🟢 已解决）。
+
+## 阶段 6.ak · 记忆模块治理（来源标签 + 审计轨迹，2026-08-31）
+
+_背景：hanbao 记忆引擎为外部库 `reme-ai`（Apache-2.0，已确认可 fork/修改且许可证与 hanbao 兼容）。记忆约 90% 由 ReMe 自主 `auto_memory`/`auto_dream` 写入，hanbao 不拥有其写路径，故采用「hint 引导 + 审计日志」近似实现用户提出的 5 项记忆治理需求，而非 fork ReMe。后续如需写时硬拒/删前核对需 fork ReMe。_
+
+- [新增] `src/hanbao/agents/memory/memory_audit.py` — `MemoryAuditor`：追加式 JSONL 审计日志（`memory_audit.jsonl`）+ 上次快照（`memory_snapshot.json`），存于 `<working_dir>/.hanbao_memory_audit/`。覆盖需求 ⑤（谁/何时写、谁删，可 `query()` 回溯）与 ② 软校验（检测 `[user_stated]` 行被删）。不依赖 git（瘦身生产镜像已移除 git 二进制），零密钥风险。提供 env 逃生舱 `HANBAO_MEMORY_AUDIT_DISABLE=1`。
+- [修改] `src/hanbao/agents/memory/reme_light_memory_manager.py` — 新增 `_MEMORY_SOURCE_HINT`，注入 `auto_memory` 与 `auto_dream` 的 `memory_hint`（与既有 `_MEMORY_TIME_HINT` 同机制叠加）。要求 ReMe 为每条事实标 `[user_stated]`/`[AI_inferred]`/`[AI_creative]`、拒写 `[AI_creative]`/角色扮演、压缩(dream)保留来源标签不把 `[AI_inferred]` 提升为 `[user_stated]`、冲突保留 `[user_stated]`。覆盖需求 ①③④。实例化 `MemoryAuditor`，并在 `_append_reme_job_result_to_inbox`（auto_memory/auto_dream/auto_resource 写后）以 `asyncio.to_thread` 调 `scan_and_record`，全程 try/except 不阻断记忆主流程。
+- [修改] `src/hanbao/agents/memory/prompts.py` — `MEMORY_GUIDANCE_{ZH,EN}` 增补来源标签约定（路径①：智能体直接 `edit_file` 维护 `PROFILE.md`/`MEMORY.md` 时同样打 `[user_stated]`/`[AI_inferred]`，且不将创作/虚构写进记忆）。
+- [说明] 未做：全量 per-fact 溯源(seq ID)、跨自主 dream 层的真删除核对、写时硬拒 `[AI_creative]`——这些需 fork `reme-ai` 拦截其内部写路径，对家庭单用户 NAS 性价比低，留作后续可选。
+- [说明] 需求 ② 的「删前核对原始对话」在本实现为写后快照 diff 软检测（记录被删 `[user_stated]` 行供回溯），非写前拦截；如要写前强拦截需 fork ReMe。
+- [文档] 本阶段改动加 `[hanbao modification]` 注释；未构建（待用户说「测一下」统一 rebuild）。
