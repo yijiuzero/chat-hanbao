@@ -1,16 +1,10 @@
-// [hanbao modification] Repo/social links now point to github.com/yijiuzero/chat-hanbao; upstream QwenPaw references removed.
+// [hanbao modification] Social links now point only to github.com/yijiuzero/chat-hanbao; all upstream AgentScope social channels (Discord/钉钉/小红书/微信/抖音/@agentscope_ai) removed. "Powered by" links retain §8 upstream attribution.
 import { useState, type ReactNode, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { HanbaoMascot } from "@/components/HanbaoMascot";
-import {
-  GitHubIcon,
-  DiscordIcon,
-  WChatIcon,
-  DouyinIcon,
-  DingTalkIcon,
-} from "./Icon";
+import { GitHubIcon } from "./Icon";
 
 const AGENTSCOPE_ORG = "https://github.com/agentscope-ai";
 const AGENTSCOPE_REPO = "https://github.com/agentscope-ai/agentscope";
@@ -35,50 +29,6 @@ const socialLinks: SocialLink[] = [
     href: "https://github.com/yijiuzero/chat-hanbao",
     ariaLabel: "footer.social.github",
     icon: <GitHubIcon size={20} className="block text-orange-400" />,
-    qrCode:
-      "https://img.alicdn.com/imgextra/i1/O1CN014U6Tgn1u8OMZ3rzTo_!!6000000005992-2-tps-400-400.png",
-  },
-  {
-    href: "https://discord.com/invite/eYMpfnkG8h",
-    ariaLabel: "footer.social.discord",
-    icon: <DiscordIcon className="block" />,
-    qrCode:
-      "https://img.alicdn.com/imgextra/i2/O1CN0100Yag91yiLuTUd5Gx_!!6000000006612-2-tps-400-400.png",
-  },
-  {
-    href: "https://qr.dingtalk.com/action/joingroup?code=v1,k1,1k7GcVwa5PzZWRaWyBA5OFImW0zNNx1Gj9RkjnuKVGY=&_dt_no_comment=1&origin=1",
-    ariaLabel: "footer.social.dingtalk",
-    icon: <DingTalkIcon size={20} className="block" />,
-    qrCode:
-      "https://img.alicdn.com/imgextra/i4/O1CN013QPmS61pLbhbhg281_!!6000000005344-2-tps-228-229.png",
-  },
-  {
-    href: "https://www.xiaohongshu.com/user/profile/691c18db0000000037032be9",
-    ariaLabel: "footer.social.xiaohongshu",
-    icon: (
-      <span
-        aria-hidden
-        className="block text-[18px] leading-none text-orange-400"
-      >
-        🍠
-      </span>
-    ),
-    qrCode:
-      "https://img.alicdn.com/imgextra/i3/O1CN01rNIidF1rpxBc3dOFt_!!6000000005681-2-tps-322-322.png",
-  },
-  {
-    href: "https://mp.weixin.qq.com/s/CE2HkK4XWfmWfuHBQDAZNA",
-    ariaLabel: "footer.social.wechat",
-    icon: <WChatIcon size={20} className="block" />,
-    qrCode:
-      "https://img.alicdn.com/imgextra/i4/O1CN01WKxBaC1IgmhnDODyc_!!6000000000923-2-tps-626-628.png",
-  },
-  {
-    href: "https://v.douyin.com/CaSqLYepUfk/ 5@0.com :2pm",
-    ariaLabel: "footer.social.douyin",
-    icon: <DouyinIcon size={20} className="block" />,
-    qrCode:
-      "https://img.alicdn.com/imgextra/i4/O1CN01Kqgflj1oD4inPqJQ8_!!6000000005190-2-tps-400-400.png",
   },
 ];
 

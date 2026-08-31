@@ -11,17 +11,7 @@
     "lang": "中文",
     "platform": "Platform",
     "platformTitle": "AgentScope Platform",
-    "agentscopeTeam": "AgentScope",
-    "communityBenefits": "Benefits",
-    "communityBenefitsNew": "NEW",
-    "benefit1Title": "ModelStudio: 100M free tokens",
-    "benefit1Desc": "Check your free quota",
-    "benefit2Title": "Token rebate",
-    "benefit2Desc": "Up to ¥200 back",
-    "benefit3Title": "Up to ¥1M tokens",
-    "benefit3Desc": "OPC innovation subsidy",
-    "benefit4Title": "Student subsidy",
-    "benefit4Desc": "¥50 credit · win iPhone 17"
+    "agentscopeTeam": "AgentScope"
   },
   "hero": {
     "titleleft": "Your Personal",
@@ -33,12 +23,6 @@
     "cta": "Read the docs",
     "quickStart": "Quick Start",
     "quickTry": "Try Now"
-  },
-  "follow": {
-    "title": "Follow us",
-    "sub": "Follow us for the latest Hanbao updates",
-    "xiaohongshu": "Rednote:",
-    "x": "X:"
   },
   "channels": {
     "titleWe": "Connect everything with",
@@ -233,13 +217,7 @@
       "privacyPolicy": "Privacy Policy"
     },
     "social": {
-      "x": "X",
-      "github": "GitHub",
-      "discord": "Discord",
-      "dingtalk": "DingTalk",
-      "xiaohongshu": "Xiaohongshu",
-      "wechat": "WeChat",
-      "douyin": "Douyin"
+      "github": "GitHub"
     },
     "copyright": "© 2026 hanbao. All rights reserved.",
     "poweredBy": {

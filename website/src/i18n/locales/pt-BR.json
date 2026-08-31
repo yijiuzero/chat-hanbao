@@ -21,12 +21,6 @@
     "cta": "Ler a documentacao",
     "quickStart": "Inicio Rapido"
   },
-  "follow": {
-    "title": "Siga-nos",
-    "sub": "Siga-nos para as ultimas novidades do Hanbao",
-    "xiaohongshu": "Rednote:",
-    "x": "X:"
-  },
   "channels": {
     "titleWe": "Conecte tudo com",
     "titleEverything": "",
@@ -225,11 +219,7 @@
       "privacyPolicy": "Politica de Privacidade"
     },
     "social": {
-      "x": "X",
-      "github": "GitHub",
-      "discord": "Discord",
-      "wechat": "WeChat (Conta Oficial)",
-      "youtube": "YouTube"
+      "github": "GitHub"
     },
     "copyright": "© 2026 hanbao. Todos os direitos reservados.",
     "poweredBy": {

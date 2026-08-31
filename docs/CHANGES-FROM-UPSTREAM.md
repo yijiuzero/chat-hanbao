@@ -1155,5 +1155,8 @@ _背景：I-037 风险项明确 `website/` 品牌残留留作后续单独审计�
 - [删除] `NavCommunityBenefits.tsx` — 含上游 `opc.aliyun.com/qwenpaw` 阿里权益页链接；导航「社区福利」入口整体移除，Nav.tsx 去除对应 import/状态/三处面板与点击外部/ESC 逻辑。
 - [修改] `FollowUs.tsx`/`Footer.tsx` — 移除上游 `@agentscope_ai` X 账号链接（Footer 同步移除未使用的 `XIcon` import）。
 - [保留] `public/docs`、`public/blog`、`public/release-notes` 中的上游仓库/issue 链接与 `qwenpaw.agentscope.io` 文档链接 — 按 §8 必须展示上游出处，作署名保留，不在本轮改动。
-- [待决策] `FeatureDemoGallery.tsx` 8 处文档 URL（`qwenpaw.agentscope.io/docs/...`）— 见 I-038（逐项分别决策，涉及 §8 上游署名）。Footer/FollowUs 其余上游社媒（Discord/钉钉/小红书/微信/抖音）暂留，待统一清理。
+- [保留 §8] `FeatureDemoGallery.tsx` 8 处文档 URL（`qwenpaw.agentscope.io/docs/...`）— 用户拍板按 §8 保留上游署名，不改代码（见 I-038）。
+- [删除] `FollowUs.tsx` — 含上游小红书链接 + Discord/DingTalk 社区二维码，无任何引用，整体删除。
+- [修改] `Footer.tsx` — `socialLinks` 仅保留 GitHub(`yijiuzero/chat-hanbao`)，移除 Discord/钉钉/小红书/微信/抖音 5 项与 alicdn qrCode，清理未使用 icon import。
+- [修改] `i18n/locales/{zh,en,pt-BR}.json` — 清理 orphaned key：`nav.benefit1~4*`/`nav.communityBenefits*`(en+zh)、`follow.*` 整块、`footer.social.{x,discord,dingtalk,xiaohongshu,wechat,douyin,youtube}`(仅留 github)。
 - [文档] `docs/known-issues.md` 登记 I-038。

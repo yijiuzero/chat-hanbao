@@ -1171,7 +1171,7 @@ grep 全仓复核：`Agent/Config`、`useAgentConfig`、`ReactAgentCard`、`/age
 
 ## I-038 · website/ 文档站上游品牌残留清理（2026-08-28）
 
-**严重度**：🟠 中（品牌合规，上架前必须） &nbsp;|&nbsp; **状态**：🟡 进行中（heroLine + 4 项功能性上游链接已解决：DOCKER_IMAGE→hanbao:latest、Downloads CDN→GitHub raw、阿里权益页入口移除并删 NavCommunityBenefits.tsx、@agentscope_ai 社媒移除；FeatureDemoGallery 文档 URL 待决，另余上游社媒残量待清理） &nbsp;|&nbsp; **必须处理时机**：阶段 7 上架前
+**严重度**：🟠 中（品牌合规，上架前必须） &nbsp;|&nbsp; **状态**：🟢 已解决（heroLine 中性化 + 4 项功能性上游链接清理 + FeatureDemoGallery 文档 URL 按 §8 保留上游署名 + 残量上游社媒全量移除） &nbsp;|&nbsp; **必须处理时机**：阶段 7 上架前
 
 ### 现象（website/ 审计）
 - `website/index.html` 的 `canonical` / `og:url` / `og:image`·`twitter:image` 指向可爬取上游域名 `qwenpaw.agentscope.io`；含 3 个搜索引擎站点验证 token（属上游站点）。
@@ -1191,20 +1191,23 @@ grep 全仓复核：`Agent/Config`、`useAgentConfig`、`ReactAgentCard`、`/age
 8. `Downloads/constants.ts` 的 `CDN_BASE` 由 `https://download.qwenpaw.agentscope.io` → `https://raw.githubusercontent.com/yijiuzero/chat-hanbao/main`（hanbao 无自建 CDN；下载元数据托管为后续 TODO，见下「待决策·残量」）。
 9. 导航「社区福利」入口整体移除：删 `NavCommunityBenefits.tsx`（含上游 `opc.aliyun.com/qwenpaw` 权益页链接），Nav.tsx 去除 import / 状态 / 三处面板与点击外部 / ESC 处理中的相关逻辑。
 10. FollowUs.tsx 与 Footer.tsx 的上游 `@agentscope_ai` X 账号链接移除（Footer 同步移除未使用的 `XIcon` import）。
+11. 残量上游社媒全量移除：Footer.tsx 的 `socialLinks` 仅保留 GitHub(`yijiuzero/chat-hanbao`)，移除 Discord/钉钉/小红书/微信/抖音 5 项及对应 alicdn `qrCode` 资源，并清理未使用的 `DiscordIcon`/`WChatIcon`/`DouyinIcon`/`DingTalkIcon` import；删除已无任何引用的 `FollowUs.tsx`（含小红书链接 + Discord/DingTalk 社区二维码，均指向上游 AgentScope）；三语种 locale 同步清理 orphaned key：`nav.benefit1~4*`/`nav.communityBenefits*`(en+zh)、`follow.*`(zh/en/pt-BR 整块)、`footer.social.{x,discord,dingtalk,xiaohongshu,wechat,douyin,youtube}`(仅留 github)。
+12. `FeatureDemoGallery.tsx` 8 处 `qwenpaw.agentscope.io/docs/...` 文档 URL 按 §8 上游署名决议**保留**（不改代码），此处登记为已决。
 
 ### 保留项（§8 上游署名，不改）
 - `public/docs`、`public/blog`、`public/release-notes` 内上游仓库/issue 链接与 `qwenpaw.agentscope.io` 文档链接 — 必须展示上游出处。
+- `FeatureDemoGallery.tsx` 8 处 `qwenpaw.agentscope.io/docs/...` 文档 URL — 用户拍板按 §8 保留上游署名（不改代码）。
 
-### 待决策（未改，需用户拍板）
-- **`FeatureDemoGallery.tsx` 8 处文档 URL**（`qwenpaw.agentscope.io/docs/...`）：指向本地文档站还是保留上游署名链接（涉及 §8 必须展示上游出处，单独评估）。
+### 待决策（已全部解决）
+- **`FeatureDemoGallery.tsx` 8 处文档 URL**（`qwenpaw.agentscope.io/docs/...`）：用户拍板**保留上游外链**（按 §8 必须展示上游出处），已登记为 §8 保留项，不改代码。
+- **残量上游社媒（Footer/FollowUs）**：用户拍板**一并移除，仅保留 GitHub**（`yijiuzero/chat-hanbao`）。Footer 移除 Discord/钉钉/小红书/微信/抖音，删除已无引用的 `FollowUs.tsx`，并清理对应 orphaned i18n key（见处理方案 11）。
 
-### 待决策·残量（建议后续统一清理，未在本轮处理）
-- **Footer / FollowUs 仍含其他上游社媒**：Footer 的 Discord(`discord.gg/eYMpfnkG8h`)、钉钉群、小红书、微信、抖音，以及 FollowUs 的小红书链接 `label: "AgentScope"`（`xhslink.com/...`）——均指向上游 AgentScope 账号，与 `@agentscope_ai` 同源。本轮仅移除 X 账号，其余留待用户决定一并移除或保留。
-- **orphaned i18n key**：`nav.benefit1~4* / nav.communityBenefits / nav.communityBenefitsNew / follow.x / follow.xiaohongshu` 随入口删除变为死字符串（无害，待统一清理）。
-- **Downloads 元数据托管 TODO**：`CDN_BASE` 已改 GitHub raw 基址，但 `metadata/index.json` 尚未在仓库发布，下载页当前会走空态；需在仓库内维护该索引或改用 GitHub Releases API。
+### 后续 TODO（非阻塞，不在 I-038 范围）
+- **Downloads 元数据托管**：`CDN_BASE` 已改 GitHub raw 基址，但 `metadata/index.json` 尚未在仓库发布，下载页当前走空态；需在仓库内维护该索引或改用 GitHub Releases API（另立 issue 跟踪）。
 
 ### 验收
-- `grep -rn "qwenpaw.agentscope.io" website/src`：仅剩 `FeatureDemoGallery` 文档 URL（待决策）；`Downloads` CDN 已改 GitHub raw；index.html 内仅剩 `[hanbao modification]` 自述注释；无 canonical/og 可爬取元信息。
+- `grep -rn "qwenpaw.agentscope.io" website/src`：仅剩 `FeatureDemoGallery` 8 处文档 URL（按 §8 保留）；其余活动引用零。`Downloads` CDN 已改 GitHub raw；index.html 内仅剩 `[hanbao modification]` 自述注释；无 canonical/og 可爬取元信息。
 - `grep -rn "download.qwenpaw.agentscope.io\|opc.aliyun.com/qwenpaw\|agentscope_ai\|agentscope/hanbao" website/src`：零命中。
+- `grep -rn "discord.gg\|dingtalk.com\|xiaohongshu.com\|mp.weixin.qq.com\|douyin.com\|xhslink.com" website/src`：零命中（残量上游社媒全移除，仅留 GitHub）。
 - `grep -rn "函包\|墨痕未干\|水墨文人" website/`：零命中（品牌铁律）。
 - `website/src` 内 `agentscope-ai/QwenPaw` 链接零命中（仅剩 `[hanbao modification]` 自述与 §8 署名）。
