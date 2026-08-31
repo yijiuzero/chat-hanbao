@@ -451,11 +451,6 @@
       "help": {
         "q": "需要帮助怎么办",
         "p1": "如果你需要帮助，可以：",
-        "s1Prefix": "加入我们的",
-        "s1Mid": "或",
-        "s1Suffix": "群组提问。",
-        "dingtalk": "钉钉",
-        "discord": "Discord",
         "s2Prefix": "在",
         "githubIssues": "Hanbao GitHub",
         "s2Mid": "提交 issue，并附上完整错误信息、错误详情文件（例如",

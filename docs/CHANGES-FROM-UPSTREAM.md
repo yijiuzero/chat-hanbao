@@ -1159,4 +1159,5 @@ _背景：I-037 风险项明确 `website/` 品牌残留留作后续单独审计�
 - [删除] `FollowUs.tsx` — 含上游小红书链接 + Discord/DingTalk 社区二维码，无任何引用，整体删除。
 - [修改] `Footer.tsx` — `socialLinks` 仅保留 GitHub(`yijiuzero/chat-hanbao`)，移除 Discord/钉钉/小红书/微信/抖音 5 项与 alicdn qrCode，清理未使用 icon import。
 - [修改] `i18n/locales/{zh,en,pt-BR}.json` — 清理 orphaned key：`nav.benefit1~4*`/`nav.communityBenefits*`(en+zh)、`follow.*` 整块、`footer.social.{x,discord,dingtalk,xiaohongshu,wechat,douyin,youtube}`(仅留 github)。
+- [修改] `FAQ.tsx` — "help" FAQ 项移除上游 AgentScope DingTalk 群与 Discord 邀请社群链接，仅保留 hanbao GitHub Issues；清理对应 orphaned i18n key `homeFaq.troubleshooting.help.{s1Prefix,s1Mid,s1Suffix,dingtalk,discord}`。
 - [文档] `docs/known-issues.md` 登记 I-038。

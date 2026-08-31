@@ -1,4 +1,4 @@
-// [hanbao modification] Repo/social links now point to github.com/yijiuzero/chat-hanbao; upstream QwenPaw references removed.
+// [hanbao modification] Repo/social links point to github.com/yijiuzero/chat-hanbao; upstream QwenPaw references and the upstream AgentScope DingTalk/Discord community links (FAQ "help" item) removed.
 import { type ReactNode, useMemo, useState } from "react";
 import { motion } from "motion/react";
 import { Link } from "react-router-dom";
@@ -320,27 +320,7 @@ export function FAQ() {
             <>
               <p>{t("homeFaq.troubleshooting.help.p1")}</p>
               <ol className="mt-2 list-decimal space-y-1 pl-5">
-                <li>
-                  {t("homeFaq.troubleshooting.help.s1Prefix")}{" "}
-                  <a
-                    href="https://qr.dingtalk.com/action/joingroup?code=v1,k1,OmDlBXpjW+I2vWjKDsjvI9dhcXjGZi3bQiojOq3dlDw=&_dt_no_comment=1&origin=11"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-(--color-primary) no-underline transition hover:brightness-110"
-                  >
-                    {t("homeFaq.troubleshooting.help.dingtalk")}
-                  </a>{" "}
-                  {t("homeFaq.troubleshooting.help.s1Mid")}{" "}
-                  <a
-                    href="https://discord.com/invite/eYMpfnkG8h"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-(--color-primary) no-underline transition hover:brightness-110"
-                  >
-                    {t("homeFaq.troubleshooting.help.discord")}
-                  </a>{" "}
-                  {t("homeFaq.troubleshooting.help.s1Suffix")}
-                </li>
+                {/* [hanbao modification] Upstream AgentScope DingTalk/Discord community links removed; hanbao support is via GitHub Issues only. */}
                 <li>
                   {t("homeFaq.troubleshooting.help.s2Prefix")}{" "}
                   <a

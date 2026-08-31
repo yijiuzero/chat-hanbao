@@ -1193,6 +1193,7 @@ grep 全仓复核：`Agent/Config`、`useAgentConfig`、`ReactAgentCard`、`/age
 10. FollowUs.tsx 与 Footer.tsx 的上游 `@agentscope_ai` X 账号链接移除（Footer 同步移除未使用的 `XIcon` import）。
 11. 残量上游社媒全量移除：Footer.tsx 的 `socialLinks` 仅保留 GitHub(`yijiuzero/chat-hanbao`)，移除 Discord/钉钉/小红书/微信/抖音 5 项及对应 alicdn `qrCode` 资源，并清理未使用的 `DiscordIcon`/`WChatIcon`/`DouyinIcon`/`DingTalkIcon` import；删除已无任何引用的 `FollowUs.tsx`（含小红书链接 + Discord/DingTalk 社区二维码，均指向上游 AgentScope）；三语种 locale 同步清理 orphaned key：`nav.benefit1~4*`/`nav.communityBenefits*`(en+zh)、`follow.*`(zh/en/pt-BR 整块)、`footer.social.{x,discord,dingtalk,xiaohongshu,wechat,douyin,youtube}`(仅留 github)。
 12. `FeatureDemoGallery.tsx` 8 处 `qwenpaw.agentscope.io/docs/...` 文档 URL 按 §8 上游署名决议**保留**（不改代码），此处登记为已决。
+13. FAQ.tsx "help" FAQ 项移除上游 AgentScope DingTalk 群(`qr.dingtalk.com`)与 Discord 邀请(`discord.com/invite`)社群链接，仅保留 hanbao 自有 GitHub Issues(`yijiuzero/chat-hanbao/issues`)；清理对应 orphaned i18n key：`homeFaq.troubleshooting.help.{s1Prefix,s1Mid,s1Suffix,dingtalk,discord}`(zh/en/pt-BR)。
 
 ### 保留项（§8 上游署名，不改）
 - `public/docs`、`public/blog`、`public/release-notes` 内上游仓库/issue 链接与 `qwenpaw.agentscope.io` 文档链接 — 必须展示上游出处。
@@ -1208,6 +1209,6 @@ grep 全仓复核：`Agent/Config`、`useAgentConfig`、`ReactAgentCard`、`/age
 ### 验收
 - `grep -rn "qwenpaw.agentscope.io" website/src`：仅剩 `FeatureDemoGallery` 8 处文档 URL（按 §8 保留）；其余活动引用零。`Downloads` CDN 已改 GitHub raw；index.html 内仅剩 `[hanbao modification]` 自述注释；无 canonical/og 可爬取元信息。
 - `grep -rn "download.qwenpaw.agentscope.io\|opc.aliyun.com/qwenpaw\|agentscope_ai\|agentscope/hanbao" website/src`：零命中。
-- `grep -rn "discord.gg\|dingtalk.com\|xiaohongshu.com\|mp.weixin.qq.com\|douyin.com\|xhslink.com" website/src`：零命中（残量上游社媒全移除，仅留 GitHub）。
+- `grep -rn "discord.gg\|discord.com/invite\|qr.dingtalk.com\|xiaohongshu.com\|mp.weixin.qq.com\|douyin.com\|xhslink.com" website/src`：零命中（残量上游社媒 + FAQ 社群链接全移除，仅留 GitHub）。
 - `grep -rn "函包\|墨痕未干\|水墨文人" website/`：零命中（品牌铁律）。
 - `website/src` 内 `agentscope-ai/QwenPaw` 链接零命中（仅剩 `[hanbao modification]` 自述与 §8 署名）。

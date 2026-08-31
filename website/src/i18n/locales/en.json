@@ -451,11 +451,6 @@
       "help": {
         "q": "Here's the polished version",
         "p1": "If you need help, you can:",
-        "s1Prefix": "Join our",
-        "s1Mid": "or",
-        "s1Suffix": "group to ask questions.",
-        "dingtalk": "DingTalk",
-        "discord": "Discord",
         "s2Prefix": "Open an issue on",
         "githubIssues": "Hanbao GitHub",
         "s2Mid": "with the full error message, the error detail file (e.g.",

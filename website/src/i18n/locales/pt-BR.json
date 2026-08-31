@@ -438,11 +438,6 @@
       "help": {
         "q": "Como obter ajuda",
         "p1": "Se precisar de ajuda, voce pode:",
-        "s1Prefix": "Entre no nosso grupo do",
-        "s1Mid": "ou",
-        "s1Suffix": "para tirar duvidas.",
-        "dingtalk": "DingTalk",
-        "discord": "Discord",
         "s2Prefix": "Abra uma issue no",
         "githubIssues": "Hanbao GitHub",
         "s2Mid": "com a mensagem de erro completa, o arquivo de detalhes do erro (ex:",
