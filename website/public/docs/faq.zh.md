@@ -10,18 +10,9 @@
 
 ### Hanbao如何安装
 
-Hanbao 支持多种安装方式，详情请见文档 [快速开始](https://qwenpaw.agentscope.io/docs/quickstart)：
+Hanbao 支持多种安装方式，详情请见文档 [快速开始](/docs/quickstart)：
 
-1. 一键安装，帮你搞定 Python 环境
-
-```
-# macOS / Linux:
-curl -fsSL https://qwenpaw.agentscope.io/install.sh | bash
-# Windows（PowerShell）:
-irm https://qwenpaw.agentscope.io/install.ps1 | iex
-# 关注文档更新，请先采用pip方式完成一键安装
-```
-
+1. 飞牛应用中心（FPK）——hanbao 以 fnOS FPK 形式分发，请从飞牛应用中心安装或侧载 `.fpk` 安装包。（上游一键安装脚本安装的是 QwenPaw 而非 hanbao，不适用。）
 2. pip 安装
 
 Python环境要求版本号 >= 3.11，<3.14
@@ -104,7 +95,7 @@ docker run -p 127.0.0.1:8088:8088 \
   agentscope/hanbao:latest
 ```
 
-5. 如果你使用的是桌面版（Tauri 版），已内置应用内更新：应用启动时会自动检测新版本并在界面中提示，你可以选择「安装并重启」立即更新，或「稍后更新」在后台下载。也可从下载页手动获取最新版本：https://qwenpaw.agentscope.io/downloads
+5. 如果你使用的是桌面版（Tauri 版），已内置应用内更新：应用启动时会自动检测新版本并在界面中提示，你可以选择「安装并重启」立即更新，或「稍后更新」在后台下载。也可从发布页手动获取最新版本：https://github.com/yijiuzero/chat-hanbao/releases
 
 升级后重启服务 hanbao app。
 

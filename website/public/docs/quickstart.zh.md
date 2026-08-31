@@ -63,84 +63,15 @@ hanbao app
 
 ---
 
-## 方式二：脚本安装
+## 方式二：飞牛应用中心（FPK）
 
-无需预装 Python — 安装脚本通过 [uv](https://docs.astral.sh/uv/) 自动管理一切。
+> [hanbao modification] hanbao 以 fnOS FPK 形式分发，供飞牛 NAS 应用中心安装。上游的一键安装脚本（`install.sh` / `install.ps1` / `install.bat`）安装的是 QwenPaw 而非 hanbao，不适用于此处。
 
-### 步骤一：安装
+请从飞牛应用中心安装 hanbao，或侧载你获取的 `.fpk` 安装包。安装后网页控制台监听在 `http://127.0.0.1:8088/`。
 
-**macOS / Linux：**
+更偏好容器？也可以用 Docker 运行 hanbao——拉取镜像后用 `docker compose up -d` 启动（compose 文件见仓库）。
 
-```bash
-curl -fsSL https://qwenpaw.agentscope.io/install.sh | bash
-```
-
-然后打开新终端（或执行 `source ~/.zshrc` / `source ~/.bashrc`）。
-
-**Windows (CMD):**
-
-```cmd
-curl -fsSL https://qwenpaw.agentscope.io/install.bat -o install.bat && install.bat
-```
-
-**Windows（PowerShell）：**
-
-```powershell
-irm https://qwenpaw.agentscope.io/install.ps1 | iex
-```
-
-然后打开新终端（安装脚本会自动将 Hanbao 加入 PATH）。
-
-> **⚠️ Windows 企业版 LTSC 用户特别提示**
->
-> 如果您使用的是 Windows LTSC 或受严格安全策略管控的企业环境，PowerShell 可能运行在 **受限语言模式** 下，可能会遇到以下问题：
->
-> 1. **如果你使用的是 CMD（.bat）：脚本执行成功但无法写入`Path`**
->
->    脚本已完成文件安装，由于 **受限语言模式** ，脚本无法自动写入环境变量，此时只需手动配置：
->
->    - **找到安装目录**：
->      - 检查 `uv` 是否可用：在 CMD 中输入 `uv --version` ，如果显示版本号，则**只需配置 Hanbao 路径**；如果提示 `'uv' 不是内部或外部命令，也不是可运行的程序或批处理文件。`，则需同时配置两者。
->      - uv路径（任选其一，取决于安装位置，若`uv`不可用则填）：通常在`%USERPROFILE%\.local\bin`、`%USERPROFILE%\AppData\Local\uv`或 Python 安装目录下的 `Scripts` 文件夹
->      - Hanbao路径：通常在 `%USERPROFILE%\.hanbao\bin` 。
->    - **手动添加到系统的 Path 环境变量**：
->      - 按 `Win + R`，输入 `sysdm.cpl` 并回车，打开"系统属性"。
->      - 点击 "高级" -> "环境变量"。
->      - 在 "系统变量" 中找到并选中 `Path`，点击 "编辑"。
->      - 点击 "新建"，依次填入上述两个目录路径，点击确定保存。
->
-> 2. **如果你使用的是 PowerShell（.ps1）：脚本运行中断**
->
-> 由于 **受限语言模式** ，脚本可能无法自动下载`uv`。
->
-> - **手动安装uv**：参考 [GitHub Release](https://github.com/astral-sh/uv/releases)下载并将`uv.exe`放至`%USERPROFILE%\.local\bin`或`%USERPROFILE%\AppData\Local\uv`；或者确保已安装 Python ，然后运行`python -m pip install -U uv`
-> - **配置`uv`环境变量**：将`uv`所在目录和 `%USERPROFILE%\.hanbao\bin` 添加到系统的 `Path` 变量中。
-> - **重新运行**：打开新终端，再次执行安装脚本以完成 `Hanbao` 安装。
-> - **配置`Hanbao`环境变量**：将 `%USERPROFILE%\.hanbao\bin` 添加到系统的 `Path` 变量中。
-
-也可以指定选项：
-
-**macOS / Linux：**
-
-```bash
-# 安装指定版本
-curl -fsSL ... | bash -s -- --version 1.1.0
-
-# 从源码安装（开发/测试用）
-curl -fsSL ... | bash -s -- --from-source
-```
-
-**Windows（PowerShell）：**
-
-```powershell
-# 安装指定版本
-.\install.ps1 -Version 0.0.2
-
-# 从源码安装（开发/测试用）
-.\install.ps1 -FromSource
-```
-
-升级只需重新运行安装命令。卸载请运行 `hanbao uninstall`。
+升级时安装更新的 `.fpk`（或重新拉取镜像）即可；卸载请在飞牛应用中心移除该应用。
 
 ### 步骤二：初始化
 

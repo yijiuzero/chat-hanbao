@@ -1212,3 +1212,26 @@ grep 全仓复核：`Agent/Config`、`useAgentConfig`、`ReactAgentCard`、`/age
 - `grep -rn "discord.gg\|discord.com/invite\|qr.dingtalk.com\|xiaohongshu.com\|mp.weixin.qq.com\|douyin.com\|xhslink.com" website/src`：零命中（残量上游社媒 + FAQ 社群链接全移除，仅留 GitHub）。
 - `grep -rn "函包\|墨痕未干\|水墨文人" website/`：零命中（品牌铁律）。
 - `website/src` 内 `agentscope-ai/QwenPaw` 链接零命中（仅剩 `[hanbao modification]` 自述与 §8 署名）。
+
+---
+
+### I-039 · website/ 文档正文安装命令指向错误上游（会装成 QwenPaw）
+
+**严重度**：🟡 中 &nbsp;|&nbsp; **状态**：🟢 已解决（2026-08-31） &nbsp;|&nbsp; **必须处理时机**：阶段 7 上架前文档收尾
+
+### 现象
+I-038 审计聚焦 `website/src` 代码/文案层，`website/public/docs/*.md`（125 篇文档正文）未纳入。验收时发现 `quickstart.*.md` 与 `faq.*.md` 的安装命令仍指向上游 `qwenpaw.agentscope.io/install.sh|install.ps1|install.bat`，及 `faq` 的「下载页」链接 `qwenpaw.agentscope.io/downloads`。用户照做会用上游一键脚本装成 **QwenPaw 而非 hanbao**，属功能性错误（hanbao 实际走 fnOS FPK 分发）。
+
+### 处理方案
+- `quickstart.en.md` / `quickstart.zh.md`：「Option 2 / 方式二：脚本安装」整块（含上游 install.sh/ps1/bat 命令、Windows LTSC 说明、版本/源码参数）替换为 **「fnOS app center (FPK) / 飞牛应用中心（FPK）」**，说明从飞牛应用中心安装或侧载 `.fpk`，并补 Docker 备选说明。
+- `faq.en.md` / `faq.zh.md`：「一键安装」条目改为「fnOS app center (FPK)」并标注上游脚本不适用；自引「快速开始」链接改本地 `/docs/quickstart`；「下载页」链接改 `https://github.com/yijiuzero/chat-hanbao/releases`。
+- `comparison.en.md` / `comparison.zh.md`：安装方式对比里的「One-line script installation / 一行脚本安装」改为「fnOS FPK install / 飞牛 FPK 安装」（hanbao 无上游式一键脚本）。
+- 均加 `[hanbao modification]` 标注。
+
+### 保留（合法，§8）
+- `release-notes/*`、`blog/*` 等上游历史发布/博客中提及 `install.sh`/`install.bat` 属历史记录，按 §8 保留。
+- `pip install hanbao` 为正确包名，不动；`practice-agent-team` 的 `higress.ai/hiclaw/install.sh` 是第三方教程装 higress，不动。
+
+### 验收
+- `grep -rn "qwenpaw.agentscope.io/install\|qwenpaw.agentscope.io/downloads" website/public/docs/`：零命中。
+- 改动文件：`quickstart.en/zh.md`、`faq.en/zh.md`、`comparison.en/zh.md` 共 6 个。

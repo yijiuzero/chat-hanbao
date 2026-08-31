@@ -12,18 +12,9 @@ Please check the [Comparison](/docs/comparison) page for detailed feature compar
 ### How to install Hanbao
 
 Hanbao supports multiple installation methods. See
-[Quick Start](https://qwenpaw.agentscope.io/docs/quickstart) for details:
+[Quick Start](/docs/quickstart) for details:
 
-1. One-line installer (sets up Python automatically)
-
-```
-# macOS / Linux:
-curl -fsSL https://qwenpaw.agentscope.io/install.sh | bash
-# Windows (PowerShell):
-irm https://qwenpaw.agentscope.io/install.ps1 | iex
-# For latest instructions, refer to docs and prefer pip if needed.
-```
-
+1. fnOS app center (FPK) — hanbao is distributed as an fnOS FPK; install it from the Fnos app center or sideload the `.fpk` package. (The upstream one-line installer installs QwenPaw, not hanbao.)
 2. Install with pip
 
 Python version requirement: >= 3.11, < 3.14
@@ -107,7 +98,7 @@ docker run -p 127.0.0.1:8088:8088 \
   agentscope/hanbao:latest
 ```
 
-5. If using the Desktop app (Tauri build), it ships with a built-in in-app updater: on startup it automatically checks for new versions and prompts you in the UI, where you can choose "Install and Restart" to update now or "Update Later" to download in the background. You can also grab the latest build manually from the download page: https://qwenpaw.agentscope.io/downloads
+5. If using the Desktop app (Tauri build), it ships with a built-in in-app updater: on startup it automatically checks for new versions and prompts you in the UI, where you can choose "Install and Restart" to update now or "Update Later" to download in the background. You can also grab the latest build manually from the release page: https://github.com/yijiuzero/chat-hanbao/releases
 
 After upgrading, restart the service with `hanbao app`.
 

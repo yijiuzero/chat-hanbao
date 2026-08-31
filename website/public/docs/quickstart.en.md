@@ -68,84 +68,15 @@ first and then configure channels.
 
 ---
 
-## Option 2: Script install
+## Option 2: fnOS app center (FPK)
 
-No Python required — the installer handles everything automatically using [uv](https://docs.astral.sh/uv/).
+> [hanbao modification] hanbao is distributed as an fnOS FPK for the Fnos NAS app center. The upstream one-line installer (`install.sh` / `install.ps1` / `install.bat`) installs QwenPaw, not hanbao, and does not apply here.
 
-### Step 1: Install
+Install hanbao from the fnOS app center, or sideload the `.fpk` package you obtained. The web console then listens on `http://127.0.0.1:8088/`.
 
-**macOS / Linux:**
+Prefer a container? You can also run hanbao with Docker -- pull the image and start it with `docker compose up -d` (see the repository for the compose file).
 
-```bash
-curl -fsSL https://qwenpaw.agentscope.io/install.sh | bash
-```
-
-Then open a new terminal (or run `source ~/.zshrc` / `source ~/.bashrc`).
-
-**Windows (CMD):**
-
-```cmd
-curl -fsSL https://qwenpaw.agentscope.io/install.bat -o install.bat && install.bat
-```
-
-**Windows (PowerShell):**
-
-```powershell
-irm https://qwenpaw.agentscope.io/install.ps1 | iex
-```
-
-Then open a new terminal (the installer adds Hanbao to your PATH automatically).
-
-> **⚠️ Special Notice for Windows Enterprise LTSC Users**
->
-> If you are using Windows LTSC or an enterprise environment governed by strict security policies, PowerShell may run in **Constrained Language Mode**, potentially causing the following issues:
->
-> 1. **If using CMD (.bat): Script executes successfully but fails to write to `Path`**
->
->    The script completes file installation. Due to **Constrained Language Mode**, it cannot automatically update environment variables. Manually configure as follows:
->
->    - **Locate the installation directory**:
->      - Check if `uv` is available: Enter `uv --version` in CMD. If a version number appears, **only configure the Hanbao path**. If you receive `'uv' is not recognized as an internal or external command, operable program or batch file,` configure both paths.
->      - uv path (choose one based on installation location; fill if `uv` is unavailable): Typically `%USERPROFILE%\.local\bin`, `%USERPROFILE%\AppData\Local\uv`, or the `Scripts` folder within your Python installation directory
->      - Hanbao path: Typically `%USERPROFILE%\.hanbao\bin`.
->    - **Manually add to the system's Path environment variable**:
->      - Press `Win + R`, type `sysdm.cpl` and press Enter to open System Properties.
->      - Click "Advanced" → "Environment Variables".
->      - Under "System variables", locate and select `Path`, then click "Edit".
->      - Click "New", enter both directory paths sequentially, then click OK to save.
->
-> 2. **If using PowerShell (.ps1): Script execution interrupted**
->
-> Due to **Constrained Language Mode**, the script may fail to automatically download `uv`.
->
-> - **Manually install uv**: Refer to [GitHub Release](https://github.com/astral-sh/uv/releases) to download `uv.exe` and place it in `%USERPROFILE%\.local\bin` or `%USERPROFILE%\AppData\Local\uv`; or ensure Python is installed and run `python -m pip install -U uv`.
-> - **Configure `uv` environment variables**: Add the `uv` directory and `%USERPROFILE%\.hanbao\bin` to your system's `Path` variable.
-> - **Re-run the installation**: Open a new terminal and execute the installation script again to complete the `Hanbao` installation.
-> - **Configure the `Hanbao` environment variable**: Add `%USERPROFILE%\.hanbao\bin` to your system's `Path` variable.
-
-You can also specify options:
-
-**macOS / Linux:**
-
-```bash
-# Install a specific version
-curl -fsSL ... | bash -s -- --version 1.1.0
-
-# Install from source (dev/testing)
-curl -fsSL ... | bash -s -- --from-source
-```
-
-**Windows (PowerShell):**
-
-```powershell
-# Install a specific version
-.\install.ps1 -Version 0.0.2
-
-# Install from source (dev/testing)
-.\install.ps1 -FromSource
-```
-
-To upgrade, simply re-run the install command. To uninstall, run `hanbao uninstall`.
+To upgrade, install the newer `.fpk` (or re-pull the image); to uninstall, remove the app from the fnOS app center.
 
 ### Step 2: Initialize
 

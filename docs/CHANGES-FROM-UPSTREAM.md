@@ -1161,3 +1161,13 @@ _背景：I-037 风险项明确 `website/` 品牌残留留作后续单独审计�
 - [修改] `i18n/locales/{zh,en,pt-BR}.json` — 清理 orphaned key：`nav.benefit1~4*`/`nav.communityBenefits*`(en+zh)、`follow.*` 整块、`footer.social.{x,discord,dingtalk,xiaohongshu,wechat,douyin,youtube}`(仅留 github)。
 - [修改] `FAQ.tsx` — "help" FAQ 项移除上游 AgentScope DingTalk 群与 Discord 邀请社群链接，仅保留 hanbao GitHub Issues；清理对应 orphaned i18n key `homeFaq.troubleshooting.help.{s1Prefix,s1Mid,s1Suffix,dingtalk,discord}`。
 - [文档] `docs/known-issues.md` 登记 I-038。
+
+## 阶段 6.aj · website/ 文档正文安装命令修正（2026-08-31）
+
+_背景：I-038 仅覆盖 `website/src` 代码/文案层，`website/public/docs/*.md` 未纳入。验收发现 `quickstart`/`faq` 的安装命令指向 `qwenpaw.agentscope.io/install.*`、`faq` 下载页链 `qwenpaw.agentscope.io/downloads`，用户照做会装成上游 QwenPaw 而非 hanbao（功能性错误）。本轮最小改动修正。_
+
+- [修改] `website/public/docs/quickstart.en.md` + `quickstart.zh.md` — 「Option 2 / 方式二：脚本安装」整块（install.sh/ps1/bat 命令 + Windows LTSC 说明 + 版本/源码参数）替换为「fnOS app center (FPK) / 飞牛应用中心（FPK）」：从飞牛应用中心安装或侧载 `.fpk`，补 Docker 备选；加 `[hanbao modification]` 标注。
+- [修改] `website/public/docs/faq.en.md` + `faq.zh.md` — 「一键安装」条目改「fnOS app center (FPK)」并标注上游脚本不适用；自引「快速开始」链接由 `qwenpaw.agentscope.io/docs/quickstart` → 本地 `/docs/quickstart`；「下载页」链接由 `qwenpaw.agentscope.io/downloads` → `https://github.com/yijiuzero/chat-hanbao/releases`。
+- [修改] `website/public/docs/comparison.en.md` + `comparison.zh.md` — 安装方式对比「One-line script installation / 一行脚本安装」→「fnOS FPK install / 飞牛 FPK 安装」（hanbao 无上游式一键脚本）。
+- [保留] `release-notes/*`、`blog/*` 上游历史记录按 §8 保留；`pip install hanbao` 为正确包名不动；`practice-agent-team` 的 `higress.ai/hiclaw/install.sh` 第三方教程不动。
+- [文档] `docs/known-issues.md` 登记 I-039（🟢 已解决）。
