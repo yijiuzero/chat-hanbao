@@ -25,6 +25,7 @@ from .service_factories import (
     create_chat_service,
     create_channel_service,
     create_agent_config_watcher,
+    create_channel_health_service,  # [hanbao modification] stage 6.am
 )
 from .local_workspace import HanbaoLocalWorkspace
 from ..task_tracker import TaskTracker
@@ -118,6 +119,14 @@ class Workspace:
     def cron_manager(self):
         """Get cron manager instance from ServiceManager."""
         return self._service_manager.services.get("cron_manager")
+
+    # [hanbao modification] Channel online/offline monitor (stage 6.am).
+    @property
+    def channel_health_monitor(self):
+        """Get channel health monitor instance from ServiceManager."""
+        return self._service_manager.services.get(
+            "channel_health_monitor",
+        )
 
     # Non-service state
     @property
@@ -388,6 +397,22 @@ class Workspace:
                 stop_method="stop_all",
                 priority=30,
                 concurrent_init=False,
+            ),
+        )
+
+        # [hanbao modification] Priority 35: Channel health monitor — polls
+        # every channel's health_check() and actively reconnects the ones
+        # that went offline (upstream only retries on inbound messages).
+        sm.register(
+            ServiceDescriptor(
+                name="channel_health_monitor",
+                service_class=None,
+                post_init=create_channel_health_service,
+                start_method="start",
+                stop_method="stop",
+                priority=35,
+                concurrent_init=False,
+                optional=True,
             ),
         )
 

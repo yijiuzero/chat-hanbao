@@ -105,6 +105,37 @@ async def create_chat_service(ws: "Workspace", service):
     # pylint: enable=protected-access
 
 
+async def create_channel_health_service(ws: "Workspace", _):
+    """Create the channel health monitor for this workspace.
+
+    [hanbao modification] Stage 6.am — upstream only retries a channel
+    when an inbound message happens to fail, so a dropped long-poll or
+    WebSocket session can stay invisible for hours. This service polls
+    every channel on a fixed interval and actively reconnects the ones
+    that report unhealthy, with exponential backoff.
+
+    Args:
+        ws: Workspace instance
+        _: Unused service parameter
+
+    Returns:
+        ChannelHealthMonitor instance, or None when no channel manager
+        exists (no channels configured).
+    """
+    # pylint: disable=protected-access
+    cm = ws._service_manager.services.get("channel_manager")
+    if cm is None:
+        return None
+
+    from ..channels.health_monitor import ChannelHealthMonitor
+
+    monitor = ChannelHealthMonitor(cm, agent_id=ws.agent_id)
+    ws._service_manager.services["channel_health_monitor"] = monitor
+    logger.info("ChannelHealthMonitor created for agent '%s'", ws.agent_id)
+    return monitor
+    # pylint: enable=protected-access
+
+
 async def create_channel_service(ws: "Workspace", _):
     """Create channel manager if configured.
 

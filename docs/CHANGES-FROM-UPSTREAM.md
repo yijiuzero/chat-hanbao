@@ -1194,3 +1194,32 @@ _背景：6.ak 落地后实测发现 4 类「跨时间不连续」裂缝，用�
 - [修改] `src/hanbao/agents/memory/prompts.py` — `MEMORY_GUIDANCE_{ZH,EN}` 新增「⏳ 临时状态与过期计划」小节，明确临时身体状态(3-5 天自愈)/一次性计划(约一周过期)不要当作当前状况、不要隔几天主动追问，除非用户近期重新确认（治 ③④ 路径①侧）。
 - [验证] 两文件 `py_compile` 通过；独立单测覆盖：日期年龄计算、带日期+临时关键词≥3 天加「勿追问」、无日期+临时关键词硬提示、无日期+非临时通用提示、坏 tz 名回退不崩、英文关键词 IGNORECASE 命中、`ZoneInfo` 在装 `tzdata` 后正确解析 Asia/Shanghai。未构建（按纪律等用户「测一下」统一 rebuild）。
 - [影响] 纯记忆检索/写侧 hint 增强，不改写/删路径，无破坏性；新增 `_today_in_tz`/`_TRANSIENT_KEYWORDS` 均为模块内私有，零对外 API 变更。
+
+
+## 阶段 6.am · P0/P1 实现：记忆&档案面板 / 渠道健康 / 本地知识库 / 飞牛联动（2026-09-01）
+
+_背景：实现验收清单 P0（①记忆&档案可视化管理面板 ②渠道在线状态/健康页）与 P1（③家庭本地知识库 RAG ④飞牛生态联动）。全部走减法式新增，不改动上游记忆写路径、不绕过 file_guardian、新依赖零新增（R5 合规），数据不出 NAS。_
+
+- [新增] `src/hanbao/agents/memory/memory_browser.py` — 记忆&档案浏览器核心：解析 agent 记忆/MEMORY/PROFILE 条目，来源标签 `[user_stated]`/`[AI_inferred]`/`[AI_creative]`、`[已废弃]`、日期、过期/临时软提示（呼应 6.al）；单条删除与纠正（原子写 + 路径收口 + 乐观锁）。不触碰 ReMe 写路径、不绕过 file_guardian，仅限 agent 自身记忆保险库目录。
+- [新增] `src/hanbao/app/routers/memory_admin.py` — 记忆管理 API（受 auth 保护）：list/delete/update，复用 `memory_audit.MemoryAuditor` 写审计；路径经 `resolve_file` 收口防目录穿越。
+- [新增] `src/hanbao/app/channels/health_monitor.py` — 渠道健康监控：周期健康检查、最后心跳、重连计数、指数退避自动重连（断线主动重连不止收消息重试）；`redact()` 脱敏 token/secret 不回传前端。
+- [新增] `src/hanbao/app/routers/channel_status.py` — 渠道状态 API（受 auth）：wechat/qq/dingtalk/feishu/telegram 在线/离线/最后心跳/重连次数；手动重连入口。
+- [新增] `src/hanbao/rag/` 包（`__init__`/`config`/`service`/`store`/`bm25`/`extract`/`tokenizer`）— 家庭本地知识库：纯 Python BM25 + CJK 分词（uni/bigram），复用既有 `markitdown`（MIT）抽取，索引落工作区内 `.hanbao_knowledge/`。**零新第三方依赖、零网络调用**，数据不出 NAS，守住瘦身镜像目标。
+- [新增] `src/hanbao/app/routers/knowledge.py` — 知识库 API（受 auth）：配置/构建/状态/检索/源清单/清除。
+- [新增] `src/hanbao/agents/tools/knowledge_search.py` — `knowledge_search` 工具：对话中检索并引用本地知识库，返回 ToolChunk，未启用时优雅降级。
+- [新增] `src/hanbao/fnos/` 包（`__init__`/`config`/`client`）— 飞牛 fnOS 本地联动适配器：仅本地 `urllib` 调飞牛 API，token 只存工作区 secret 目录不回传前端；无官方第三方 API，默认关闭、失败优雅降级（见 I-040）。
+- [新增] `src/hanbao/app/routers/fnos.py` — 飞牛联动 API（受 auth）：状态/配置/影视库浏览/文件浏览/下载列表/媒体搜索。
+- [新增] `src/hanbao/agents/tools/fnos_media.py` — `search_fnos_media` 工具：联动飞牛影视库，未配置时返回优雅降级提示。
+- [修改] `src/hanbao/app/routers/__init__.py` — 挂载 `memory_admin`/`channel_status`/`knowledge`/`fnos` 四个 router（带 `[hanbao modification]`）。
+- [修改] `src/hanbao/agents/tools/__init__.py` — 注册 `knowledge_search`/`fnos_media` 两工具（带 `[hanbao modification]`）。
+- [修改] `src/hanbao/app/workspace/workspace.py` + `service_factories.py` — 注册 `health_monitor` 为 workspace 服务（priority 35，随 app 生命周期启动/停止），保持既有服务顺序不变（带 `[hanbao modification]`）。
+- [新增] `console/src/api/modules/{memory,channelHealth,knowledge,fnos}.ts` — 四个前端 API 客户端。
+- [新增] `console/src/pages/Settings/Memory/`、`Control/ChannelHealth/`、`Settings/Knowledge/`、`Settings/Fnos/` — 四个控制台独立入口页面，墨黑+朱砂红配色，仅显示 hanbao。
+- [修改] `console/src/layouts/registry/builtinRoutes.tsx` + `builtinMenu.ts` — 注册四个路由与菜单项（带 `[hanbao modification]`）。
+- [修改] `console/src/locales/zh.json` + `en.json` — 新增 nav 键与四页面完整双语文案（带 `[hanbao modification]`）。
+
+### 验证
+- [验证] 后端：py_compile 全部新文件通过；rag 端到端建索引+检索冒烟通过（CJK+BM25，无网络调用）；`fnos_media` 未配置降级路径返回正确；`ToolChunk` 构造运行通过；`health_monitor` 自动重连/脱敏单测通过；`memory_browser` 路径收口/筛选/废弃标记单测通过。
+- [验证] 前端：`tsc -b` 退出码 0，零类型错误；四页面 111 个 i18n 键 zh/en 全部存在。
+- [合规] 新文件均含 `[hanbao modification]`；`LICENSE`/`NOTICE`/红线文档零碰触；R5 零新 GPL/AGPL/SSPL 依赖（rag 纯 Python、fnos 仅用 stdlib urllib）；品牌面仅显示 hanbao、无「水墨/文人」写入用户可见面；`online.svg` 图标零碰触。
+- [说明] 按纪律未构建、未部署、未 push（等用户「测一下」统一 rebuild）。

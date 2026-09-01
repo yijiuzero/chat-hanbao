@@ -1235,3 +1235,24 @@ I-038 审计聚焦 `website/src` 代码/文案层，`website/public/docs/*.md`�
 ### 验收
 - `grep -rn "qwenpaw.agentscope.io/install\|qwenpaw.agentscope.io/downloads" website/public/docs/`：零命中。
 - 改动文件：`quickstart.en/zh.md`、`faq.en/zh.md`、`comparison.en/zh.md` 共 6 个。
+
+
+---
+
+### I-040 · P0/P1 功能已知限制与风险（2026-09-01）
+
+**严重度**：🟡 中 &nbsp;|&nbsp; **状态**：🟢 已记录（功能已实现，以下为设计性限制 / 待真机验证项） &nbsp;|&nbsp; **必须处理时机**：飞牛真机分发前
+
+### 现象 / 限制
+1. **RAG 仅词法检索（BM25）**：为守住「家庭数据不出 NAS」与瘦身镜像，未引入向量库 / embedding API。语义相近但字面不同的查询（如「电费多少」vs「这个月交了多少钱」）可能召回不全。属设计权衡，非缺陷。
+2. **fnOS 无官方第三方 API**：飞牛 fnOS 未公开官方开放 API，本实现按「仅本地网络调用飞牛内网 API」假设封装（端口/路径来自社区逆向，未官方确认）。默认关闭，调用失败优雅降级；真机须用户填写地址/端口并经 `working.secret` 存 token，尚未在真实设备上验证。
+3. **渠道健康检查依赖各渠道实现 `health_check`**：微信/QQ/钉钉/飞书/Telegram 若未实现 `health_check`，状态页回退为 unknown 且不触发自动重连（仅收消息重试路径仍可用）。
+4. **记忆面板编辑限于 agent 自身记忆保险库**：删除/纠正仅作用于 `<working>/memory|digest|PROFILE.md` 路径内，不触碰 ReMe 自主写路径（遵循 6.ak 治理边界）；跨 ReMe auto_dream 层的真删除核对需 fork ReMe，本轮未做。
+
+### 处理方案
+- 以上均为减法式新增的设计性限制，已在代码注释与 `docs/license-compliance.md` 约束内实现；不引入新依赖、不破坏既有路径。
+- fnOS 联动在真机验证前保持「默认关闭 + 优雅降级」，避免误连。
+
+### 验收
+- RAG：建索引 + 检索冒烟通过（CJK+BM25），无网络调用。
+- fnOS：未配置时 `search_fnos_media` 返回降级提示（已验证）；配置/媒体接口受 auth 保护。

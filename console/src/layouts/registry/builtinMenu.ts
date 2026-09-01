@@ -90,6 +90,16 @@ export const BUILTIN_MENU: MenuItem[] = [
     route: "core.cron-jobs",
     order: 30,
   },
+  // [hanbao modification] 2026-09-01: 渠道在线状态/健康页（P0-②）
+  {
+    id: "core.channel-health",
+    location: "primary.agentScoped",
+    parentId: "core.control-group",
+    label: navLabel("nav.channelHealth", "Channel Health"),
+    icon: SparkWifiLine,
+    route: "core.channel-health",
+    order: 40,
+  },
   {
 
   // agent-group
@@ -199,6 +209,34 @@ export const BUILTIN_MENU: MenuItem[] = [
     icon: SparkDebugLine,
     route: "core.debug",
     order: 100,
+  },
+  // [hanbao modification] 2026-09-01: 记忆档案面板 / 本地知识库 / 飞牛联动（P0-① / P1-③ / P1-④）
+  {
+    id: "core.memory",
+    location: "primary.settings",
+    parentId: "core.settings-group",
+    label: navLabel("nav.memory", "Memory & Profile"),
+    icon: SparkDataLine,
+    route: "core.memory",
+    order: 40,
+  },
+  {
+    id: "core.knowledge",
+    location: "primary.settings",
+    parentId: "core.settings-group",
+    label: navLabel("nav.knowledge", "Knowledge Base"),
+    icon: SparkMagicWandLine,
+    route: "core.knowledge",
+    order: 50,
+  },
+  {
+    id: "core.fnos",
+    location: "primary.settings",
+    parentId: "core.settings-group",
+    label: navLabel("nav.fnos", "fnOS Integration"),
+    icon: SparkLocalFileLine,
+    route: "core.fnos",
+    order: 60,
   },
 ];
 
