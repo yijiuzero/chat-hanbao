@@ -163,3 +163,16 @@ docs-site/
 # Not part of the distributable software.
 # ---------------------------------------------------------------------------
 .workbuddy/
+
+# ---------------------------------------------------------------------------
+# [hanbao modification] Local build artifacts & binaries (do not commit to git)
+# Regenerated locally / during docker build; too large or non-source to track.
+# NOTE: deploy/fpk/ SOURCE (manifest, cmd/, wizard/, docker/docker-compose.yaml,
+# docker/hanbao.env, app/NOTICE, app/CHANGES-FROM-UPSTREAM.md, app/ui/) stays tracked.
+# Only the generated image tar + the built .fpk package are ignored.
+# ---------------------------------------------------------------------------
+console/dist/
+deliverables/
+deploy/fpk/app/docker/*.tar
+deploy/tools/
+*.fpk
