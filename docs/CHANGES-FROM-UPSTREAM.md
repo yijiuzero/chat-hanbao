@@ -1182,3 +1182,15 @@ _背景：hanbao 记忆引擎为外部库 `reme-ai`（Apache-2.0，已确认可 
 - [说明] 未做：全量 per-fact 溯源(seq ID)、跨自主 dream 层的真删除核对、写时硬拒 `[AI_creative]`——这些需 fork `reme-ai` 拦截其内部写路径，对家庭单用户 NAS 性价比低，留作后续可选。
 - [说明] 需求 ② 的「删前核对原始对话」在本实现为写后快照 diff 软检测（记录被删 `[user_stated]` 行供回溯），非写前拦截；如要写前强拦截需 fork ReMe。
 - [文档] 本阶段改动加 `[hanbao modification]` 注释；未构建（待用户说「测一下」统一 rebuild）。
+
+## 阶段 6.al · 记忆连续性加固（时区修正 + 冲突/过期启发式，2026-09-01）
+
+_背景：6.ak 落地后实测发现 4 类「跨时间不连续」裂缝，用户拍板：不给记忆打机器 `[valid_until]` 标签，只做「让 LLM 拿到正确的今天 + 启发式软提示」，依赖 LLM 自身的时间推理。本轮落地 ② 时区修正 + ① 改口冲突 + ③④ 临时状态/过期计划 三条加固；proactive 模块经确认无旧记忆硬编码触发，不动。_
+
+- [修改] `src/hanbao/agents/memory/reme_light_memory_manager.py`
+  - **② 时区修正（关键 bug 修复）**：`_annotate_memory_dates` 原用 `datetime.date.today()` 取容器本地日期（常 UTC），GMT+8 用户会被算成「昨天」。新增 `_today_in_tz(user_timezone)` 用 `zoneinfo.ZoneInfo`（依赖既有依赖 `tzdata>=2024.1`，生产 venv 已带）按 `user_timezone`(IANA) 解析「今天」；解析失败优雅回退本地日期，不崩溃。函数签名加 `user_timezone` 参数，`memory_search`/`auto_memory_search` 两处调用传入 `self._user_timezone`。`__init__` 缓存 `self._user_timezone = getattr(load_config(), "user_timezone", None)`。
+  - **① 改口冲突消解**：`_MEMORY_SOURCE_HINT` 新增规则 ④——同一事实多个相互矛盾的 `[user_stated]` 版本（如先说住北京后改说住上海），以采集日期最新版本为准，旧版标 `[user_stated][已废弃]` 不再引用，不得新旧并存。
+  - **③④ 临时状态/过期计划启发式**：新增 `_TRANSIENT_KEYWORDS`（感冒/发烧/心情/计划/出差/旅行/搬家/cold/fever/plan/trip… 中英文）。`memory_search` 命中无日期且属临时状态/计划时，硬提示「临时健康状态通常 3-5 天自愈、一次性计划超约一周未提及即过期，默认按已恢复/已过期处理，勿主动追问『好了没/去了没』」；命中带日期且已隔 ≥3 天者追加「勿主动追问」提示。以上均为检索侧软提示，不引入机器有效期标签（用户拍板待定）。
+- [修改] `src/hanbao/agents/memory/prompts.py` — `MEMORY_GUIDANCE_{ZH,EN}` 新增「⏳ 临时状态与过期计划」小节，明确临时身体状态(3-5 天自愈)/一次性计划(约一周过期)不要当作当前状况、不要隔几天主动追问，除非用户近期重新确认（治 ③④ 路径①侧）。
+- [验证] 两文件 `py_compile` 通过；独立单测覆盖：日期年龄计算、带日期+临时关键词≥3 天加「勿追问」、无日期+临时关键词硬提示、无日期+非临时通用提示、坏 tz 名回退不崩、英文关键词 IGNORECASE 命中、`ZoneInfo` 在装 `tzdata` 后正确解析 Asia/Shanghai。未构建（按纪律等用户「测一下」统一 rebuild）。
+- [影响] 纯记忆检索/写侧 hint 增强，不改写/删路径，无破坏性；新增 `_today_in_tz`/`_TRANSIENT_KEYWORDS` 均为模块内私有，零对外 API 变更。

@@ -85,21 +85,59 @@ _MEMORY_SOURCE_HINT = (
     "与每日笔记，只存在于当轮对话，不得沉淀为记忆；"
     "② 压缩/做梦(dream)整合时保留原始来源标签不抹除，不得将 [AI_inferred] "
     "提升为 [user_stated]；③ 当 [user_stated] 与 [AI_inferred] 冲突时，"
-    "保留 [user_stated]、丢弃 [AI_inferred]。"
+    "保留 [user_stated]、丢弃 [AI_inferred]；④ 同一事实出现多个相互矛盾的"
+    "[user_stated] 版本时(如用户先说住北京后改说住上海)，以采集日期最新的"
+    "版本为准，旧版本标记 [user_stated][已废弃] 并不再引用，不得新旧并存。"
 )
 
 
-def _annotate_memory_dates(text: str) -> str:
+# [hanbao modification] Transient-state / time-bound-plan keyword set (req ②③④).
+# When a retrieved memory has no dated daily-note anchor yet clearly refers to
+# a short-lived condition or a one-off plan, we hard-prompt the model to treat
+# it as stale unless the user recently re-confirmed it. No machine [valid_until]
+# tag — relies on the model's own time reasoning plus a correct "today".
+_TRANSIENT_KEYWORDS = (
+    "感冒|发烧|发热|生病|住院|咳嗽|头痛|难受|累|疲劳|疲惫|"
+    "心情|情绪|焦虑|抑郁|低落|生气|难过|"
+    "计划|打算|准备去|要去|出差|旅行|旅游|搬家|换工作|离职|"
+    "cold|fever|sick|hospital|tired|exhausted|anxious|depressed|"
+    "plan|trip|travel|move|quit|resign"
+)
+
+
+def _today_in_tz(tz_name: "str | None") -> datetime.date:
+    """Resolve "today" in the user's IANA timezone, falling back to local.
+
+    Containers often run in UTC while the user is in GMT+8; using the local
+    (naive) date shifts every overnight memory by a day, so the model would
+    call yesterday's cold "today" (req ②). Resolve against user_timezone and
+    degrade gracefully if the tz db is missing.
+    """
+    if tz_name:
+        try:
+            from zoneinfo import ZoneInfo
+
+            return datetime.datetime.now(ZoneInfo(tz_name)).date()
+        except Exception:  # pragma: no cover - missing tzdata / bad name
+            logger.debug("user_timezone %r unresolved, fallback local", tz_name)
+    return datetime.date.today()
+
+
+def _annotate_memory_dates(
+    text: str,
+    user_timezone: "str | None" = None,
+) -> str:
     """Prepend a time-awareness note to memory search results.
 
     Scans for YYYY-MM-DD date tokens (typically from daily-note file
     paths like daily/2026-08-12.md) and tells the model how old the
     retrieved memory is, so it won't treat stale facts as the user's
-    current state.
+    current state. The reference "today" is resolved in the user's IANA
+    timezone so a GMT+8 user is never told a UTC container's "yesterday".
     """
     if not text:
         return text
-    today = datetime.date.today()
+    today = _today_in_tz(user_timezone)
     found: set[datetime.date] = set()
     for y, m, d in _DATE_RE.findall(text):
         try:
@@ -107,6 +145,16 @@ def _annotate_memory_dates(text: str) -> str:
         except ValueError:
             continue
     if not found:
+        # No date anchor: cannot assess age. If it reads like a transient
+        # state or a time-bound plan, hard-prompt staleness + no follow-up.
+        if re.search(_TRANSIENT_KEYWORDS, text, flags=re.IGNORECASE):
+            return (
+                "\n[记忆时间提示] 以下为检索到的历史记忆，且未带日期。"
+                "若涉及临时身体状态(如感冒/发烧，通常 3-5 天自愈)或"
+                "一次性计划(如出差/旅行/搬家，超过约一周未再提及即视为已过期)，"
+                "默认按'已恢复/已过期'处理，不要主动追问用户"
+                "'好了没/去了没'。引用为当前状态前请先确认。\n" + text
+            )
         return (
             "\n[记忆时间提示] 以下为检索到的历史记忆。引用用户当前状态"
             "(健康/情绪/位置等)前，请先确认该记忆是否仍为近期。\n" + text
@@ -120,10 +168,18 @@ def _annotate_memory_dates(text: str) -> str:
     else:
         age = f"约 {days_ago} 天前"
     dates_str = "、".join(sorted(d.strftime("%Y-%m-%d") for d in found))
+    # Reinforce the no-follow-up rule for explicit transient keywords that are
+    # already several days old.
+    extra = ""
+    if re.search(_TRANSIENT_KEYWORDS, text, flags=re.IGNORECASE) and days_ago >= 3:
+        extra = (
+            "该内容涉及临时状态/计划且已隔多日，"
+            "默认视为已恢复/已过期，勿主动追问。"
+        )
     return (
         f"\n[记忆时间提示] 以下记忆关联日期：{dates_str}"
         f"（最新为{age}，属历史记忆，不代表用户此刻状态）。"
-        "引用用户当前状态前请先确认是否仍为近期。\n" + text
+        "引用用户当前状态前请先确认是否仍为近期。" + extra + "\n" + text
     )
 
 
@@ -195,6 +251,13 @@ class ReMeLightMemoryManager(BaseMemoryManager):
         super().__init__(working_dir=working_dir, agent_id=agent_id)
         self._reme: "ReMe | None" = None
         self._reindex_lock = asyncio.Lock()
+        # [hanbao modification] req ② — cache the user's IANA timezone so the
+        # retrieval-side date annotation resolves "today" correctly even when
+        # the container itself runs in UTC.
+        try:
+            self._user_timezone = getattr(load_config(), "user_timezone", None)
+        except Exception:
+            self._user_timezone = None
         self._auditor = self._build_auditor()  # [hanbao modification] req ⑤/②
         logger.info(
             "ReMeLightMemoryManager init: agent_id=%s working_dir=%s",
@@ -535,7 +598,10 @@ class ReMeLightMemoryManager(BaseMemoryManager):
         answer = str(response.answer or "").strip()
         if not answer:
             answer = NO_MEMORY_RESULTS
-        answer = _annotate_memory_dates(answer)  # [hanbao modification]
+        answer = _annotate_memory_dates(  # [hanbao modification]
+            answer,
+            self._user_timezone,
+        )
         return _tool_chunk(answer, ok=response.success)
 
     async def summarize(
@@ -609,7 +675,10 @@ class ReMeLightMemoryManager(BaseMemoryManager):
         if not text:
             return None
 
-        text = _annotate_memory_dates(text)  # [hanbao modification]
+        text = _annotate_memory_dates(  # [hanbao modification]
+            text,
+            self._user_timezone,
+        )
 
         assistant_msg = self._build_auto_memory_search_msg(
             query=query,

@@ -21,6 +21,9 @@ MEMORY_GUIDANCE_ZH_TEMPLATE = """\
 ### 🕒 时间感知
 记忆可能来自不同日期。引用用户「当前」状态（健康、情绪、位置、正在做的事）前，先确认该记忆是否足够近期；旧每日笔记描述的是过去，不要据此推断用户此刻的状况。检索结果开头若标注了「记忆关联日期」，请以它为准。
 
+### ⏳ 临时状态与过期计划
+用户说过的临时身体状态（感冒/发烧等，通常 3-5 天自愈）或一次性计划（出差/旅行/搬家，约一周后若未再提及即视为已过期），不要当作当前状况，也不要在隔了几天后主动追问「好了没 / 去了没」。除非用户近期重新提及或确认，否则默认视为已恢复 / 已过期。 [hanbao modification] 记忆治理
+
 ### 🔍 检索工具
 `memory_search` 用于查你**精选的长期记忆** — 持久的偏好、用户/画像事实、已确定的决策与未完成的待办。当问题取决于这些内容时，优先用它：
 1. 对 MEMORY.md 和 `{daily_dir}/*.md` 运行 `memory_search`
@@ -47,6 +50,9 @@ So you usually don't need to maintain MEMORY.md by hand. Edit it directly only w
 
 ### 🕒 Time Awareness
 Memories may come from different dates. Before asserting the user's CURRENT state (health, mood, location, what they are doing), confirm the memory is recent; old daily notes describe the past and must not be used to infer the user's present condition. If a search result begins with a "[记忆时间提示] 关联日期" note, trust that date.
+
+### ⏳ Transient States & Stale Plans
+A transient health state the user mentioned (cold/fever, usually self-heals in 3-5 days) or a one-off plan (business trip/travel/move, treated as expired after ~a week with no further mention) is NOT their current condition, and do NOT proactively ask "are you better yet / did you go" days later. Unless the user recently re-mentions or re-confirms it, default to treating it as recovered/expired. [hanbao modification] memory governance
 
 ### 🔍 Retrieval Tool
 `memory_search` is your lookup for **curated long-term memory** — durable preferences, profile/personal facts, settled decisions, and open to-dos. Reach for it first when a question turns on one of these:
