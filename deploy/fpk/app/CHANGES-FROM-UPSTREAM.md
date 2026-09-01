@@ -1140,3 +1140,86 @@ _背景：全模块合规扫描发现 `hanbao.fpk` 未随附 LICENSE/NOTICE/CHAN
 - [修改] `console/src/layouts/constants.ts` — `PYPI_URL` 同上。
 - [修改] `src/hanbao/providers/openrouter_provider.py` — `HTTP-Referer` 由 `qwenpaw.agentscope.io` → `github.com/yijiuzero/chat-hanbao`（带 `[hanbao modification]` 标注）。
 - [文档] `docs/known-issues.md` 登记 I-037（🔴 合规红线，🟢 已解决）；`website/` 品牌残留留作后续单独审计。
+
+## 阶段 6.ai · website/ 文档站上游品牌残留审计与清理（2026-08-28）
+
+_背景：I-037 风险项明确 `website/` 品牌残留留作后续单独审计。本轮对 website/ 代码与文案层（index.html / config.ts / site.config.json / testimonials.ts / i18n locales / Nav·Footer·Contributors·FinalCTA·FAQ·QuickStart 组件 / Ecosystem·FollowUs）做减法式品牌清理，目标是消除一切暗示「hanbao 即上游 QwenPaw / 获阿里·通义背书」的对外展示。_
+
+- [修改] `website/index.html` — 删除可爬取上游元信息：`canonical` / `og:url` / `og:image`·`twitter:image` 指向 `qwenpaw.agentscope.io` 的链接改本地 `/hanbao_ip.png`；移除 3 个搜索引擎验证 token（Google/Bing/Baidu，属上游站点）。均加 `[hanbao modification]` 注释。
+- [修改] `website/src/config.ts` + `website/public/site.config.json` — `repoUrl` 由 `agentscope-ai/QwenPaw` → `github.com/yijiuzero/chat-hanbao`；`modelScopeForkUrl` target 由 `AgentScope/QwenPaw` → `yijiuzero/chat-hanbao`（hanbao 尚未发布 ModelScope studio，作占位，见 I-038）。
+- [修改] `website/src/data/testimonials.ts` — 移除 mock 证言中 "Python + AgentScope" 上游背书措辞。
+- [修改] `website/src/i18n/locales/{zh,en,pt-BR}.json` — `clientVoices` 中阿里云/通义背书（t1 头衔、t2、t6 文本）移除；`footer.copyright` 由虚假法律主体 "© 2026 Qwenpaw PRIVATE LIMITED" → "© 2026 hanbao"；`heroLine`（三语种）由 "Qwen Personal Agent Workstation / Qwen 的智识，Paw 的温度" 改为中性表述 "个人智能体工作台 / 有温度的数码陪伴"（用户拍板：去掉 Qwen 关联，R4 边界）。
+- [修改] `Nav.tsx`/`Footer.tsx`/`Contributors.tsx`/`FinalCTA.tsx`/`FAQ.tsx`/`QuickStart.tsx` — GitHub / releases / issues 链接由 `agentscope-ai/QwenPaw` → `yijiuzero/chat-hanbao`；QuickStart 安装脚本由 `qwenpaw.agentscope.io/install.*` → `raw.githubusercontent.com/yijiuzero/chat-hanbao/main/scripts/install.*`；各文件加 `[hanbao modification]` 头注释。
+- [修改] `QuickStart.tsx` — `DOCKER_IMAGE` 由 `agentscope/hanbao:latest` → `hanbao:latest`（上游 `agentscope` 命名空间非 hanbao 所有，FPK 已内置镜像）。
+- [修改] `Downloads/constants.ts` — `CDN_BASE` 由 `https://download.qwenpaw.agentscope.io` → `https://raw.githubusercontent.com/yijiuzero/chat-hanbao/main`（hanbao 无自建 CDN，下载元数据托管为后续 TODO）。
+- [删除] `NavCommunityBenefits.tsx` — 含上游 `opc.aliyun.com/qwenpaw` 阿里权益页链接；导航「社区福利」入口整体移除，Nav.tsx 去除对应 import/状态/三处面板与点击外部/ESC 逻辑。
+- [修改] `FollowUs.tsx`/`Footer.tsx` — 移除上游 `@agentscope_ai` X 账号链接（Footer 同步移除未使用的 `XIcon` import）。
+- [保留] `public/docs`、`public/blog`、`public/release-notes` 中的上游仓库/issue 链接与 `qwenpaw.agentscope.io` 文档链接 — 按 §8 必须展示上游出处，作署名保留，不在本轮改动。
+- [保留 §8] `FeatureDemoGallery.tsx` 8 处文档 URL（`qwenpaw.agentscope.io/docs/...`）— 用户拍板按 §8 保留上游署名，不改代码（见 I-038）。
+- [删除] `FollowUs.tsx` — 含上游小红书链接 + Discord/DingTalk 社区二维码，无任何引用，整体删除。
+- [修改] `Footer.tsx` — `socialLinks` 仅保留 GitHub(`yijiuzero/chat-hanbao`)，移除 Discord/钉钉/小红书/微信/抖音 5 项与 alicdn qrCode，清理未使用 icon import。
+- [修改] `i18n/locales/{zh,en,pt-BR}.json` — 清理 orphaned key：`nav.benefit1~4*`/`nav.communityBenefits*`(en+zh)、`follow.*` 整块、`footer.social.{x,discord,dingtalk,xiaohongshu,wechat,douyin,youtube}`(仅留 github)。
+- [修改] `FAQ.tsx` — "help" FAQ 项移除上游 AgentScope DingTalk 群与 Discord 邀请社群链接，仅保留 hanbao GitHub Issues；清理对应 orphaned i18n key `homeFaq.troubleshooting.help.{s1Prefix,s1Mid,s1Suffix,dingtalk,discord}`。
+- [文档] `docs/known-issues.md` 登记 I-038。
+
+## 阶段 6.aj · website/ 文档正文安装命令修正（2026-08-31）
+
+_背景：I-038 仅覆盖 `website/src` 代码/文案层，`website/public/docs/*.md` 未纳入。验收发现 `quickstart`/`faq` 的安装命令指向 `qwenpaw.agentscope.io/install.*`、`faq` 下载页链 `qwenpaw.agentscope.io/downloads`，用户照做会装成上游 QwenPaw 而非 hanbao（功能性错误）。本轮最小改动修正。_
+
+- [修改] `website/public/docs/quickstart.en.md` + `quickstart.zh.md` — 「Option 2 / 方式二：脚本安装」整块（install.sh/ps1/bat 命令 + Windows LTSC 说明 + 版本/源码参数）替换为「fnOS app center (FPK) / 飞牛应用中心（FPK）」：从飞牛应用中心安装或侧载 `.fpk`，补 Docker 备选；加 `[hanbao modification]` 标注。
+- [修改] `website/public/docs/faq.en.md` + `faq.zh.md` — 「一键安装」条目改「fnOS app center (FPK)」并标注上游脚本不适用；自引「快速开始」链接由 `qwenpaw.agentscope.io/docs/quickstart` → 本地 `/docs/quickstart`；「下载页」链接由 `qwenpaw.agentscope.io/downloads` → `https://github.com/yijiuzero/chat-hanbao/releases`。
+- [修改] `website/public/docs/comparison.en.md` + `comparison.zh.md` — 安装方式对比「One-line script installation / 一行脚本安装」→「fnOS FPK install / 飞牛 FPK 安装」（hanbao 无上游式一键脚本）。
+- [保留] `release-notes/*`、`blog/*` 上游历史记录按 §8 保留；`pip install hanbao` 为正确包名不动；`practice-agent-team` 的 `higress.ai/hiclaw/install.sh` 第三方教程不动。
+- [文档] `docs/known-issues.md` 登记 I-039（🟢 已解决）。
+
+## 阶段 6.ak · 记忆模块治理（来源标签 + 审计轨迹，2026-08-31）
+
+_背景：hanbao 记忆引擎为外部库 `reme-ai`（Apache-2.0，已确认可 fork/修改且许可证与 hanbao 兼容）。记忆约 90% 由 ReMe 自主 `auto_memory`/`auto_dream` 写入，hanbao 不拥有其写路径，故采用「hint 引导 + 审计日志」近似实现用户提出的 5 项记忆治理需求，而非 fork ReMe。后续如需写时硬拒/删前核对需 fork ReMe。_
+
+- [新增] `src/hanbao/agents/memory/memory_audit.py` — `MemoryAuditor`：追加式 JSONL 审计日志（`memory_audit.jsonl`）+ 上次快照（`memory_snapshot.json`），存于 `<working_dir>/.hanbao_memory_audit/`。覆盖需求 ⑤（谁/何时写、谁删，可 `query()` 回溯）与 ② 软校验（检测 `[user_stated]` 行被删）。不依赖 git（瘦身生产镜像已移除 git 二进制），零密钥风险。提供 env 逃生舱 `HANBAO_MEMORY_AUDIT_DISABLE=1`。
+- [修改] `src/hanbao/agents/memory/reme_light_memory_manager.py` — 新增 `_MEMORY_SOURCE_HINT`，注入 `auto_memory` 与 `auto_dream` 的 `memory_hint`（与既有 `_MEMORY_TIME_HINT` 同机制叠加）。要求 ReMe 为每条事实标 `[user_stated]`/`[AI_inferred]`/`[AI_creative]`、拒写 `[AI_creative]`/角色扮演、压缩(dream)保留来源标签不把 `[AI_inferred]` 提升为 `[user_stated]`、冲突保留 `[user_stated]`。覆盖需求 ①③④。实例化 `MemoryAuditor`，并在 `_append_reme_job_result_to_inbox`（auto_memory/auto_dream/auto_resource 写后）以 `asyncio.to_thread` 调 `scan_and_record`，全程 try/except 不阻断记忆主流程。
+- [修改] `src/hanbao/agents/memory/prompts.py` — `MEMORY_GUIDANCE_{ZH,EN}` 增补来源标签约定（路径①：智能体直接 `edit_file` 维护 `PROFILE.md`/`MEMORY.md` 时同样打 `[user_stated]`/`[AI_inferred]`，且不将创作/虚构写进记忆）。
+- [说明] 未做：全量 per-fact 溯源(seq ID)、跨自主 dream 层的真删除核对、写时硬拒 `[AI_creative]`——这些需 fork `reme-ai` 拦截其内部写路径，对家庭单用户 NAS 性价比低，留作后续可选。
+- [说明] 需求 ② 的「删前核对原始对话」在本实现为写后快照 diff 软检测（记录被删 `[user_stated]` 行供回溯），非写前拦截；如要写前强拦截需 fork ReMe。
+- [文档] 本阶段改动加 `[hanbao modification]` 注释；未构建（待用户说「测一下」统一 rebuild）。
+
+## 阶段 6.al · 记忆连续性加固（时区修正 + 冲突/过期启发式，2026-09-01）
+
+_背景：6.ak 落地后实测发现 4 类「跨时间不连续」裂缝，用户拍板：不给记忆打机器 `[valid_until]` 标签，只做「让 LLM 拿到正确的今天 + 启发式软提示」，依赖 LLM 自身的时间推理。本轮落地 ② 时区修正 + ① 改口冲突 + ③④ 临时状态/过期计划 三条加固；proactive 模块经确认无旧记忆硬编码触发，不动。_
+
+- [修改] `src/hanbao/agents/memory/reme_light_memory_manager.py`
+  - **② 时区修正（关键 bug 修复）**：`_annotate_memory_dates` 原用 `datetime.date.today()` 取容器本地日期（常 UTC），GMT+8 用户会被算成「昨天」。新增 `_today_in_tz(user_timezone)` 用 `zoneinfo.ZoneInfo`（依赖既有依赖 `tzdata>=2024.1`，生产 venv 已带）按 `user_timezone`(IANA) 解析「今天」；解析失败优雅回退本地日期，不崩溃。函数签名加 `user_timezone` 参数，`memory_search`/`auto_memory_search` 两处调用传入 `self._user_timezone`。`__init__` 缓存 `self._user_timezone = getattr(load_config(), "user_timezone", None)`。
+  - **① 改口冲突消解**：`_MEMORY_SOURCE_HINT` 新增规则 ④——同一事实多个相互矛盾的 `[user_stated]` 版本（如先说住北京后改说住上海），以采集日期最新版本为准，旧版标 `[user_stated][已废弃]` 不再引用，不得新旧并存。
+  - **③④ 临时状态/过期计划启发式**：新增 `_TRANSIENT_KEYWORDS`（感冒/发烧/心情/计划/出差/旅行/搬家/cold/fever/plan/trip… 中英文）。`memory_search` 命中无日期且属临时状态/计划时，硬提示「临时健康状态通常 3-5 天自愈、一次性计划超约一周未提及即过期，默认按已恢复/已过期处理，勿主动追问『好了没/去了没』」；命中带日期且已隔 ≥3 天者追加「勿主动追问」提示。以上均为检索侧软提示，不引入机器有效期标签（用户拍板待定）。
+- [修改] `src/hanbao/agents/memory/prompts.py` — `MEMORY_GUIDANCE_{ZH,EN}` 新增「⏳ 临时状态与过期计划」小节，明确临时身体状态(3-5 天自愈)/一次性计划(约一周过期)不要当作当前状况、不要隔几天主动追问，除非用户近期重新确认（治 ③④ 路径①侧）。
+- [验证] 两文件 `py_compile` 通过；独立单测覆盖：日期年龄计算、带日期+临时关键词≥3 天加「勿追问」、无日期+临时关键词硬提示、无日期+非临时通用提示、坏 tz 名回退不崩、英文关键词 IGNORECASE 命中、`ZoneInfo` 在装 `tzdata` 后正确解析 Asia/Shanghai。未构建（按纪律等用户「测一下」统一 rebuild）。
+- [影响] 纯记忆检索/写侧 hint 增强，不改写/删路径，无破坏性；新增 `_today_in_tz`/`_TRANSIENT_KEYWORDS` 均为模块内私有，零对外 API 变更。
+
+
+## 阶段 6.am · P0/P1 实现：记忆&档案面板 / 渠道健康 / 本地知识库 / 飞牛联动（2026-09-01）
+
+_背景：实现验收清单 P0（①记忆&档案可视化管理面板 ②渠道在线状态/健康页）与 P1（③家庭本地知识库 RAG ④飞牛生态联动）。全部走减法式新增，不改动上游记忆写路径、不绕过 file_guardian、新依赖零新增（R5 合规），数据不出 NAS。_
+
+- [新增] `src/hanbao/agents/memory/memory_browser.py` — 记忆&档案浏览器核心：解析 agent 记忆/MEMORY/PROFILE 条目，来源标签 `[user_stated]`/`[AI_inferred]`/`[AI_creative]`、`[已废弃]`、日期、过期/临时软提示（呼应 6.al）；单条删除与纠正（原子写 + 路径收口 + 乐观锁）。不触碰 ReMe 写路径、不绕过 file_guardian，仅限 agent 自身记忆保险库目录。
+- [新增] `src/hanbao/app/routers/memory_admin.py` — 记忆管理 API（受 auth 保护）：list/delete/update，复用 `memory_audit.MemoryAuditor` 写审计；路径经 `resolve_file` 收口防目录穿越。
+- [新增] `src/hanbao/app/channels/health_monitor.py` — 渠道健康监控：周期健康检查、最后心跳、重连计数、指数退避自动重连（断线主动重连不止收消息重试）；`redact()` 脱敏 token/secret 不回传前端。
+- [新增] `src/hanbao/app/routers/channel_status.py` — 渠道状态 API（受 auth）：wechat/qq/dingtalk/feishu/telegram 在线/离线/最后心跳/重连次数；手动重连入口。
+- [新增] `src/hanbao/rag/` 包（`__init__`/`config`/`service`/`store`/`bm25`/`extract`/`tokenizer`）— 家庭本地知识库：纯 Python BM25 + CJK 分词（uni/bigram），复用既有 `markitdown`（MIT）抽取，索引落工作区内 `.hanbao_knowledge/`。**零新第三方依赖、零网络调用**，数据不出 NAS，守住瘦身镜像目标。
+- [新增] `src/hanbao/app/routers/knowledge.py` — 知识库 API（受 auth）：配置/构建/状态/检索/源清单/清除。
+- [新增] `src/hanbao/agents/tools/knowledge_search.py` — `knowledge_search` 工具：对话中检索并引用本地知识库，返回 ToolChunk，未启用时优雅降级。
+- [新增] `src/hanbao/fnos/` 包（`__init__`/`config`/`client`）— 飞牛 fnOS 本地联动适配器：仅本地 `urllib` 调飞牛 API，token 只存工作区 secret 目录不回传前端；无官方第三方 API，默认关闭、失败优雅降级（见 I-040）。
+- [新增] `src/hanbao/app/routers/fnos.py` — 飞牛联动 API（受 auth）：状态/配置/影视库浏览/文件浏览/下载列表/媒体搜索。
+- [新增] `src/hanbao/agents/tools/fnos_media.py` — `search_fnos_media` 工具：联动飞牛影视库，未配置时返回优雅降级提示。
+- [修改] `src/hanbao/app/routers/__init__.py` — 挂载 `memory_admin`/`channel_status`/`knowledge`/`fnos` 四个 router（带 `[hanbao modification]`）。
+- [修改] `src/hanbao/agents/tools/__init__.py` — 注册 `knowledge_search`/`fnos_media` 两工具（带 `[hanbao modification]`）。
+- [修改] `src/hanbao/app/workspace/workspace.py` + `service_factories.py` — 注册 `health_monitor` 为 workspace 服务（priority 35，随 app 生命周期启动/停止），保持既有服务顺序不变（带 `[hanbao modification]`）。
+- [新增] `console/src/api/modules/{memory,channelHealth,knowledge,fnos}.ts` — 四个前端 API 客户端。
+- [新增] `console/src/pages/Settings/Memory/`、`Control/ChannelHealth/`、`Settings/Knowledge/`、`Settings/Fnos/` — 四个控制台独立入口页面，墨黑+朱砂红配色，仅显示 hanbao。
+- [修改] `console/src/layouts/registry/builtinRoutes.tsx` + `builtinMenu.ts` — 注册四个路由与菜单项（带 `[hanbao modification]`）。
+- [修改] `console/src/locales/zh.json` + `en.json` — 新增 nav 键与四页面完整双语文案（带 `[hanbao modification]`）。
+
+### 验证
+- [验证] 后端：py_compile 全部新文件通过；rag 端到端建索引+检索冒烟通过（CJK+BM25，无网络调用）；`fnos_media` 未配置降级路径返回正确；`ToolChunk` 构造运行通过；`health_monitor` 自动重连/脱敏单测通过；`memory_browser` 路径收口/筛选/废弃标记单测通过。
+- [验证] 前端：`tsc -b` 退出码 0，零类型错误；四页面 111 个 i18n 键 zh/en 全部存在。
+- [合规] 新文件均含 `[hanbao modification]`；`LICENSE`/`NOTICE`/红线文档零碰触；R5 零新 GPL/AGPL/SSPL 依赖（rag 纯 Python、fnos 仅用 stdlib urllib）；品牌面仅显示 hanbao、无「水墨/文人」写入用户可见面；`online.svg` 图标零碰触。
+- [说明] 按纪律未构建、未部署、未 push（等用户「测一下」统一 rebuild）。
