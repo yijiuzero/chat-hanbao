@@ -18,8 +18,6 @@ import { PageHeader } from "@/components/PageHeader";
 import { useAppMessage } from "../../../hooks/useAppMessage";
 import styles from "./index.module.less";
 
-type FilterType = "all" | "builtin" | "custom";
-
 function ChannelsPage() {
   const { t } = useTranslation();
   const { message } = useAppMessage();
@@ -31,7 +29,6 @@ function ChannelsPage() {
     loading,
     fetchChannels,
   } = useChannels();
-  const [filter, setFilter] = useState<FilterType>("all");
   const [saving, setSaving] = useState(false);
   const [activeKey, setActiveKey] = useState<ChannelKey | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -65,9 +62,6 @@ function ChannelsPage() {
 
     orderedKeys.forEach((key) => {
       const config = channels[key] || { enabled: false, bot_prefix: "" };
-      const builtin = isBuiltin(key);
-      if (filter === "builtin" && !builtin) return;
-      if (filter === "custom" && builtin) return;
       if (config.enabled) {
         enabledCards.push({ key, config });
       } else {
@@ -76,7 +70,7 @@ function ChannelsPage() {
     });
 
     return { enabledCards, disabledCards };
-  }, [channels, orderedKeys, filter, isBuiltin]);
+  }, [channels, orderedKeys]);
 
   const handleCardClick = useCallback(
     (key: ChannelKey) => {
@@ -141,32 +135,12 @@ function ChannelsPage() {
 
   const activeLabel = activeKey ? getChannelLabel(activeKey, t) : "";
 
-  const FILTER_TABS: { key: FilterType; label: string }[] = [
-    { key: "all", label: t("channels.filterAll") },
-    { key: "builtin", label: t("channels.builtin") },
-    { key: "custom", label: t("channels.custom") },
-  ];
-
   return (
     <div className={styles.channelsPage}>
+      {/* [hanbao modification] removed 全部/内置/自定义 filter tabs; show all channels */}
       <PageHeader
         className={styles.pageHeader}
         items={[{ title: t("nav.control") }, { title: t("channels.title") }]}
-        center={
-          <div className={styles.filterTabs}>
-            {FILTER_TABS.map(({ key, label }) => (
-              <button
-                key={key}
-                className={`${styles.filterTab} ${
-                  filter === key ? styles.filterTabActive : ""
-                }`}
-                onClick={() => setFilter(key)}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        }
         extra={
           <Space size={8}>
             <Badge dot={pendingCount > 0} offset={[-4, 4]}>
