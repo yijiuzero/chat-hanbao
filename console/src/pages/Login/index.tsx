@@ -135,6 +135,7 @@ export default function LoginPage() {
             }}
           />
           <div style={{ position: "relative" }}>
+            {/* [hanbao modification] brand seal: hanbao initial "h" as a vermilion ink-stamp */}
             <span
               aria-hidden
               style={{
@@ -146,8 +147,15 @@ export default function LoginPage() {
                 borderRadius: 8,
                 border: "1.5px solid rgba(242,238,228,0.55)",
                 transform: "rotate(-5deg)",
+                color: "#C0392B",
+                fontFamily: "var(--font-serif)",
+                fontSize: 28,
+                fontWeight: 700,
+                lineHeight: 1,
               }}
-            />
+            >
+              h
+            </span>
           </div>
           <div style={{ position: "relative" }}>
             <h1
