@@ -4,7 +4,7 @@
 
 Thank you for your interest in contributing to Hanbao! Hanbao is an open-source **personal AI assistant** that runs in your own environment—on your machine or in the cloud. It connects to DingTalk, Feishu, QQ, Discord, iMessage, and other chat apps, supports scheduled tasks and heartbeat, and extends its capabilities through **Skills**. We warmly welcome contributions that help make Hanbao more useful for everyone: whether you add a new channel, a new model provider, a Skill, improve docs, or fix bugs.
 
-**Quick links:** [GitHub](https://github.com/agentscope-ai/QwenPaw) · [Docs](https://qwenpaw.agentscope.io/) · [License: Apache 2.0](LICENSE)
+**Quick links:** [GitHub](https://github.com/yijiuzero/chat-hanbao) · [Repository](https://github.com/yijiuzero/chat-hanbao) · [License: Apache 2.0](LICENSE)
 
 ---
 
@@ -16,7 +16,7 @@ To keep collaboration smooth and maintain quality, please follow these guideline
 
 Before starting:
 
-- **Check [Open Issues](https://github.com/agentscope-ai/QwenPaw/issues)** and any [Projects](https://github.com/agentscope-ai/QwenPaw/projects) or roadmap labels.
+- **Check [Open Issues](https://github.com/yijiuzero/chat-hanbao/issues)** and any [Projects](https://github.com/yijiuzero/chat-hanbao/projects) or roadmap labels.
 - **If a related issue exists** and is open or unassigned: comment to say you want to work on it to avoid duplicate effort.
 - **If no related issue exists**: open a new issue describing your proposal. The maintainers will respond and can help align with the project direction.
 
@@ -195,7 +195,7 @@ If you add or change platform support, please test on the affected OS and mentio
 ### Other Contributions
 
 - **MCP (Model Context Protocol):** Hanbao supports runtime **MCP tool** discovery and hot-plug. Contributing new MCP servers or tools (or docs on how to attach them) helps users extend the agent without changing core code.
-- **Documentation:** Fixes and improvements to [the docs](https://qwenpaw.agentscope.io/) (under `website/public/docs/`) and README are always welcome.
+- **Documentation:** Fixes and improvements to [the docs](https://github.com/yijiuzero/chat-hanbao) (under `website/public/docs/`) and README are always welcome.
 - **Bug fixes and refactors:** Small fixes, clearer error messages, and refactors that keep behavior the same are valuable. Prefer opening an issue for larger refactors so we can align on approach.
 - **Examples and workflows:** Tutorials or example workflows (e.g. “daily digest to DingTalk”, “local model + cron”) can be documented or linked from the repo/docs.
 - **Any other useful things!**
@@ -224,8 +224,8 @@ If you add or change platform support, please test on the affected OS and mentio
 
 ## Getting Help
 
-- **Discussions:** [GitHub Discussions](https://github.com/agentscope-ai/QwenPaw/discussions)
-- **Bugs and features:** [GitHub Issues](https://github.com/agentscope-ai/QwenPaw/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/yijiuzero/chat-hanbao/discussions)
+- **Bugs and features:** [GitHub Issues](https://github.com/yijiuzero/chat-hanbao/issues)
 - **Community:** DingTalk group (see [README](README.md)) and [Discord](https://discord.gg/eYMpfnkG8h)
 
 Thank you for contributing to Hanbao. Your work helps make it a better assistant for everyone. 🐾

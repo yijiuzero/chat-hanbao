@@ -4,7 +4,7 @@
 
 感谢你对 Hanbao 的关注！Hanbao 是一个开源的**个人 AI 助手**，可以在你自己的环境中运行——无论是你的机器还是云端。它可以连接钉钉、飞书、QQ、Discord、iMessage 等聊天应用，支持定时任务和心跳机制，并通过 **Skills** 扩展其能力。我们热烈欢迎能让 Hanbao 对所有人更有用的贡献：无论是添加新的频道、新的模型提供商、Skill，改进文档，还是修复 bug。
 
-**快速链接：** [GitHub](https://github.com/agentscope-ai/QwenPaw) · [文档](https://qwenpaw.agentscope.io/) · [许可证：Apache 2.0](LICENSE)
+**快速链接：** [GitHub](https://github.com/yijiuzero/chat-hanbao) · [仓库](https://github.com/yijiuzero/chat-hanbao) · [许可证：Apache 2.0](LICENSE)
 
 ---
 
@@ -16,7 +16,7 @@
 
 在开始之前：
 
-- **检查 [Open Issues](https://github.com/agentscope-ai/QwenPaw/issues)** 以及任何 [Projects](https://github.com/agentscope-ai/QwenPaw/projects) 或路线图标签。
+- **检查 [Open Issues](https://github.com/yijiuzero/chat-hanbao/issues)** 以及任何 [Projects](https://github.com/yijiuzero/chat-hanbao/projects) 或路线图标签。
 - **如果存在相关 issue** 且处于开放或未分配状态：发表评论表示你想要处理它，以避免重复工作。
 - **如果不存在相关 issue**：创建一个新 issue 描述你的提案。维护者会回复并帮助与项目方向对齐。
 
@@ -196,7 +196,7 @@ Hanbao 旨在在 **Windows**、**Linux** 和 **macOS** 上运行。欢迎改进�
 ### 其他贡献
 
 - **MCP（模型上下文协议）：** Hanbao 支持运行时 **MCP 工具**发现和热插拔。贡献新的 MCP 服务器或工具（或关于如何附加它们的文档）可以帮助用户扩展 agent 而无需更改核心代码。
-- **文档：** 对 [文档](https://qwenpaw.agentscope.io/)（位于 `website/public/docs/` 下）和 README 的修复和改进始终受欢迎。
+- **文档：** 对 [仓库](https://github.com/yijiuzero/chat-hanbao)（位于 `website/public/docs/` 下）和 README 的修复和改进始终受欢迎。
 - **Bug 修复和重构：** 小的修复、更清晰的错误消息以及保持行为相同的重构都很有价值。对于较大的重构，最好先创建 issue，以便我们可以就方法达成一致。
 - **示例和工作流程：** 教程或示例工作流程（如"每日摘要到钉钉"、"本地模型 + cron"）可以记录或从仓库/文档链接。
 - **任何其他有用的东西！**
@@ -226,8 +226,8 @@ Hanbao 旨在在 **Windows**、**Linux** 和 **macOS** 上运行。欢迎改进�
 
 ## 获取帮助
 
-- **讨论：** [GitHub Discussions](https://github.com/agentscope-ai/QwenPaw/discussions)
-- **Bug 和功能：** [GitHub Issues](https://github.com/agentscope-ai/QwenPaw/issues)
+- **讨论：** [GitHub Discussions](https://github.com/yijiuzero/chat-hanbao/discussions)
+- **Bug 和功能：** [GitHub Issues](https://github.com/yijiuzero/chat-hanbao/issues)
 - **社区：** 钉钉群（见 [README](README_zh.md)）和 [Discord](https://discord.gg/eYMpfnkG8h)
 
 感谢你为 Hanbao 贡献代码。你的工作帮助它成为每个人更好的助手。🐾

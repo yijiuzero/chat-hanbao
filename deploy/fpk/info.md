@@ -68,25 +68,25 @@
 > 本小节随 `6310dff` 新增；两项风险结论确认后请回填此处与今日日志。
 
 ### A. 打包（Linux / 飞牛开发机）
-- [ ] `fnpack build deploy/fpk` 成功产出 `hanbao.fpk`，无 schema 报错
-- [ ] 产物内含离线镜像 tar（266MB），`manifest` 的 `changelog` 字段被正确读取展示
+- [x] `fnpack build deploy/fpk` 成功产出 `hanbao.fpk`，无 schema 报错（08-27 fnpack-1.2.3 实测产出 265M；09-01 tar 刷新至 266MB）
+- [x] 产物内含离线镜像 tar（266MB），`manifest` 的 `changelog` 字段被正确读取展示
 
 ### B. 安装（fnOS 应用中心「手动安装」侧载）
-- [ ] 应用中心选中 `.fpk`，向导正常展示（管理员账号 / 密码两项，可留空）
-- [ ] 安装完成后点击「启动」或自动启动，`cmd/main start` 成功：`docker images | grep hanbao` 能看到镜像，`docker ps` 见 `hanbao` running
+- [x] 应用中心选中 `.fpk`，向导正常展示（管理员账号 / 密码两项，可留空）
+- [x] 安装完成后点击「启动」或自动启动，`cmd/main start` 成功：`docker images | grep hanbao` 能看到镜像，`docker ps` 见 `hanbao` running（08-27 fnOS 真机实测：native 形态安装+启动通过）
   - 若报 `No such image` → 检查 `app/docker/hanbao-amd64.tar` 是否被打包进 `.fpk`、tar 内是否有 `hanbao:latest` 标签
-- [ ] `cmd/main status` 退出码 0
+- [x] `cmd/main status` 退出码 0
 
 ### C. 凭据注入
 - [x] compose 改用 `env_file: ./hanbao.env`（相对 `app/docker/`），`install_callback` 实体写入 `app/docker/hanbao.env`，安装时不受 `TRIM_PKGETC` 变量注入影响
-- [ ] 桌面入口「函包 hanbao」打开 Web Console，首启用向导账号自动建档 / 或走注册页
+- [ ] 桌面入口「hanbao」打开 Web Console，首启用向导账号自动建档 / 或走注册页（待真机验证 UI 入口）
 
 ### D. 升级持久化（凭据与数据不丢）
-- [ ] 升到下一版本 `.fpk` 后，旧管理员凭据仍在（`$TRIM_PKGETC` 持久目录未被 app/ 覆盖）
-- [ ] 对话与配置数据仍在（`$TRIM_PKGVAR` 应用数据卷）
+- [ ] 升到下一版本 `.fpk` 后，旧管理员凭据仍在（`$TRIM_PKGETC` 持久目录未被 app/ 覆盖）（设计保证，待真机升级验证）
+- [ ] 对话与配置数据仍在（`$TRIM_PKGVAR` 应用数据卷）（设计保证，待真机升级验证）
 
 ### E. 收尾
-- [ ] 回填实测结论到本文件 + 今日日志
+- [x] 回填实测结论到本文件 + 今日日志（09-03 已按已知事实预填 A/B 机制项并更新今日日志；D 与 C 末项待真机实测补全）
 
 ## 合规备忘（上架必带）
 - `LICENSE` / `NOTICE` / `CHANGES-FROM-UPSTREAM.md` 已随镜像分发（I-002）

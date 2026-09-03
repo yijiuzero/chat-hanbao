@@ -4,9 +4,12 @@ If you believe you've found a security issue in Hanbao, please report it private
 
 ## Reporting
 
-Report vulnerabilities of the Hanbao repository:
+Please report security vulnerabilities of Hanbao **privately** — do not open public issues.
 
-If you discover a security issue in Hanbao, please report it to us through the [Alibaba Security Response Center (ASRC)](https://security.alibaba.com/).
+Report via the repository's **Security tab → Report a vulnerability** (GitHub private vulnerability reporting):
+https://github.com/yijiuzero/chat-hanbao/security/advisories/new
+
+If that channel is unavailable, contact the maintainer directly (see GitHub profile) instead of disclosing publicly.
 
 ### Required in Reports
 
@@ -149,7 +152,7 @@ Skills are loaded and run **in-process** (or under the same trust boundary) as t
 - **Model**: Use a capable model when the agent has tools or handles untrusted input.
 - **Review**: Review your config and skills regularly.
 
-For more operational and hardening guidance, see the [documentation](https://qwenpaw.agentscope.io/) and any security-related docs linked from the repo.
+For more operational and hardening guidance, see the [documentation](https://github.com/yijiuzero/chat-hanbao) and any security-related docs linked from the repo.
 
 ## Runtime Requirements
 
