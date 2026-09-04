@@ -47,8 +47,6 @@ from ...agents.acp.node_runtime import (
 )
 
 from .schemas_config import (
-    ChannelHealthResponse,
-    ChannelRestartResponse,
     HeartbeatBody,
 )
 from ..channels.qrcode_auth_handler import (
@@ -214,71 +212,6 @@ async def _resolve_channel_manager(
             detail="Channel manager not initialized",
         )
     return channel_manager
-
-
-@router.get(
-    "/channels/{channel_name}/health",
-    response_model=ChannelHealthResponse,
-    summary="Health check for a channel",
-    description="Return the runtime health status of a specific channel",
-)
-async def get_channel_health(
-    channel_name: str = Path(
-        ...,
-        description="Name of the channel to check",
-        min_length=1,
-    ),
-    channel_manager=Depends(_resolve_channel_manager),
-) -> ChannelHealthResponse:
-    """Return health status for a specific channel."""
-    try:
-        return await channel_manager.get_channel_health(
-            channel_name,
-        )
-    except KeyError as exc:
-        raise HTTPException(
-            status_code=404,
-            detail=(
-                f"Channel '{channel_name}' is not running."
-                " It may be disabled or not configured."
-            ),
-        ) from exc
-
-
-@router.post(
-    "/channels/{channel_name}/restart",
-    response_model=ChannelRestartResponse,
-    summary="Restart a channel",
-    description=(
-        "Stop and re-start a specific channel" " without restarting the agent"
-    ),
-)
-async def restart_channel(
-    channel_name: str = Path(
-        ...,
-        description="Name of the channel to restart",
-        min_length=1,
-    ),
-    channel_manager=Depends(_resolve_channel_manager),
-) -> ChannelRestartResponse:
-    """Restart a specific channel."""
-    try:
-        return await channel_manager.restart_channel(
-            channel_name,
-        )
-    except KeyError as exc:
-        raise HTTPException(
-            status_code=404,
-            detail=(
-                f"Channel '{channel_name}' is not running."
-                " It may be disabled or not configured."
-            ),
-        ) from exc
-    except Exception as exc:
-        raise HTTPException(
-            status_code=500,
-            detail=(f"Failed to restart channel" f" '{channel_name}': {exc}"),
-        ) from exc
 
 
 # ── Unified QR code endpoints for all channels ─────────────────────────────

@@ -1223,3 +1223,18 @@ _背景：实现验收清单 P0（①记忆&档案可视化管理面板 ②渠�
 - [验证] 前端：`tsc -b` 退出码 0，零类型错误；四页面 111 个 i18n 键 zh/en 全部存在。
 - [合规] 新文件均含 `[hanbao modification]`；`LICENSE`/`NOTICE`/红线文档零碰触；R5 零新 GPL/AGPL/SSPL 依赖（rag 纯 Python、fnos 仅用 stdlib urllib）；品牌面仅显示 hanbao、无「水墨/文人」写入用户可见面；`online.svg` 图标零碰触。
 - [说明] 按纪律未构建、未部署、未 push（等用户「测一下」统一 rebuild）。
+
+## 阶段 6.an · 移除渠道状态/健康监控功能（2026-09-01）
+
+_背景：6.am 新增的渠道健康监控（health_monitor + channel_status 路由 + 前端 ChannelHealth 页）经审计确认价值有限——微信等渠道发送消息后长轮询线程内部退避自愈已能重连，后台监控仅覆盖「收消息线程彻底死掉」的极端场景，且前端无对应展示需求。按「整体移除」指令回退该功能。本条目仅追加记录，不改动 6.am 原记录（附录只增不改）。_
+
+- [删除] `src/hanbao/app/channels/health_monitor.py` — 渠道健康监控模块（周期检查/指数退避自动重连/secret 脱敏）整体移除。
+- [删除] `src/hanbao/app/routers/channel_status.py` — 渠道状态 API（`/channels-status` 前缀）整体移除。
+- [删除] `src/hanbao/app/workspace/service_factories.py` 中 `create_channel_health_service` 工厂函数；同步移除 `workspace.py` 中服务注册（priority 35）与 `channel_health_monitor` 属性。
+- [删除] `src/hanbao/app/routers/config.py` 中 `get_channel_health`（`/channels/{name}/health`）与 `restart_channel`（`/channels/{name}/restart`）两个端点——前端从未调用，随功能移除；同步移除 `ChannelHealthResponse`/`ChannelRestartResponse` 的 import（类定义保留于 `schemas_config.py`，无害孤儿）。
+- [删除] 前端 `console/src/pages/Control/ChannelHealth/`（index.tsx/index.module.less/useChannelHealth.ts）、`console/src/api/modules/channelHealth.ts`、菜单项（`builtinMenu.ts` 中 `core.channel-health`）与路由（`builtinRoutes.tsx` 中 `/channel-health` + `ChannelHealthPage` 懒加载）。
+- [保留] `src/hanbao/app/channels/manager.py` 的 `get_channel_health`/`restart_channel` 通用方法（渠道管理器公共 API，删除唯一调用方后成为孤儿方法但保留备用）。
+- [保留] `schemas_config.py` 中 `ChannelHealthResponse`/`ChannelRestartResponse` 定义与 `console/src/locales/{zh,en}.json` 中 `nav.channelHealth`/`channelHealth.*` 键（无害死代码，留待统一清理）。
+- [验证] 改动文件 `py_compile` 全部通过；`git grep` 全仓无 `channel_health_monitor`/`create_channel_health_service`/`channel_status_router`/`ChannelHealthPage`/`channelHealthApi`/`health_monitor` 残留引用（仅 `schemas_config.py` 类定义残留，符合预期）。
+- [合规] 本移除针对 6.am 阶段新增的 hanbao 模块与路由，被删代码原已带 `[hanbao modification]`；`LICENSE`/`NOTICE`/红线文档零碰触；品牌面仅显示 hanbao；`online.svg` 零碰触。
+- [说明] 按纪律未构建、未部署、未 push（等用户「测一下」统一 rebuild）。I-041。

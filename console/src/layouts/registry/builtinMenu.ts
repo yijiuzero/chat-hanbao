@@ -90,16 +90,6 @@ export const BUILTIN_MENU: MenuItem[] = [
     route: "core.cron-jobs",
     order: 30,
   },
-  // [hanbao modification] 2026-09-01: 渠道在线状态/健康页（P0-②）
-  {
-    id: "core.channel-health",
-    location: "primary.agentScoped",
-    parentId: "core.control-group",
-    label: navLabel("nav.channelHealth", "Channel Health"),
-    icon: SparkWifiLine,
-    route: "core.channel-health",
-    order: 40,
-  },
   {
 
   // agent-group

@@ -32,9 +32,6 @@ const DebugPage = lazyImportWithRetry("../../pages/Settings/Debug");
 const MemoryPage = lazyImportWithRetry("../../pages/Settings/Memory");
 const KnowledgePage = lazyImportWithRetry("../../pages/Settings/Knowledge");
 const FnOsPage = lazyImportWithRetry("../../pages/Settings/Fnos");
-const ChannelHealthPage = lazyImportWithRetry(
-  "../../pages/Control/ChannelHealth",
-);
 
 // ── Default redirect ────────────────────────────────────────────────
 
@@ -64,11 +61,6 @@ export const BUILTIN_ROUTES: Route[] = [
   { id: "core.memory", path: "/memory", component: MemoryPage },
   { id: "core.knowledge", path: "/knowledge", component: KnowledgePage },
   { id: "core.fnos", path: "/fnos", component: FnOsPage },
-  {
-    id: "core.channel-health",
-    path: "/channel-health",
-    component: ChannelHealthPage,
-  },
 ];
 
 routeRegistry.addBuiltin(BUILTIN_ROUTES);

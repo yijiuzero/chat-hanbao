@@ -30,10 +30,9 @@ from .git import router as git_router
 from .access_control import router as access_control_router
 from .provider_oauth import router as provider_oauth_router
 from .pawapps import router as pawapps_router
-# [hanbao modification] Memory panel, channel health, local knowledge base
+# [hanbao modification] Memory panel, local knowledge base
 # and fnOS integration routers (stage 6.am).
 from .memory_admin import router as memory_admin_router
-from .channel_status import router as channel_status_router
 from .knowledge import router as knowledge_router
 from .fnos import router as fnos_router
 
@@ -67,7 +66,6 @@ router.include_router(access_control_router)
 router.include_router(provider_oauth_router)
 router.include_router(pawapps_router)
 router.include_router(memory_admin_router)
-router.include_router(channel_status_router)
 router.include_router(knowledge_router)
 router.include_router(fnos_router)
 
