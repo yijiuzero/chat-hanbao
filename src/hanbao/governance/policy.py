@@ -183,10 +183,18 @@ class GovernanceRule:
 
         use_globmatch = is_wildcard or tool_type == "file"
 
+        # For shell tools, the target is a free-form command. Collapse shell
+        # line continuations (backslash + newline) so sensitive-path glob rules
+        # cannot be bypassed by splitting a path across a continuation.
+        # [hanbao modification] #7472
+        match_target = tc_spec.target
+        if tool_type == "shell" and match_target:
+            match_target = _collapse_shell_line_continuations(match_target)
+
         if use_globmatch:
-            return self._globmatch(rule_pattern, tc_spec.target)
+            return self._globmatch(rule_pattern, match_target)
         else:
-            return fnmatch(tc_spec.target, rule_pattern)
+            return fnmatch(match_target, rule_pattern)
 
 
 # ---------------------------------------------------------------------------
@@ -1078,6 +1086,29 @@ class GovernancePolicy:
 # ---------------------------------------------------------------------------
 # Helper functions
 # ---------------------------------------------------------------------------
+
+
+def _collapse_shell_line_continuations(text: str) -> str:
+    """Remove shell line-continuation sequences.
+
+    A backslash immediately followed by a line break is a POSIX shell line
+    continuation: the two lines are joined and the ``\\``+newline removed
+    before execution. ``cat ~/.s\\`` + newline + ``sh/id_rsa`` runs as
+    ``cat ~/.ssh/id_rsa``.
+
+    Without collapsing, the glob-based builtin sensitive-path rules
+    (``*(**/.ssh/**)`` etc.) match the raw command string and would never
+    see ``.ssh/`` if it is split across a continuation — letting an agent
+    bypass the check. [#7472]
+
+    [hanbao modification] port of QwenPaw #7472
+    (fix(governance): prevent shell line-continuation bypasses in
+    sensitive path checks).
+    """
+    if not text:
+        return text
+    # backslash + optional CR + LF  ->  removed (lines joined)
+    return re.sub(r"\\\r?\n", "", text)
 
 
 def _parse_match(match_str: str) -> tuple[str, str]:

@@ -1250,3 +1250,14 @@ _背景：6.an 整体移除渠道健康监控时，按「留待统一清理」�
 - [构建] `tsc -b` 退出码 0（零类型错误、零悬挂引用）；`vite build --mode production` 成功（`✓ built in 1m33s`，dist 产物完整）。注：WorkBuddy 沙箱内 `npm run build:prod` 会因 safe-delete 包装器拦截 vite `emptyDir` 清空旧 dist（228 文件>50 阈值）而 RC=1 零输出；清掉旧 dist 或沙箱外跑即正常，非代码问题。
 - [合规] 改动带 `[hanbao modification]`；`LICENSE`/`NOTICE`/红线文档零碰触；品牌面仅显示 hanbao；`online.svg` 零碰触。
 - [说明] 已 commit（I-042，124eee7），未 push（用户本机 push）。I-042。
+
+## 阶段 6.ap · 治理敏感路径检查：修复 shell 行连续绕过（2026-09-07）
+
+_背景：用户复盘 QwenPaw v2.2.0 改动，指出 #7472「fix(governance): prevent shell line-continuation bypasses in sensitive path checks」值得 hanbao 参考维护。经核查，hanbao 的敏感路径检查确实存在同类绕过：shell 命令中把敏感路径名用行连续（backslash + 换行，如 `cat ~/.s\<newline>sh/id_rsa`）拆断后，shell 实际会拼接执行 `~/.ssh/id_rsa`，但两条检查路径都失手。本项移植该修复。_
+
+- [修改] `src/hanbao/governance/detectors.py` — 新增模块级 `_collapse_shell_line_continuations(text)`，在 `detect_sensitive_paths` 的 shell 分支里，分词前先折叠行连续（`\<newline>` 及 `\<CR><newline>` 一并移除，还原 shell 实际会执行的 token）。修复前 `cat ~/.s\<newline>sh/id_rsa` 经 `shlex.split` 会被拆成含内嵌换行符的 token `Lo\ncal/...`（`~/.ssh/` 字面量被打散），`_normalize_path` 无法命中 `~/.ssh/` → 漏检。
+- [修改] `src/hanbao/governance/policy.py` — 新增同名 `_collapse_shell_line_continuations(text)`；在 `GovernanceRule.matches_tool_call` 中，对 `tool_type=="shell"` 的 target 先做同样的归一化，再交给 glob/fnmatch。修复前 builtin 敏感路径 glob 规则（如 `*(**/.ssh/**)`）对**原始命令字符串**做匹配，`.ssh/` 字面量被 `\`+换行打散而失手。
+- [新增] `tests/unit/governance/test_detectors.py` — `TestDetectSensitivePaths.test_shell_line_continuation_bypass_blocked` 回归测试：用临时目录构造被行连续拆断的敏感路径命令，断言仍产出 1 条 `SENSITIVE_FILE_BLOCK`（修复前为 0 条=绕过）。
+- [验证] `py_compile` 两模块通过；用真实 `wcmatch` 复刻 `_globmatch` 验证：绕过命令 `cat ~/.s\<newline>sh/id_rsa` 归一化后变 `cat ~/.ssh/id_rsa`，builtin glob 规则 `*(**/.ssh/**)` 现命中（修复前漏检），普通命令 `git status`/`ls /tmp`/`echo hello` 仍按原样匹配、无回归；detector 侧用真实 `detect_sensitive_paths` + 临时目录验证续行拆断路径现能被检出，且正常用例不受影响。注：完整 `pytest` 需 agentscope/pydantic 等重型运行时，本环境未装，未能整跑；回归测试逻辑已用同结构 stdlib 直载方式手动验证通过（Linux/CI 上预期通过）。
+- [合规] 改动带 `[hanbao modification]`；`LICENSE`/`NOTICE`/红线文档零碰触；品牌面零改动；`online.svg` 零碰触。
+- [说明] 按纪律未构建、未部署、未 push（等用户「测一下」统一 rebuild / 用户本机 push）。I-043。

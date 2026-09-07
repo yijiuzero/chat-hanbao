@@ -198,6 +198,28 @@ def _extract_paths_from_shell_command(command: str) -> list[str]:
     return deduped
 
 
+def _collapse_shell_line_continuations(text: str) -> str:
+    """Remove shell line-continuation sequences.
+
+    A backslash immediately followed by a line break is a POSIX shell line
+    continuation: the two lines are joined and the ``\\``+newline removed
+    before execution. ``cat ~/.s\\`` + newline + ``sh/id_rsa`` runs as
+    ``cat ~/.ssh/id_rsa``.
+
+    Without collapsing, sensitive-path checks receive the literal
+    ``\\``+newline and never see ``.ssh/`` — letting an agent split a
+    protected path across a continuation to evade the check.
+
+    [hanbao modification] port of QwenPaw #7472
+    (fix(governance): prevent shell line-continuation bypasses in
+    sensitive path checks).
+    """
+    if not text:
+        return text
+    # backslash + optional CR + LF  ->  removed (lines joined)
+    return re.sub(r"\\\r?\n", "", text)
+
+
 def detect_sensitive_paths(
     *,
     tool_name: str,
@@ -233,8 +255,12 @@ def detect_sensitive_paths(
     findings: list[GuardFinding] = []
 
     if tool_type == "shell":
+        # Collapse shell line continuations before tokenizing, so a sensitive
+        # path split across a ``\``+newline (e.g. ``~/.s\<newline>sh/...``)
+        # is rejoined and correctly detected. [hanbao modification] #7472
+        command = _collapse_shell_line_continuations(target)
         # Extract paths from shell command
-        for raw_path in _extract_paths_from_shell_command(target):
+        for raw_path in _extract_paths_from_shell_command(command):
             abs_path = _normalize_path(raw_path)
             if _is_sensitive(abs_path, sensitive_files, sensitive_dirs):
                 findings.append(

@@ -79,6 +79,25 @@ class TestDetectSensitivePaths:
         assert len(findings) == 1
         assert "sensitive file" in findings[0].title.lower()
 
+    def test_shell_line_continuation_bypass_blocked(self, tmp_path):
+        # Regression for QwenPaw #7472: a sensitive path split across a shell
+        # line continuation (backslash + newline) must still be detected, not
+        # silently bypassed.
+        ssh_dir = tmp_path / ".ssh"
+        ssh_dir.mkdir()
+        p = ssh_dir.as_posix()  # forward-slash path, OS-independent
+        mid = len(p) // 2
+        # break the path with a shell line continuation: "...\n..." rejoins
+        split_path = p[:mid] + "\\\n" + p[mid:]
+        findings = detect_sensitive_paths(
+            tool_name="Bash",
+            target=f"cat {split_path}/id_rsa",
+            tool_type="shell",
+            sensitive_paths=[p + "/"],
+        )
+        assert len(findings) == 1
+        assert findings[0].rule_id == "SENSITIVE_FILE_BLOCK"
+
     def test_empty_target_returns_empty(self):
         findings = detect_sensitive_paths(
             tool_name="Read",
