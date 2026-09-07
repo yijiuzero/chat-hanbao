@@ -536,6 +536,26 @@ class TestGuard:
         )
         assert len(findings) >= 1
 
+    def test_guard_execute_shell_command_line_continuation_bypass_blocked(
+        self,
+        guardian,
+        tmp_path,
+    ):
+        # Regression for QwenPaw #7472: a sensitive path split across a shell
+        # line continuation (backslash + newline) must still be blocked by the
+        # FileGuard, not silently bypassed.
+        secret = str(tmp_path / "secret.key")
+        Path(secret).touch()
+        guardian.add_sensitive_file(secret)
+        p = secret.replace("\\", "/")  # forward-slash path, OS-independent
+        mid = len(p) // 2
+        split = p[:mid] + "\\\n" + p[mid:]  # break the path with a line continuation
+        findings = guardian.guard(
+            "execute_shell_command",
+            {"command": f"cat {split}"},
+        )
+        assert len(findings) >= 1
+
     def test_guard_execute_shell_command_safe(self, guardian, tmp_path):
         secret = str(tmp_path / "secret.key")
         Path(secret).touch()
