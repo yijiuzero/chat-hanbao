@@ -1238,3 +1238,15 @@ _背景：6.am 新增的渠道健康监控（health_monitor + channel_status 路
 - [验证] 改动文件 `py_compile` 全部通过；`git grep` 全仓无 `channel_health_monitor`/`create_channel_health_service`/`channel_status_router`/`ChannelHealthPage`/`channelHealthApi`/`health_monitor` 残留引用（仅 `schemas_config.py` 类定义残留，符合预期）。
 - [合规] 本移除针对 6.am 阶段新增的 hanbao 模块与路由，被删代码原已带 `[hanbao modification]`；`LICENSE`/`NOTICE`/红线文档零碰触；品牌面仅显示 hanbao；`online.svg` 零碰触。
 - [说明] 按纪律未构建、未部署、未 push（等用户「测一下」统一 rebuild）。I-041。
+
+## 阶段 6.ao · 渠道健康监控残留死代码清理（2026-09-07）
+
+_背景：6.an 整体移除渠道健康监控时，按「留待统一清理」保留了若干无害孤儿（manager.py 的 get_channel_health/restart_channel 方法、schemas_config.py 的 ChannelHealthResponse/ChannelRestartResponse 类、locales 的 channelHealth.*/nav.channelHealth/filterAll 键）。本次按用户「死代码清理」指令彻底清除。_
+
+- [删除] `src/hanbao/app/channels/manager.py` 中 `get_channel_health` / `restart_channel` 两个孤儿方法（全仓零调用方，随 6.an 功能移除后无引用）。
+- [删除] `src/hanbao/app/routers/schemas_config.py` 中 `ChannelHealthResponse` / `ChannelRestartResponse` 两个孤儿响应模型类（文件末尾内容，全仓零引用）。
+- [删除] `console/src/locales/zh.json` + `en.json` 中 `nav.channelHealth`、`channelHealth.*`（17 个页面串）、`filterAll` 死键；filter tab 移除（f48e4aa）后遗留的 `全部` 文案键一并清除。用二进制读写脚本精确删除并归一化尾部换行，保 JSON 合法。
+- [验证] `py_compile` 全过；`git grep` 全仓零 `channelHealth`/`get_channel_health`/`restart_channel`/`ChannelHealthResponse`/`ChannelRestartResponse`/`filterAll` 残留；i18n JSON `json.loads` 校验通过。
+- [构建] `tsc -b` 退出码 0（零类型错误、零悬挂引用）；`vite build --mode production` 成功（`✓ built in 1m33s`，dist 产物完整）。注：WorkBuddy 沙箱内 `npm run build:prod` 会因 safe-delete 包装器拦截 vite `emptyDir` 清空旧 dist（228 文件>50 阈值）而 RC=1 零输出；清掉旧 dist 或沙箱外跑即正常，非代码问题。
+- [合规] 改动带 `[hanbao modification]`；`LICENSE`/`NOTICE`/红线文档零碰触；品牌面仅显示 hanbao；`online.svg` 零碰触。
+- [说明] 已 commit（I-042，124eee7），未 push（用户本机 push）。I-042。
