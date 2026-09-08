@@ -307,7 +307,6 @@
     "demoVideos": {
       "skill": "/skills: On-demand agent skill invocation",
       "doctor": "Hanbao Doctor: One-click comprehensive system diagnostics",
-      "missionMode": "Hanbao Mission Mode: Autonomous execution for complex tasks",
       "autoContinue": "Auto-Continue for Text-Only Steps"
     },
     "textVersion": "View text documentation",

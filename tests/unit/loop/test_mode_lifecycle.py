@@ -15,10 +15,6 @@ from hanbao.loop.gates.base import (
 from hanbao.loop.gates.handler import StopHandler
 from hanbao.loop.gates.rubric import QualitativeRubricGate
 from hanbao.loop.gates.runner import _filter_by_scope
-from hanbao.modes.goal.goal_mode import GoalMode, GoalSession
-from hanbao.modes.mission import MissionMode
-from hanbao.modes.mission.gates import MissionGate
-from hanbao.modes.mission.state import write_loop_config
 from hanbao.runtime.runtime import Runtime
 
 
@@ -67,103 +63,6 @@ def test_unscoped_plugin_handler_is_always_selected():
     assert selected == [plugin, goal]
 
 
-@pytest.mark.asyncio
-async def test_goal_reset_removes_only_current_session():
-    """Conversation reset does not clear another goal conversation."""
-    mode = GoalMode()
-    mode._sessions["session-a"] = GoalSession(goal="first")
-    mode._sessions["session-b"] = GoalSession(goal="second")
-    ctx = SimpleNamespace(session_id="session-a")
-
-    await mode.on_conversation_reset(ctx)
-
-    assert "session-a" not in mode._sessions
-    assert "session-b" in mode._sessions
-
-
-@pytest.mark.asyncio
-async def test_goal_activation_rejects_an_active_explicit_mode():
-    """A persistent session mode must be exited before another starts."""
-    mode = GoalMode()
-    active = SimpleNamespace(
-        name="mission",
-        is_active=lambda _ctx: True,
-    )
-    ctx = SimpleNamespace(
-        session_id="session-a",
-        workspace=SimpleNamespace(
-            plugins=SimpleNamespace(modes=[active, mode]),
-        ),
-    )
-
-    response = await mode.commands()[0].handler(ctx, "Fix the tests")
-
-    assert response is not None
-    assert "active mission mode" in response.content[0].text
-    assert mode.get_session("session-a") is None
-
-
-@pytest.mark.asyncio
-async def test_mission_turn_start_restores_persisted_session(tmp_path):
-    """Mission state is active before stop-handler scope selection."""
-    mode = MissionMode()
-    mode._gate = MissionGate()
-    ctx = SimpleNamespace(
-        mode_state={
-            "mission": {
-                "active": True,
-                "loop_dir": str(tmp_path),
-                "phase": "execution",
-            },
-        },
-    )
-
-    with patch(
-        "hanbao.loop.gates.loop_gate._session_id",
-        return_value="mission-session",
-    ):
-        await mode.on_turn_start(ctx)
-        assert mode._is_gate_active()
-
-
-@pytest.mark.asyncio
-async def test_mission_state_uses_session_lifecycle_and_reset(tmp_path):
-    """Stage 1 phase persists and reset clears the same mode_state."""
-    write_loop_config(
-        tmp_path,
-        {"current_phase": "prd_generation"},
-    )
-    mode = MissionMode()
-    mode._gate = MissionGate()
-    ctx = SimpleNamespace(mode_state={})
-
-    with patch(
-        "hanbao.loop.gates.loop_gate._session_id",
-        return_value="mission-session",
-    ):
-        mode._gate.activate_for_mission(tmp_path)
-        await mode.sync_persistent_state(ctx)
-
-        assert ctx.mode_state == {
-            "mission": {
-                "active": True,
-                "loop_dir": str(tmp_path),
-                "phase": "prd_generation",
-            },
-        }
-
-        write_loop_config(
-            tmp_path,
-            {"current_phase": "execution_confirmed"},
-        )
-        await mode.sync_persistent_state(ctx)
-
-        assert ctx.mode_state["mission"]["phase"] == "execution_confirmed"
-
-        await mode.on_conversation_reset(ctx)
-
-        assert ctx.mode_state == {}
-        assert not mode._is_gate_active()
 
 
 @pytest.mark.asyncio

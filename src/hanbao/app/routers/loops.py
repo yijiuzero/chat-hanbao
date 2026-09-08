@@ -52,20 +52,8 @@ BUILTIN_LOOPS = (
         description="The standard guarded agent loop.",
         source="builtin",
     ),
-    LoopModeInfo(
-        id="goal",
-        name="goal",
-        slash_command="goal",
-        description="Set a goal and work until it is done.",
-        source="builtin",
-    ),
-    LoopModeInfo(
-        id="mission",
-        name="mission",
-        slash_command="mission",
-        description="Run a persistent multi-step mission.",
-        source="builtin",
-    ),
+    # [hanbao modification] I-046 — the goal / mission built-in loop modes
+    # were removed; only "default" (plus custom modes) is offered.
 )
 
 
@@ -338,8 +326,6 @@ def _build_loop_catalog(
     result = list(BUILTIN_LOOPS)
     runtime_modes = {
         "default": "default",
-        "goal": "goal",
-        "mission": "mission",
     }
     for mode in workspace.config.running.loop.custom_modes:
         if not mode.enabled:
@@ -356,7 +342,7 @@ def _build_loop_catalog(
         )
         runtime_modes[descriptor_id] = descriptor_id
 
-    builtin_names = {"default", "goal", "mission"}
+    builtin_names = {"default"}
     for mode in getattr(workspace.plugins, "modes", []):
         runtime_name = getattr(mode, "name", "")
         if (

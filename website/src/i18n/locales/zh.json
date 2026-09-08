@@ -307,7 +307,6 @@
     "demoVideos": {
       "skill": "/skills：智能体技能的按需调用",
       "doctor": "Hanbao Doctor：一键全面系统诊断",
-      "missionMode": "Hanbao 任务模式：复杂任务的自主执行",
       "autoContinue": "纯文本步骤自动续跑功能介绍"
     },
     "textVersion": "查看文字版文档",

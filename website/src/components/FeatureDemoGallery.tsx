@@ -44,18 +44,8 @@ const DEFAULT_DEMO_VIDEOS: DemoVideoConfig[] = [
     docsLinkUrl: "https://qwenpaw.agentscope.io/docs/cli#qwenpaw-doctor",
     docsLinkEnUrl: "https://qwenpaw.agentscope.io/docs/cli/#qwenpaw-doctor",
   },
-  {
-    key: "mission-mode",
-    zhUrl:
-      "https://cloud.video.taobao.com/vod/t6fxutBkHZfA-VPG2DCO-TivW0uL6VcsdtDqHXopWUE.mp4",
-    enUrl:
-      "https://cloud.video.taobao.com/vod/EBWRZkhSn9hfIY-27ctMN7vwv_mh-TNwvUMasxGvIqI.mp4",
-    titleKey: "docs.demoVideos.missionMode",
-    docsLinkUrl:
-      "https://qwenpaw.agentscope.io/docs/commands#Mission-Mode---%E5%A4%8D%E6%9D%82%E4%BB%BB%E5%8A%A1%E8%87%AA%E4%B8%BB%E6%89%A7%E8%A1%8C",
-    docsLinkEnUrl:
-      "https://qwenpaw.agentscope.io/docs/commands#Mission-Mode---Autonomous-Execution-for-Complex-Tasks",
-  },
+  // [hanbao modification] I-046 — the "mission-mode" demo entry was removed
+  // together with the mission loop mode.
   {
     key: "auto-continue",
     zhUrl:

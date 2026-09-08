@@ -944,7 +944,7 @@ class DoomLoopConfig(BaseModel):
     )
     in_loop_modes: bool = Field(
         default=False,
-        description=("Also run during /goal and " "/mission loop modes"),
+        description=("Also run during custom loop " "modes (non-default)"),
     )
 
 
@@ -1002,7 +1002,7 @@ class RubricGateConfig(BaseModel):
     )
     in_loop_modes: bool = Field(
         default=False,
-        description=("Also run during /goal and " "/mission loop modes"),
+        description=("Also run during custom loop " "modes (non-default)"),
     )
 
 
@@ -1079,25 +1079,9 @@ def normalize_custom_loop_mode_name(name: str) -> str:
     return name.strip().casefold()
 
 
-class GoalLoopModeConfig(BaseModel):
-    """Editable values for the fixed built-in Goal pipeline."""
-
-    max_iterations: int = Field(default=20, ge=1, le=500)
-    max_tokens: int = Field(default=300_000, ge=1)
-
-
-class MissionLoopModeConfig(BaseModel):
-    """Editable values for the fixed built-in Mission pipeline."""
-
-    max_iterations: int = Field(default=20, ge=1, le=100)
-    max_retries_per_story: int = Field(default=3, ge=0, le=10)
-    default_verification_instructions: str = Field(
-        default="",
-        max_length=4000,
-    )
-    default_verify_command: str = Field(default="", max_length=2000)
-
-
+# [hanbao modification] I-046 — the fixed built-in Goal / Mission loop modes
+# were removed (hanbao is a plain chat agent); only the default loop and
+# user-defined custom modes remain.
 class LoopConfig(BaseModel):
     """Loop engineering configuration."""
 
@@ -1112,14 +1096,6 @@ class LoopConfig(BaseModel):
     rubric: RubricGateConfig = Field(
         default_factory=RubricGateConfig,
         description="Completion check settings",
-    )
-    goal: GoalLoopModeConfig = Field(
-        default_factory=GoalLoopModeConfig,
-        description="Fixed Goal mode gate values",
-    )
-    mission: MissionLoopModeConfig = Field(
-        default_factory=MissionLoopModeConfig,
-        description="Fixed Mission mode gate values",
     )
     custom_modes: List[CustomLoopModeConfig] = Field(
         default_factory=list,

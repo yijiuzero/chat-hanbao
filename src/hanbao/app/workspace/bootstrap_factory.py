@@ -128,14 +128,12 @@ class WorkspaceBootstrapFactory:
             logger.debug("Prompt contributors not available", exc_info=True)
 
         try:
+            # [hanbao modification] I-046 — the goal / mission loop modes were
+            # removed; only the default guarded ReAct loop mode is registered.
             from ...modes.default import DefaultMode
-            from ...modes.goal import GoalMode
-            from ...modes.mission import MissionMode
 
             kwargs["builtin_mode_clses"] = [
                 DefaultMode,
-                MissionMode,
-                GoalMode,
             ]
         except Exception:
             logger.debug("Modes not available", exc_info=True)

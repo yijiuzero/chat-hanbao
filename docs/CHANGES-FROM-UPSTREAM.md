@@ -1285,3 +1285,20 @@ _背景：用户指出 console 欢迎区 `disclaimer` 的「懂你所需，伴�
 - [验证] 全仓 `grep` 旧串（`懂你所需`/`伴你左右`/`Works for you`/`grows with you`/`paws`/`小爪子`/`power your dev life`）**零残留**；5 个 JSON（`console` 双语 + `website` 双语 + `site.config.json`）`json.load` 全部通过；`npx tsc -b` 退出码 0。
 - [合规] 仅改用户展示文案；`LICENSE`/`NOTICE`/红线文档零碰触；`online.svg` 零碰触；新文案不宣称本地推理，不涉及合规风险。
 - [说明] 按纪律未构建、未部署、未 push（等用户「测一下」统一 rebuild / 用户本机 push）。I-045。
+
+## 阶段 6.as · 删除 Goal / Mission 内置 Loop 模式（2026-09-08）
+
+_背景：用户定位 hanbao 为「简单聊天 agent」，用不到 goal / mission（用户口中的 "plan"）两个 Loop 模式，要求删除并研究透彻代码逻辑与影响。经源码考古确认：内置模式实为 **default / goal / mission** 三个（上游更早已无 "plan" 命名，仅存于注释），三者通过 `AgentMode.is_active(ctx)` + gate scope 机制隔离——`loop/gates/runner.py:54` 中 `scope != "default"` 的 handler 仅在对应模式激活时运行，**DefaultMode.is_active() 恒为 True 且其 stop-handler 注册在 scope="default"，删除 goal/mission 对普通聊天路径零影响**。_
+
+- [删除] `src/hanbao/modes/goal/`（7 文件 ~950 行：goal_mode/gates/contributor/helpers/prompts/tools）、`src/hanbao/modes/mission/`（9 文件 ~2100 行：handler/gates/hooks/state/contributor/prompts 等）、`src/hanbao/cli/mission_cmd.py`（全仓零引用的孤儿 CLI 模块）。
+- [修改] `src/hanbao/app/workspace/bootstrap_factory.py` — `builtin_mode_clses` 只保留 `[DefaultMode]`。
+- [修改] `src/hanbao/app/routers/loops.py` — `BUILTIN_LOOPS` 移除 goal/mission 条目；`_build_loop_catalog` 的 `runtime_modes` 与 `builtin_names` 同步收窄为 `{"default"}`。custom 模式 CRUD API 保留未动。
+- [修改] `src/hanbao/config/config.py` — 删除 `GoalLoopModeConfig` / `MissionLoopModeConfig` 两个配置类及 `LoopConfig.goal` / `LoopConfig.mission` 字段；`in_loop_modes` 字段描述改为 "custom loop modes (non-default)"。
+- [删除] `src/hanbao/loop/gates/rubric.py` 的 `GoalStatusRubric`（GoalMode 专属、未注册进 `loop/catalog.py` 的 gate 注册表、全仓零调用点），同步清理 `loop/__init__.py`、`loop/gates/__init__.py` 导出与 ASCII 图注释；`QualitativeRubricGate`（default 模式仍在用）与 `BudgetGate`（catalog 的 `token_budget` 类型）保留。
+- [前端] `console/src/pages/Chat/index.tsx` — 移除 `<LoopModeSelector />` 渲染与 import（loopStore 及 `fetchAvailableLoopModes` 等保留，selectedModeId 恒为 "default"）；删除无引用的 `console/src/components/LoopInput/` 组件目录（4 文件，含其测试）；`console/src/api/types/agent.ts` 删除 `GoalLoopModeConfig` / `MissionLoopModeConfig` 接口与 `LoopConfig.goal/mission` 字段；`console/src/locales/{zh,en}.json` 删除 `agentConfig.loopMode.goalTab/missionTab/goalDescription/missionDescription`、`agentConfig.missionMode*`、`chat.commands.goal/mission`、`loop.modes.goal/mission` 共 18 个死键（均已验证无 tsx 引用）。
+- [官网] `website/src/components/FeatureDemoGallery.tsx` 删除 "mission-mode" 演示视频条目（其 docs 链接指向 `qwenpaw.agentscope.io` 上游域名）；`website/src/i18n/locales/{zh,en}.json` 删除 `docs.demoVideos.missionMode`。
+- [测试] 删除 `tests/unit/loop/test_mission_settings.py`（纯 mission）；`test_runner.py` 移除 2 个 goal 续跑用例（保留模式无关的 deferral 用例）；`test_mode_lifecycle.py` 移除 3 个 goal/mission 用例（保留 5 个 scope/rubric/runtime 通用用例）；`test_loops_router.py` 移除 mission 状态恢复用例并更新内置模式期望列表。
+- [兼容性] 配置类均为 `extra="ignore"`——已有用户的 `config.json` 中残留的 `goal`/`mission` 字段会被 pydantic **静默忽略**，不会加载失败（已核对线上容器确有此类残留字段）。旧 mission 会话遗留的 `loop_config.json` / `prd.json` 成为无害孤儿文件。
+- [验证] 全仓 `grep`（`modes.goal`/`GoalMode`/`MissionMode`/`GoalLoopModeConfig`/`GoalStatusRubric`/`LoopModeSelector`/`mission_cmd` 等）**零代码残留**（仅存 I-046 注释）；改动 py 文件 `py_compile` 全部通过；console `npx tsc -b` 退出码 0；5 个 JSON `json.load` 合法。website 未跑完整 tsc（改动为纯删除，无语法风险）。
+- [合规] 改动带 `[hanbao modification]`；`LICENSE`/`NOTICE`/红线文档零碰触；`online.svg` 零碰触。
+- [说明] 按纪律未构建、未部署、未 push（等用户「测一下」统一 rebuild / 用户本机 push）。I-046。

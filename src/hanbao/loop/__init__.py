@@ -5,14 +5,13 @@ Core architecture:
     StopHandler + StopGate (in gates/ sub-package)
     ├── LoopGate      — session-safe base for loop plugins
     ├── DoomLoopGate  — multi-stage repetition detection
-    ├── RubricGate    — rubric-based evaluation (GoalMode)
+    ├── RubricGate    — rubric-based evaluation
     ├── IterationGate — iteration limit (universal)
-    └── BudgetGate    — token budget (GoalMode)
+    └── BudgetGate    — token budget
 """
 
 from .gates import (
     DoomLoopGate,
-    GoalStatusRubric,
     LoopGate,
     RubricStrategy,
     RubricVerdict,
@@ -25,7 +24,6 @@ from .gates import (
 
 __all__ = [
     "DoomLoopGate",
-    "GoalStatusRubric",
     "LoopGate",
     "RubricStrategy",
     "RubricVerdict",

@@ -132,24 +132,12 @@ export interface CustomLoopModeConfig {
   gates: GateInstanceConfig[];
 }
 
-export interface GoalLoopModeConfig {
-  max_iterations: number;
-  max_tokens: number;
-}
-
-export interface MissionLoopModeConfig {
-  max_iterations: number;
-  max_retries_per_story: number;
-  default_verification_instructions: string;
-  default_verify_command: string;
-}
-
+// [hanbao modification] I-046 — GoalLoopModeConfig / MissionLoopModeConfig and
+// the matching ``goal`` / ``mission`` fields were removed with the loop modes.
 export interface LoopConfig {
   iteration?: IterationGateConfig;
   doom_loop: DoomLoopConfig;
   rubric?: RubricGateConfig;
-  goal?: GoalLoopModeConfig;
-  mission?: MissionLoopModeConfig;
   custom_modes?: CustomLoopModeConfig[];
 }
 

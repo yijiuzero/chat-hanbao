@@ -37,7 +37,6 @@ import {
   prepareLoopModeMessage,
   useLoopStore,
 } from "../../stores/loopStore";
-import { LoopModeSelector } from "../../components/LoopInput";
 import { useChatAnywhereInput } from "@agentscope-ai/chat";
 import styles from "./index.module.less";
 import { IconButton } from "@agentscope-ai/design";
@@ -2568,12 +2567,7 @@ export default function ChatPage() {
             ) : null}
           </>
         ) : undefined,
-        prefix: (
-          <>
-            <LoopModeSelector />
-            {pluginSenderPrefix}
-          </>
-        ),
+        prefix: <>{pluginSenderPrefix}</>,
         actionAffix: (
           <span
             style={{

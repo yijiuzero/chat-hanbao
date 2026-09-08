@@ -4,7 +4,6 @@
 Architecture:
     RubricStrategy (ABC)
     ├── DefaultRubric     — always SATISFIED (no rubric)
-    ├── GoalStatusRubric  — checks session.active
     └── SubAgentRubric    — placeholder for subagent eval
 """
 from __future__ import annotations
@@ -13,7 +12,10 @@ import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Callable, Optional
+
+# [hanbao modification] I-046 — ``GoalStatusRubric`` was goal-mode-only and is
+# removed together with the goal loop mode; ``Callable``/``Optional`` went with it.
+from typing import Any
 
 from .base import (
     StopAction,
@@ -80,41 +82,6 @@ class DefaultRubric(RubricStrategy):
             iteration=iteration,
             verdict=RubricVerdict.SATISFIED,
             explanation="No rubric registered",
-        )
-
-
-class GoalStatusRubric(RubricStrategy):
-    """Hardcoded status check for GoalMode.
-
-    Accepts a ``get_session_fn`` callback that retrieves
-    the current GoalSession via ContextVar (no scan).
-    Returns SATISFIED when session.active is False
-    (set by update_goal tool), NEEDS_REVISION otherwise.
-    """
-
-    def __init__(
-        self,
-        get_session_fn: Callable[[], Optional[Any]],
-    ) -> None:
-        self._get_session = get_session_fn
-
-    async def evaluate(
-        self,
-        goal: str,
-        agent_output: str,
-        iteration: int,
-    ) -> RubricEvaluation:
-        session = self._get_session()
-        if session is None or not session.active:
-            return RubricEvaluation(
-                iteration=iteration,
-                verdict=RubricVerdict.SATISFIED,
-                explanation=("Goal completed via update_goal"),
-            )
-        return RubricEvaluation(
-            iteration=iteration,
-            verdict=RubricVerdict.NEEDS_REVISION,
-            explanation="Goal still active",
         )
 
 
@@ -239,7 +206,6 @@ class QualitativeRubricGate(LoopGate):
 __all__ = [
     "QualitativeRubricGate",
     "DefaultRubric",
-    "GoalStatusRubric",
     "RubricEvaluation",
     "RubricStrategy",
     "RubricVerdict",
