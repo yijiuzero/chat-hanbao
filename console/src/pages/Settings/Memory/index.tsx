@@ -81,6 +81,8 @@ export default function MemoryPage() {
     refresh,
     deleteEntry,
     updateEntry,
+    reindex,
+    reindexing,
   } = useMemory();
 
   const [editing, setEditing] = useState<MemoryEntry | null>(null);
@@ -183,6 +185,23 @@ export default function MemoryPage() {
             "Browse what the agent remembers. Entries are tagged by source; correct or remove any fact directly. Changes are audited.",
           )}
         />
+
+        <Space className={styles.toolbar}>
+          <Popconfirm
+            title={t("memory.reindexConfirm", "确认重建记忆索引？")}
+            description={t(
+              "memory.reindexWarning",
+              "此操作会清空并重建记忆搜索索引，期间 CPU 和内存占用可能升高。仅在索引损坏时执行。",
+            )}
+            onConfirm={() => void reindex()}
+            okText={t("common.confirm", "确认")}
+            cancelText={t("common.cancel", "取消")}
+          >
+            <Button loading={reindexing}>
+              {t("memory.reindex", "重建索引")}
+            </Button>
+          </Popconfirm>
+        </Space>
 
         <Space size="middle" wrap className={styles.stats}>
           <StatCard label={t("memory.statTotal", "Total")} value={stats?.total ?? "—"} />

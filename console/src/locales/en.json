@@ -1934,7 +1934,7 @@
         "llmAcquireTimeoutGtPauseJitter": "Slot acquire timeout must be greater than rate limit pause + jitter",
         "contextManagementTitle": "Context Management",
         "memoryManagerBackend": "Long-term Memory Management Backend",
-        "memoryManagerBackendTooltip": "Backend for the memory manager. Choose remelight (local files), adbpg (cloud database), or none (disable memory).",
+        "memoryManagerBackendTooltip": "Backend for the memory manager. Choose remelight (local files) or none (disable memory).",
         "memoryManagerBackendRestartWarning": "Switching the long-term memory management backend does not support hot reload. Save and restart hanbao for changes to take effect.",
         "maxIters": "Max Iterations",
         "maxItersTooltip": "Maximum number of reasoning-acting iterations for ReAct agent",
@@ -2316,15 +2316,7 @@
         "contextStrategyTooltip": "How the agent manages long context. Scroll (recommended) persists evicted turns to a durable history store and recalls them on demand; Native uses in-place compression. Restart hanbao for changes to take effect.",
         "contextStrategyScroll": "Scroll",
         "contextStrategyNative": "Native",
-        "backendRestartWarning": "Switching backends does not support hot reload. Save and restart hanbao for changes to take effect.",
-        "adbpgMemoryTitle": "ADBPG Long-term Memory",
-        "adbpgConfig": {
-            "title": "ADBPG Memory Configuration",
-            "restBaseUrl": "REST Base URL",
-            "restApiKey": "REST API Key",
-            "memoryIsolation": "Memory Isolation (per-agent)",
-            "searchTimeout": "Search Timeout"
-        }
+        "backendRestartWarning": "Switching backends does not support hot reload. Save and restart hanbao for changes to take effect."
     },
     "tools": {
         "title": "Built-in Tools",

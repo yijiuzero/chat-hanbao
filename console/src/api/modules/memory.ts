@@ -84,4 +84,9 @@ export const memoryApi = {
       method: "POST",
       body: JSON.stringify(body),
     }),
+  reindex: () =>
+    request<{ status: "completed" }>(`/memory-admin/reindex`, {
+      method: "POST",
+      timeout: 10 * 60 * 1000,
+    }),
 };

@@ -1275,3 +1275,21 @@ I-038 审计聚焦 `website/src` 代码/文案层，`website/public/docs/*.md`�
 ### 验收
 - `py_compile` 通过；改动仅限 `start()` 一处（+17/-1），未动 `_run_reme_job` 的既有重试路径。
 - 正常路径（模型可用）行为不变：仍在组件 start 前完成注入。
+
+---
+
+### I-047 · 记忆模块瘦身：移除 adbpg 后端，记忆恒开（2026-09-08）
+
+**严重度**：🟢 低 &nbsp;|&nbsp; **状态**：🟢 已落地（B 方案） &nbsp;|&nbsp; **必须处理时机**：无（设计决策）
+
+### 现象 / 限制
+1. **adbpg 云端记忆后端已移除**：单用户家庭 NAS 场景无需外部云数据库，移除 `adbpg_memory_manager.py` / `adbpg_client.py` / `adbpg_prompts.py` 及对应配置；`memory_manager_backend` 仅剩 `remelight`（默认）/ `none`。全仓 `git grep adbpg` 零残留。
+2. **记忆无硬开关**：未做「关闭记忆」的 UI 开关。原因——记忆是 hanbao「记得日常，守在身边」的核心特性，硬关需重启 + 配置持久化基础设施，与「界面简单」相悖。当前记忆恒以 `remelight` 开启；若日后需要，可加一个触发重启的开关（需用户手动重启 hanbao 生效）。
+3. **重建索引按钮**：`记忆档案` 设置页顶部新增「重建索引」按钮（经 `POST /memory-admin/reindex`，服务端解析当前 agent），仅在索引损坏 / 搜索异常时使用；非日常操作。
+
+### 处理方案
+- 保留「ReMe 自动记忆 + 记忆档案可校订」主链路；`Settings/Memory` 页面维持「浏览 / 搜索 / 改 / 删 + 重建索引」的简单形态。
+- 不引入 adbpg 或任何云端记忆依赖。
+
+### 验收
+- `py_compile` 通过；`git grep adbpg` 零残留；locale 仅删孤儿键（无任何 tsx 引用）。

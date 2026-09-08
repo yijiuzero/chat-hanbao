@@ -20,6 +20,7 @@ export function useMemory() {
   const [source, setSource] = useState<string>("");
   const [includeDeprecated, setIncludeDeprecated] = useState(true);
   const [selectedFile, setSelectedFile] = useState<string>("");
+  const [reindexing, setReindexing] = useState(false);
 
   const loadEntries = useCallback(async () => {
     try {
@@ -117,7 +118,25 @@ export function useMemory() {
     [loadEntries, messageApi, t],
   );
 
+  const reindex = useCallback(async () => {
+    try {
+      setReindexing(true);
+      await memoryApi.reindex();
+      messageApi.success(t("memory.reindexSuccess", "记忆索引重建完成"));
+    } catch (error) {
+      messageApi.error(
+        error instanceof Error
+          ? error.message
+          : t("memory.reindexFailed", "记忆索引重建失败"),
+      );
+    } finally {
+      setReindexing(false);
+    }
+  }, [messageApi, t]);
+
   return {
+    reindex,
+    reindexing,
     entries,
     stats,
     files,

@@ -486,28 +486,6 @@ class EmbeddingModelConfig(BaseModel):
     )
 
 
-class ADBPGMemoryConfig(BaseModel):
-    """ADBPG (AnalyticDB for PostgreSQL) REST memory configuration."""
-
-    model_config = ConfigDict(extra="ignore")
-
-    rest_base_url: str = ""
-    rest_api_key: str = ""
-
-    # Behavior
-    memory_isolation: bool = Field(
-        default=True,
-        description="Per-agent memory isolation (True) or shared (False)",
-    )
-    search_timeout: float = 10.0
-    auto_memory_search_config: AutoMemorySearchConfig = Field(
-        default_factory=lambda: AutoMemorySearchConfig(
-            enabled=True,
-            max_results=3,
-        ),
-    )
-
-
 class ReMeLightMemoryConfig(BaseModel):
     """ReMeLight memory manager configuration."""
 
@@ -1388,12 +1366,6 @@ class AgentsRunningConfig(BaseModel):
     )
 
     memory_manager_backend: str = Field(default="remelight")
-
-    adbpg_memory_config: Optional[ADBPGMemoryConfig] = Field(
-        default=None,
-        description="ADBPG memory configuration (used when "
-        "memory_manager_backend='adbpg')",
-    )
 
     reme_light_memory_config: ReMeLightMemoryConfig = Field(
         default_factory=ReMeLightMemoryConfig,

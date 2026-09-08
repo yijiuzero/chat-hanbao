@@ -4,14 +4,7 @@
 from types import SimpleNamespace
 
 import hanbao.config.utils as config_utils
-from hanbao.config.config import ADBPGMemoryConfig, ReMeLightMemoryConfig
-
-
-def test_adbpg_auto_memory_search_defaults():
-    cfg = ADBPGMemoryConfig()
-
-    assert cfg.auto_memory_search_config.enabled is True
-    assert cfg.auto_memory_search_config.max_results == 3
+from hanbao.config.config import ReMeLightMemoryConfig
 
 
 def test_reme_light_inbox_push_defaults_to_enabled():

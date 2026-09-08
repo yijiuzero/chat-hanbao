@@ -220,6 +220,54 @@ async def update_memory_entry(
         raise _translate_error(exc) from exc
 
 
+@router.post(
+    "/reindex",
+    summary="Rebuild the ReMe search index",
+    description=(
+        "Clear and rebuild the ReMe search index for the active agent. "
+        "Expensive; only needed to repair a damaged index."
+    ),
+)
+async def reindex_memory(request: Request) -> dict[str, str]:
+    """Rebuild the ReMe search index for the active agent.
+
+    [hanbao modification] Mirrors /agents/{id}/memory/reindex but resolves
+    the active agent server-side, matching the rest of this router.
+    """
+    workspace = await get_agent_for_request(request)
+    agent_config = getattr(workspace, "_config", None)
+    backend = "remelight"
+    if agent_config is not None:
+        backend = getattr(
+            agent_config.running, "memory_manager_backend", "remelight"
+        )
+    if backend != "remelight":
+        raise HTTPException(
+            status_code=400,
+            detail="Memory index rebuild is only supported by ReMe Light",
+        )
+    memory_manager = getattr(workspace, "memory_manager", None)
+    if memory_manager is None:
+        raise HTTPException(
+            status_code=503,
+            detail="Memory manager is not available",
+        )
+    try:
+        response = await memory_manager.rebuild_index()
+    except RuntimeError as exc:
+        if str(exc) == "Memory index rebuild is already running":
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        raise
+    if response is None:
+        raise HTTPException(
+            status_code=503,
+            detail="ReMe is not started or the reindex job failed",
+        )
+    if not response.success:
+        raise HTTPException(status_code=500, detail=str(response.answer))
+    return {"status": "completed"}
+
+
 async def _run(fn, *args, **kwargs):
     """Run a blocking vault operation off the event loop."""
     import asyncio

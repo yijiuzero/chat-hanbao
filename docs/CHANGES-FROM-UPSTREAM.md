@@ -1302,3 +1302,18 @@ _背景：用户定位 hanbao 为「简单聊天 agent」，用不到 goal / mis
 - [验证] 全仓 `grep`（`modes.goal`/`GoalMode`/`MissionMode`/`GoalLoopModeConfig`/`GoalStatusRubric`/`LoopModeSelector`/`mission_cmd` 等）**零代码残留**（仅存 I-046 注释）；改动 py 文件 `py_compile` 全部通过；console `npx tsc -b` 退出码 0；5 个 JSON `json.load` 合法。website 未跑完整 tsc（改动为纯删除，无语法风险）。
 - [合规] 改动带 `[hanbao modification]`；`LICENSE`/`NOTICE`/红线文档零碰触；`online.svg` 零碰触。
 - [说明] 按纪律未构建、未部署、未 push（等用户「测一下」统一 rebuild / 用户本机 push）。I-046。
+
+## 阶段 6.at · 移除 adbpg 云端记忆后端 + 记忆配置页收敛（2026-09-08）
+
+_背景：用户选 B 方案——保留「ReMe 自动记忆 + 记忆档案可校订」主链路，瘦身界面与代码。adbpg（AnalyticDB for PostgreSQL 云端记忆后端）对单用户家庭 NAS 场景完全多余且依赖外部云数据库，移除即减复杂度。经依赖分析确认零悬空：adbpg_client.py / adbpg_prompts.py 仅被 adbpg_memory_manager.py 引用，后者仅被 agents/memory/__init__.py 注册、config.py 提供 ADBPGMemoryConfig 类与 adbpg_memory_config 字段。_
+
+- [删除] `src/hanbao/agents/memory/adbpg_memory_manager.py`、`adbpg_client.py`、`adbpg_prompts.py` 三个文件。
+- [修改] `src/hanbao/config/config.py` — 删除 `ADBPGMemoryConfig` 类与 `AgentsRunningConfig.adbpg_memory_config` 字段；`memory_manager_backend` 可选值剩 `remelight`（默认）/ `none`。
+- [修改] `src/hanbao/agents/memory/__init__.py` — 移除 `ADBPGMemoryManager` 导入与 `__all__` 注册（registry 不再有 "adbpg" 后端）。
+- [前端] `console/src/api/types/agent.ts` — 删除 `ADBPGMemoryConfig` 接口与 `adbpg_memory_config?` 字段；`console/src/locales/{zh,en}.json` — `memoryManagerBackendTooltip` 去掉 adbpg 选项，删除孤儿 `adbpgMemoryTitle` / `adbpgConfig` 区块（这些 key 在 UI 中本无任何 tsx 引用，属 I-032 删运行配置页后残留）。
+- [测试] 删除 `tests/unit/agents/memory/test_adbpg_memory_manager.py`；`tests/unit/config/test_memory_config.py` 移除 `test_adbpg_auto_memory_search_defaults`。
+- [前端·重建索引按钮] `src/hanbao/app/routers/memory_admin.py` 新增 `POST /memory-admin/reindex`（复用 `get_agent_for_request` 服务端解析当前 agent，含 `memory_manager_backend != "remelight"` 守卫，调用 `memory_manager.rebuild_index()`，与既有 `/agents/{id}/memory/reindex` 逻辑一致）；前端 `api/modules/memory.ts` 加 `reindex()`、`pages/Settings/Memory/useMemory.ts` 加 `reindex` 回调、`pages/Settings/Memory/index.tsx` 顶部加带确认/loading 的「重建索引」按钮（B 方案要求的「一个重建索引按钮」）。
+- [说明] 记忆「开关」未单独做硬开关——记忆是 hanbao「记得日常，守在身边」的核心特性，硬关需重启 + 配置持久化基础设施（与「界面简单」相悖）；当前记忆恒开（remelight）。B 方案落点 = 删 adbpg 降复杂度 + 记忆档案页保留 + 加重建索引按钮。
+- [验证] `git grep adbpg` 全仓零残留；改动 py 文件 `py_compile` 全部通过；locale 仅删孤儿键。
+- [合规] reindex 端点带 `[hanbao modification]`；`LICENSE`/`NOTICE`/红线文档零碰触；`online.svg` 零碰触。
+- [说明] 按纪律未构建、未部署、未 push（等用户「测一下」统一 rebuild / 用户本机 push）。I-047。

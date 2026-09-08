@@ -74,14 +74,6 @@ export interface AutoTitleConfig {
   timeout_seconds: number;
 }
 
-export interface ADBPGMemoryConfig {
-  rest_base_url: string;
-  rest_api_key: string;
-  memory_isolation: boolean;
-  search_timeout: number;
-  auto_memory_search_config: AutoMemorySearchConfig;
-}
-
 export interface DoomLoopStageConfig {
   after: number;
   action: string;
@@ -159,7 +151,6 @@ export interface AgentsRunningConfig {
   context_manager_backend: string;
   light_context_config: LightContextConfig;
   memory_manager_backend: string;
-  adbpg_memory_config?: ADBPGMemoryConfig | null;
   reme_light_memory_config: ReMeLightMemoryConfig;
   approval_level?: string;
   auto_title_config: AutoTitleConfig;
