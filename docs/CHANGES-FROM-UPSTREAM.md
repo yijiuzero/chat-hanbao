@@ -1262,3 +1262,13 @@ _背景：用户复盘 QwenPaw v2.2.0 改动，指出 #7472「fix(governance): p
 - [合规] 改动带 `[hanbao modification]`；`LICENSE`/`NOTICE`/红线文档零碰触；品牌面零改动；`online.svg` 零碰触。
 - [补充] 经复核，hanbao 除 governance 层外还有独立的 FileGuard 层（`security/tool_guard/guardians/file_guardian.py` 的 `FilePathToolGuardian`），其对 shell 命令的自有敏感路径检查同样未做行连续归一化，存在同一 #7472 绕过。已在同一次 #7472 修复（I-043）内补上：新增同名 `_collapse_shell_line_continuations`，在 `guard()` 的 `execute_shell_command` 分支、路径提取前对命令做归一化；并新增回归测试 `test_guard_execute_shell_command_line_continuation_bypass_blocked`。验证：复刻 FileGuard 逻辑确认续行拆断路径修复前漏检、修复后命中、正常命令不受影响。
 - [说明] 按纪律未构建、未部署、未 push（等用户「测一下」统一 rebuild / 用户本机 push）。I-043。
+
+## 阶段 6.aq · ReMe 模型注入健壮性加固：失败不再拖垮 start()（2026-09-08）
+
+_背景：用户复盘 QwenPaw v2.2.0 改动时提出 #7468「start ReMe before model configuration」值得参考。hanbao 现状与上游 v2.0.1 逐行一致——`start()` 先 `_update_hanbao_model()`（内部 `update_component("as_llm","default",model=...)`）再 `reme.start()`，与 #7468 的修复方向（先 start 再配模型）相反。经源码核查 + 容器内实测，判定 **#7468 本身不移植**，仅吸收其暴露的健壮性问题做本地加固。_
+
+- 【评估结论 · #7468 不移植】在 hanbao 锁定的 `reme-ai==0.4.1.3` 上实测（运行中的 `hanbao` 容器内 `docker exec` 读源码 + 最小 repro，临时 workspace 置于 `/tmp`，不碰数据卷）：① `reme/application.py:41` `Application.__init__` 即调 `_init_components()`，构造后 `components[as_llm]['default']` 已存在；② `start()` → `_start()` 只遍历已有组件调 `c.start()`，**不重新实例化**，注入不会被覆盖；③ `update_component()` 仅 `setattr` 已有组件，**不校验 `is_started`**，仅组件缺失时抛 `KeyError`。repro 实测 `is_started=False` 时注入成功、`comp.model is m` 为 True。故「前置注入被忽略 → `as_llm` 滞留占位符 `hanbao-injected` → `auto_memory`/`auto_dream` 静默失败」的假设**在本版 reme 上不成立**；且组件在自身 `start()` 时才读取 `self.model`，**先注入再 start 才是正确顺序**，若按 #7468 改为先 start 后注入，组件反而可能已用空 api_key 的占位符完成初始化。另注：`_run_reme_job` 在每次 `needs_llm` 任务前会再注入一次（已启动态），手动类任务另有兜底。
+- [修改] `src/hanbao/agents/memory/reme_light_memory_manager.py` — `start()` 中原先裸调用 `await self._update_hanbao_model()` 位于 `try` 之外，一旦 `create_model_and_formatter()` 抛异常（模型未配置 / 配置损坏 / provider 不可达），整个 `start()` 随即抛出，ReMe 记忆全线起不来。现将其包入独立 `try/except`：**保留「先注入再 start」的顺序语义**，仅让注入失败降级为 `logger.warning` 并继续启动（ReMe 以占位符组件起来，后续 `_run_reme_job` 在每次 LLM 任务前重试注入）。这是健壮性加固，**不是移植 #7468 的顺序改动**。
+- [验证] `py_compile` 通过；`git diff` 确认仅此一处改动（+17/-1），未触碰 `_run_reme_job` 的既有重试路径。
+- [合规] 改动带 `[hanbao modification]`；`LICENSE`/`NOTICE`/红线文档零碰触；品牌面零改动；`online.svg` 零碰触。
+- [说明] 按纪律未构建、未部署、未 push（等用户「测一下」统一 rebuild / 用户本机 push）。I-044。

@@ -306,7 +306,23 @@ class ReMeLightMemoryManager(BaseMemoryManager):
         if self._reme is None:
             return
 
-        await self._update_hanbao_model()
+        try:
+            # [hanbao modification] I-044 — the model must be injected
+            # *before* ReMe starts: components read ``self.model`` during
+            # their own start, so injecting afterwards would leave them bound
+            # to the ``hanbao-injected`` placeholder.  Verified against
+            # reme-ai 0.4.1.3: ``update_component`` only setattrs an existing
+            # component and never checks ``is_started``, so pre-start
+            # injection works.  A failure here must not abort startup — ReMe
+            # still comes up and ``_run_reme_job`` retries the injection
+            # before every LLM-backed job.
+            await self._update_hanbao_model()
+        except Exception:
+            logger.warning(
+                "ReMe model injection failed; starting with the placeholder "
+                "LLM component",
+                exc_info=True,
+            )
         try:
             await self._reme.start()
             logger.info(

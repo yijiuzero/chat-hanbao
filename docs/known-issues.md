@@ -1256,3 +1256,22 @@ I-038 审计聚焦 `website/src` 代码/文案层，`website/public/docs/*.md`�
 ### 验收
 - RAG：建索引 + 检索冒烟通过（CJK+BM25），无网络调用。
 - fnOS：未配置时 `search_fnos_media` 返回降级提示（已验证）；配置/媒体接口受 auth 保护。
+
+---
+
+### I-044 · ReMe 模型注入失败时的降级行为（2026-09-08）
+
+**严重度**：🟢 低 &nbsp;|&nbsp; **状态**：🟢 已记录（降级路径已加固，优于原「整体崩溃」） &nbsp;|&nbsp; **必须处理时机**：飞牛真机分发前（仅需在文档/运维上知情）
+
+### 现象 / 限制
+1. **注入失败不再阻塞启动**：`create_model_and_formatter()` 抛异常（模型未配置 / 配置损坏 / provider 不可达）时，`ReMeLightMemoryManager.start()` 现降级为一条 `warning` 日志并继续 `reme.start()`，ReMe 会以占位符组件（`hanbao-injected`、空 api_key）起来 —— 这是**有意设计**：保住记忆检索等非 LLM 能力，好过整个记忆模块起不来。
+2. **降级期间 LLM 类记忆任务不可用**：占位符组件无法真实调用模型，故 `auto_memory` / `auto_dream` / 摘要等 LLM 任务在注入成功前会失败。恢复路径依赖 `_run_reme_job`（每次 `needs_llm` 任务前重试注入）；ReMe 内部自行调度的 `auto_*` 定时任务不经过该包装，需等下一次注入成功或重启。
+3. **日志是唯一信号**：降级仅写 `warning`（`ReMe model injection failed; starting with the placeholder LLM component`），不会在前端报错。排查记忆「写不进去」时须先看这条日志。
+
+### 处理方案
+- 保留「先注入模型、再 `reme.start()`」的顺序（在 `reme-ai==0.4.1.3` 上经实测为正确顺序，详见 `CHANGES-FROM-UPSTREAM.md` 阶段 6.aq），仅把注入调用包入独立 `try/except` 切断崩溃面。
+- 不移植上游 #7468「先 start 再配模型」的顺序改动 —— 实测表明该改动针对的「前置注入被忽略」问题在本版 reme 上不成立，反向改动反而可能让组件用占位符完成初始化。
+
+### 验收
+- `py_compile` 通过；改动仅限 `start()` 一处（+17/-1），未动 `_run_reme_job` 的既有重试路径。
+- 正常路径（模型可用）行为不变：仍在组件 start 前完成注入。
