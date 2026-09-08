@@ -16,7 +16,7 @@
   "hero": {
     "titleleft": "欢迎使用你的",
     "titleright": "专业AI助手",
-    "slogan": "懂你所需，伴你左右",
+    "slogan": "记得日常，守在身边",
     "sub": "{{version}} 五大方面能力升级：",
     "sub1": "为 Hanbao 量身定制的 Agent OS, TUI, 循环工程, 滚动上下文, 新版 ReMe",
     "releaseNote": "Hanbao {{version}}版本全新发布",
@@ -33,7 +33,7 @@
     "titleBefore": "欢迎使用",
     "titleEmphasis": "Hanbao",
     "titleAfter": "，",
-    "titleLine2": "懂你所需，伴你左右",
+    "titleLine2": "记得日常，守在身边",
     "downloadFromGithub": "前往 GitHub 下载"
   },
   "whyHanbao": {
@@ -41,10 +41,10 @@
     "headingEmphasis": "Hanbao?",
     "sub": "安装简单，可部署在本机或云端；\n支持多种 IM 应用；能力可轻松扩展。",
     "heroLine": "Hanbao 既是你的个人智能体工作台，也寓意一份有温度的数码陪伴。",
-    "secondPrefix": "我们希望它不是冰冷的工具，而是一只随时准备帮忙的智慧、温暖“小爪子”，是你数字生活中最默契的伙伴。"
+    "secondPrefix": "我们希望它不是冰冷的工具，而是一个随时准备帮忙的智慧、温暖“小帮手”，是你数字生活中最默契的伙伴。"
   },
   "worksForYou": {
-    "title": "懂你所需，伴你左右",
+    "title": "记得日常，守在身边",
     "sub": "记忆与个性化由你掌控。",
     "learnMore": "了解更多",
     "cards": {
@@ -203,7 +203,7 @@
     "noteLine2Prefix": "数据来源于"
   },
   "footer": {
-    "text": "Hanbao — 懂你所需，伴你左右",
+    "text": "Hanbao — 记得日常，守在身边",
     "sections": {
       "builtBy": "生态",
       "resources": "资源",

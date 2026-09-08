@@ -16,7 +16,7 @@
   "hero": {
     "titleleft": "Your Personal",
     "titleright": "AI assistant",
-    "slogan": "Works for you, grows with you",
+    "slogan": "Remembers your days, stays by your side",
     "sub": "{{version}}: Hanbao custom Agent OS, Loop Engineering, Scroll Context, ReMe v0.4,",
     "sub1": "and TUI — all upgraded, all yours.",
     "releaseNote": "Hanbao {{version}} is released",
@@ -30,10 +30,10 @@
     "sub": "10+ built-in channels, with more coming soon"
   },
   "finalCta": {
-    "titleBefore": "Get your",
-    "titleEmphasis": "paws up now",
-    "titleAfter": ",",
-    "titleLine2": "power your dev life.",
+    "titleBefore": "Bring",
+    "titleEmphasis": "hanbao",
+    "titleAfter": " home —",
+    "titleLine2": "it remembers your days, stays by your side.",
     "downloadFromGithub": "Download from GitHub"
   },
   "whyHanbao": {
@@ -44,7 +44,7 @@
     "secondPrefix": "We hope it will be more than just a tool — but a smart, warm little \"paw\" that’s always ready to help, and the most intuitive companion in your digital life."
   },
   "worksForYou": {
-    "title": "Works for you, grows with you",
+    "title": "Remembers your days, stays by your side",
     "sub": "Memory and personalization under your control.",
     "learnMore": "Learn more",
     "cards": {
@@ -203,7 +203,7 @@
     "noteLine2Prefix": "The data comes from all pull requests from"
   },
   "footer": {
-    "text": "Hanbao — Works for you, grows with you",
+    "text": "Hanbao — Remembers your days, stays by your side",
     "sections": {
       "builtBy": "Built by",
       "resources": "Resources",

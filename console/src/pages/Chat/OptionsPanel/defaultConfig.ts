@@ -21,7 +21,7 @@ const defaultConfig = {
     longTextUpload: {
       enabled: true,
     },
-    disclaimer: "Works for you, grows with you",
+    disclaimer: "Remembers your days, stays by your side",
   },
   welcome: {
     greeting: "Hi, I'm hanbao.",

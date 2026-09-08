@@ -1272,3 +1272,16 @@ _背景：用户复盘 QwenPaw v2.2.0 改动时提出 #7468「start ReMe before 
 - [验证] `py_compile` 通过；`git diff` 确认仅此一处改动（+17/-1），未触碰 `_run_reme_job` 的既有重试路径。
 - [合规] 改动带 `[hanbao modification]`；`LICENSE`/`NOTICE`/红线文档零碰触；品牌面零改动；`online.svg` 零碰触。
 - [说明] 按纪律未构建、未部署、未 push（等用户「测一下」统一 rebuild / 用户本机 push）。I-044。
+
+## 阶段 6.ar · 品牌宣传语去 QwenPaw 化（2026-09-08）
+
+_背景：用户指出 console 欢迎区 `disclaimer` 的「懂你所需，伴你左右」是**上游 QwenPaw 的宣传语**（英文 "Works for you, grows with you"），要求改为适配 hanbao 的文案，并彻查同类残留。经全仓检索，该宣传语共散落 **14 处**（中 7 / 英 7），另发现两处 QwenPaw「爪子」品牌梗（英文 `paws up now`、中文"小爪子"），一并处理。_
+
+- [替换] **新宣传语**：中文「**记得日常，守在身边**」/ 英文 "**Remembers your days, stays by your side**"。选型理由：①八字对仗，与原句节奏一致，替换后无排版/截断风险；②点出 hanbao 的两大卖点——记忆（ReMe）与陪伴，与 console `greeting`/`description`（"住在你身边的智能伙伴——记得你的日常与喜好"）呼应；③不含任何术语红线词（本地部署 / 本地大模型 / 私有化大模型 / 不联网也能用）；④不含风格词（水墨 / 文人），符合品牌铁律；⑤用户可见面只显 hanbao，无中文名「函包」。
+- [修改 · 宣传语 14 处]
+  - console（3）：`console/src/locales/zh.json` `disclaimer`、`console/src/locales/en.json` `disclaimer`、`console/src/pages/Chat/OptionsPanel/defaultConfig.ts` `disclaimer`（**硬编码英文默认值**，与 en.json 重复，易漏改）。
+  - website（11）：`website/src/config.ts` 与 `website/public/site.config.json` 的 `projectTaglineEn` / `projectTaglineZh`；`website/src/i18n/locales/{zh,en}.json` 的 `hero.slogan`、`finalCta.titleLine2`、`worksForYou.title`、`footer.text`（其中 `footer.text` 形态为 `Hanbao — <slogan>`）。
+- [修改 · 爪子品牌梗 2 处] `website/src/i18n/locales/en.json` `finalCta` 原句为 `Get your` + `paws up now` + `,` + `power your dev life.`（"paws" = QwenPaw 品牌梗，"dev life" 为开发者向，与 hanbao 家庭用户定位不符）→ 改为 `Bring` + `hanbao` + ` home —` + `it remembers your days, stays by your side.`；`website/src/i18n/locales/zh.json` `whyHanbao.secondPrefix` 的"一只……智慧、温暖**小爪子**" → "一个……**小帮手**"（量词同步 一只→一个）。
+- [验证] 全仓 `grep` 旧串（`懂你所需`/`伴你左右`/`Works for you`/`grows with you`/`paws`/`小爪子`/`power your dev life`）**零残留**；5 个 JSON（`console` 双语 + `website` 双语 + `site.config.json`）`json.load` 全部通过；`npx tsc -b` 退出码 0。
+- [合规] 仅改用户展示文案；`LICENSE`/`NOTICE`/红线文档零碰触；`online.svg` 零碰触；新文案不宣称本地推理，不涉及合规风险。
+- [说明] 按纪律未构建、未部署、未 push（等用户「测一下」统一 rebuild / 用户本机 push）。I-045。

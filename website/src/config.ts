@@ -15,8 +15,8 @@ export interface SiteConfig {
 
 export const defaultConfig: SiteConfig = {
   projectName: "Hanbao",
-  projectTaglineEn: "Works for you, grows with you",
-  projectTaglineZh: "懂你所需，伴你左右",
+  projectTaglineEn: "Remembers your days, stays by your side",
+  projectTaglineZh: "记得日常，守在身边",
   // [hanbao modification] repoUrl now points to the hanbao fork, not upstream.
   repoUrl: "https://github.com/yijiuzero/chat-hanbao",
   docsPath: "/docs/",
