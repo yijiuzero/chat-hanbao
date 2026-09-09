@@ -1293,3 +1293,19 @@ I-038 审计聚焦 `website/src` 代码/文案层，`website/public/docs/*.md`�
 
 ### 验收
 - `py_compile` 通过；`git grep adbpg` 零残留；locale 仅删孤儿键（无任何 tsx 引用）。
+
+### I-048 · 移除知识库(RAG)与飞牛联动功能（2026-09-09）
+
+**严重度**：🟢 低 &nbsp;|&nbsp; **状态**：🟢 已落地 &nbsp;|&nbsp; **必须处理时机**：无（设计决策）
+
+### 现象 / 限制
+1. **知识库（RAG）已移除**：家庭本地 BM25+CJK 知识库整包删除（rag 包 + knowledge_search 工具 + knowledge router + 前端页面）。
+2. **飞牛联动已移除**：fnOS 本地适配器整包删除（fnos 包 + fnos_media 工具 + fnos router + 前端页面）。
+3. 两者均为 stage 6.am 新增、用户判定「用不到」的功能；依赖分析确认零悬空引用后整包砍。
+
+### 处理方案
+- 聊天主链路（ReMe 记忆、各基础工具、8 渠道）不受影响；`memory_admin` 记忆面板链路保留。
+- 若日后需要本地知识检索或 NAS 媒体联动，可重新实现（建议做成可开关、数据不出 NAS）。
+
+### 验收
+- `py_compile` 通过；`git grep` 对知识库/飞牛相关标识符零代码残留；zh/en locale `json.load` 合法。

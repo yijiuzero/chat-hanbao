@@ -1317,3 +1317,21 @@ _背景：用户选 B 方案——保留「ReMe 自动记忆 + 记忆档案可�
 - [验证] `git grep adbpg` 全仓零残留；改动 py 文件 `py_compile` 全部通过；locale 仅删孤儿键。
 - [合规] reindex 端点带 `[hanbao modification]`；`LICENSE`/`NOTICE`/红线文档零碰触；`online.svg` 零碰触。
 - [说明] 按纪律未构建、未部署、未 push（等用户「测一下」统一 rebuild / 用户本机 push）。I-047。
+
+## 阶段 6.au · 移除知识库（RAG）与飞牛联动功能（2026-09-09）
+
+_背景：用户定位 hanbao 为「简单聊天 agent」，知识库（家庭本地 RAG，纯 Python BM25+CJK 分词）与飞牛联动（fnOS 本地适配器）两个 stage 6.am 新增功能均用不到，要求整包砍。经依赖分析确认零悬空：rag 包仅被 knowledge_search.py + knowledge.py 引用，fnos 包仅被 fnos_media.py + fnos.py 引用；两工具 search_knowledge / search_fnos_media 仅在自身注册处出现，无任何默认工具列表/白名单/yaml/config.py 引用；主 config.py 无 knowledge/fnos 字段；测试与 tool_guard 白名单零引用。_
+
+- [删除] `src/hanbao/rag/`（7 文件：`__init__`/`config`/`service`/`store`/`bm25`/`extract`/`tokenizer`）— 本地知识库 RAG 引擎（纯 BM25+CJK，数据不出 NAS）。
+- [删除] `src/hanbao/fnos/`（3 文件：`__init__`/`config`/`client`）— 飞牛 fnOS 本地联动适配器。
+- [删除] `src/hanbao/agents/tools/knowledge_search.py`（`search_knowledge` 工具）与 `src/hanbao/agents/tools/fnos_media.py`（`search_fnos_media` 工具）。
+- [删除] `src/hanbao/app/routers/knowledge.py` 与 `src/hanbao/app/routers/fnos.py` 两个 router。
+- [修改] `src/hanbao/agents/tools/__init__.py` — 移除 `knowledge_search`/`fnos_media` 两工具注册（保留 `[hanbao modification]` 注释块其余内容）。
+- [修改] `src/hanbao/app/routers/__init__.py` — 移除 `knowledge`/`fnos` router 的 import 与 `include_router`；保留 `memory_admin` router（6.am 记忆面板链路），注释收窄为「Memory panel router」。
+- [前端] `console/src/pages/Settings/Knowledge/`（index.tsx/useKnowledge.ts/index.module.less）、`Settings/Fnos/`（index.tsx/useFnos.ts/index.module.less）整目录删除；`console/src/api/modules/knowledge.ts`/`fnos.ts` 删除。
+- [前端] `console/src/layouts/registry/builtinMenu.ts` — 移除 `core.knowledge`/`core.fnos` 两个设置菜单项（保留 `SparkMagicWandLine`/`SparkLocalFileLine` 图标 import，其在其它菜单项仍使用）。
+- [前端] `console/src/layouts/registry/builtinRoutes.tsx` — 移除 KnowledgePage/FnOsPage 懒加载与 `/knowledge`/`/fnos` 两条路由（保留 MemoryPage）。
+- [前端] `console/src/locales/{zh,en}.json` — 删除 nav.knowledge/nav.fnos 与 knowledge/fnos 两个完整页面区块（含尾部逗号修正，保持合法 JSON）。
+- [验证] `git grep` 全仓对 `search_knowledge`/`search_fnos_media`/`knowledge_search`/`fnos_media`/`knowledge_router`/`fnos_router`/`KnowledgePage`/`FnOsPage`/`core.knowledge`/`core.fnos`/`nav.knowledge`/`nav.fnos`/`/knowledge`/`/fnos` 及 rag·fnos 模块引用 **零代码残留**（仅 `docs/CHANGES-FROM-UPSTREAM.md` 与 `known-issues.md` 的历史新增记录保留，属合规溯源）；改动 py 文件 `py_compile` 通过；zh/en locale `json.load` 合法。
+- [合规] 删除的是 hanbao 自身 stage 6.am 新增代码（本就带 `[hanbao modification]`），未触碰上游版权行；`LICENSE`/`NOTICE`/红线文档/`online.svg` 零碰触。
+- [说明] 按纪律未构建、未部署、未 push（等用户「测一下」统一 rebuild / 用户本机 push）。I-048。

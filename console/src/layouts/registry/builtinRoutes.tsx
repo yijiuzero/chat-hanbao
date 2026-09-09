@@ -30,8 +30,6 @@ const AgentStatsPage = lazyImportWithRetry("../../pages/Settings/AgentStats");
 const AgentsPage = lazyImportWithRetry("../../pages/Settings/Agents");
 const DebugPage = lazyImportWithRetry("../../pages/Settings/Debug");
 const MemoryPage = lazyImportWithRetry("../../pages/Settings/Memory");
-const KnowledgePage = lazyImportWithRetry("../../pages/Settings/Knowledge");
-const FnOsPage = lazyImportWithRetry("../../pages/Settings/Fnos");
 
 // ── Default redirect ────────────────────────────────────────────────
 
@@ -59,8 +57,6 @@ export const BUILTIN_ROUTES: Route[] = [
   { id: "core.agent-stats", path: "/agent-stats", component: AgentStatsPage },
   { id: "core.debug", path: "/debug", component: DebugPage },
   { id: "core.memory", path: "/memory", component: MemoryPage },
-  { id: "core.knowledge", path: "/knowledge", component: KnowledgePage },
-  { id: "core.fnos", path: "/fnos", component: FnOsPage },
 ];
 
 routeRegistry.addBuiltin(BUILTIN_ROUTES);

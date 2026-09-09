@@ -47,10 +47,6 @@ from .agent_management import (
     spawn_subagent,
 )
 from .make_skill_tools import materialize_skill
-# [hanbao modification] Local family knowledge base (RAG) — stage 6.am.
-from .knowledge_search import search_knowledge
-# [hanbao modification] fnOS (Feiniu NAS) integration — stage 6.am.
-from .fnos_media import search_fnos_media
 
 
 def discover_builtin_tool_funcs() -> list[Callable]:

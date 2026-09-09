@@ -210,24 +210,6 @@ export const BUILTIN_MENU: MenuItem[] = [
     route: "core.memory",
     order: 40,
   },
-  {
-    id: "core.knowledge",
-    location: "primary.settings",
-    parentId: "core.settings-group",
-    label: navLabel("nav.knowledge", "Knowledge Base"),
-    icon: SparkMagicWandLine,
-    route: "core.knowledge",
-    order: 50,
-  },
-  {
-    id: "core.fnos",
-    location: "primary.settings",
-    parentId: "core.settings-group",
-    label: navLabel("nav.fnos", "fnOS Integration"),
-    icon: SparkLocalFileLine,
-    route: "core.fnos",
-    order: 60,
-  },
 ];
 
 // Self-register at module load. main.tsx imports this file as a side-effect.
